@@ -18,10 +18,25 @@ function App() {
 
   const [classCS, setClass] = useState([]);
   const [classTA, setTA] = useState([]);
+  const [email, setEmail] = useState([]);
 
   useEffect(() => {
     setClass(classes);
   }, [])
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch('http://localhost:3001/', {mode:'cors'});
+        const data = await response.json();
+        console.log({ data })
+      }
+      catch (e) {
+        console.log(e)
+      }
+    };
+    fetchData();
+  }, []);
 
   const handleClass = (id) => {
       const dt = TAs.filter(x => x.classId === id);
@@ -58,6 +73,12 @@ function App() {
         :"No TA"
       }
       </select>
+      <br></br>
+      <div> email 
+        {
+          console.log(email)
+        }
+      </div>
     </div>
   );
 }

@@ -1,9 +1,16 @@
 const http = require('node:http');
 const {MongoClient} = require('mongodb');
 const express = require("express");
+const cors = require('cors');
 
 const app = express();
-const port = 3000;
+const corsOptions ={
+    origin:'http://localhost:3000', 
+    credentials:true,            //access-control-allow-credentials:true
+    optionSuccessStatus:200
+}
+app.use(cors(corsOptions));
+const port = 3001;
 
 const uri = "mongodb+srv://vhenrixon:QQVTMsoHD2EqzdoC@cluster0.ayl3tmp.mongodb.net/?retryWrites=true&w=majority";
 const client = new MongoClient(uri);
@@ -26,6 +33,7 @@ main().catch(console.error);
 
 
 app.get("/", function (req, res) {
+  res.set('Access-Control-Allow-Origin', '*');
   res.json(list);
 });
 
