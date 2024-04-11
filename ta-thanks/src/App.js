@@ -1,6 +1,7 @@
-import logo from './logo.svg';
 import './App.css';
 import { useEffect, useState } from 'react';
+
+
 
 function App() {
 
@@ -24,7 +25,7 @@ function App() {
           });
 
           setClass(allClasses);
-          setData(jsonData); // Save JSON data to state
+          setData(jsonData);
         }
       } catch (e) {
         console.log(e);
@@ -72,13 +73,16 @@ function App() {
   }
 
   return (
-    <div className="App">
-      <div style={{width: '100%', height: '100%', paddingTop: 12, paddingBottom: 13, paddingLeft: 111, paddingRight: 671, background: '#003057', justifyContent: 'flex-start', alignItems: 'center', display: 'inline-flex'}}>
-        <div style={{width: 741, height: 34, color: 'white', fontSize: 32, fontFamily: 'Helvetica', fontWeight: '400', wordWrap: 'break-word'}}>1 of 3: Select TA</div>
-      </div>
-      <div style={{color: '#333333', fontSize: 64, fontFamily: 'Helvetica', fontWeight: '400', wordWrap: 'break-word', marginTop: '20px'}}>Thank-a-Teacher</div>
 
-      <select id="ddlClasses" className='form-control select-class' onChange={(e) => handleClass(e.target.value)} style={{ marginBottom: '20px', marginTop: '90px' }}>
+    <div className="App">
+      <div className="header">
+        <div className="title">1 of 3: Select TA</div>
+      </div>
+      <h1 className="main-title">Thank-a-Teacher</h1>
+      <br></br>
+
+      <div className='select-wrapper'>
+      <select id="ddlClasses" className='form-control' onChange={(e) => handleClass(e.target.value)} style={{ marginBottom: '20px', marginTop: '20px' }}>
         <option value="0"> Select Class </option>
         {
           classCS && classCS !== undefined ?
@@ -87,8 +91,12 @@ function App() {
             }) : "No Class"
         }
       </select>
+      </div>
+
       <br></br>
-      <select id="ddlTAs" className='form-control select-class' onChange={(e) => handleTASelction(e.target.value)}>
+
+      <div className='select-wrapper'>
+      <select id="ddlTAs" className='form-control' onChange={(e) => handleTASelction(e.target.value)}>
         <option value="0"> Select TA </option>
         {
           classTA && classTA !== undefined ?
@@ -97,9 +105,22 @@ function App() {
             }) : "No TA"
         }
       </select>
+      </div>
+
       <br></br>
-      <div>
-        <h3>Email:</h3>
+
+      <div className='textBox'>
+      <input className="form-control" type="text" placeholder="Your Email" />
+      </div> 
+    
+      <br></br>
+      
+      <div className='textPadding'>
+      <button className='nextButton'> Next</button>
+      </div>
+
+      <div className='textPadding'>
+        <h3>Selected TA Email:</h3>
         {
           selectedTAEmail ? <div>{selectedTAEmail}</div> : <div>No email selected</div>
         }
