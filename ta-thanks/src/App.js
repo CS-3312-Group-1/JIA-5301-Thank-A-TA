@@ -1,14 +1,11 @@
 import './App.css';
 import { useEffect, useState } from 'react';
 
-
-
 function App() {
-
   const [classCS, setClass] = useState([]);
   const [classTA, setTA] = useState([]);
   const [email, setEmail] = useState([]);
-  const [data, setData] = useState(null); // State to hold the JSON data
+  const [data, setData] = useState(null);
   const [selectedTAEmail, setSelectedTAEmail] = useState('');
 
   useEffect(() => {
@@ -16,7 +13,6 @@ function App() {
       try {
         const response = await fetch('http://localhost:3001/', { mode: 'cors' });
         const jsonData = await response.json();
-        console.log({ jsonData });
 
         if (jsonData && jsonData["0"] && jsonData["0"].data) {
           const classesData = jsonData["0"].data;
@@ -73,57 +69,41 @@ function App() {
   }
 
   return (
-
     <div className="App">
       <div className="header">
         <div className="title">1 of 3: Select TA</div>
       </div>
       <h1 className="main-title">Thank-a-Teacher</h1>
-      <br></br>
 
-      <div className='select-wrapper'>
-      <select id="ddlClasses" className='form-control' onChange={(e) => handleClass(e.target.value)} style={{ marginBottom: '20px', marginTop: '20px' }}>
-        <option value="0"> Select Class </option>
-        {
-          classCS && classCS !== undefined ?
-            classCS.map((ctr, index) => {
-              return <option key={index} value={ctr.id}>{ctr.name}</option>
-            }) : "No Class"
-        }
-      </select>
+      <div className='select-wrapper textPadding'>
+        <select id="ddlClasses" className='form-control' onChange={(e) => handleClass(e.target.value)}>
+          <option value="0">Select Class</option>
+          {classCS && classCS !== undefined ? classCS.map((ctr, index) => {
+            return <option key={index} value={ctr.id}>{ctr.name}</option>
+          }) : "No Class"}
+        </select>
       </div>
 
-      <br></br>
-
-      <div className='select-wrapper'>
-      <select id="ddlTAs" className='form-control' onChange={(e) => handleTASelction(e.target.value)}>
-        <option value="0"> Select TA </option>
-        {
-          classTA && classTA !== undefined ?
-            classTA.map((ctr, index) => {
-              return <option key={index} value={ctr.id}>{ctr.name}</option>
-            }) : "No TA"
-        }
-      </select>
+      <div className='select-wrapper textPadding'>
+        <select id="ddlTAs" className='form-control' onChange={(e) => handleTASelction(e.target.value)}>
+          <option value="0">Select TA</option>
+          {classTA && classTA !== undefined ? classTA.map((ctr, index) => {
+            return <option key={index} value={ctr.id}>{ctr.name}</option>
+          }) : "No TA"}
+        </select>
       </div>
-
-      <br></br>
 
       <div className='textBox'>
-      <input className="form-control" type="text" placeholder="Your Email" />
-      </div> 
-    
-      <br></br>
-      
+        <input className="form-control" type="text" placeholder="Your Email" />
+      </div>
+
       <div className='textPadding'>
-      <button className='nextButton'> Next</button>
+        <button className='nextButton'>Next</button>
       </div>
 
       <div className='textPadding'>
         <h3>Selected TA Email:</h3>
-        {
-          selectedTAEmail ? <div>{selectedTAEmail}</div> : <div>No email selected</div>
-        }
+        {selectedTAEmail ? <div>{selectedTAEmail}</div> : <div>No email selected</div>}
       </div>
     </div>
   );
