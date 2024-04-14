@@ -4,18 +4,20 @@
   align-items: center;
   background-color: #FBFBFB;
   padding-bottom: 50px;
-  min-height: 100vh; /* Ensures the app takes at least the height of the viewport */
+  min-height: 100vh; 
 }
 
+/* Header that contains the step and home button */
 .header {
   width: 100%;
   height: 50px;
   background: #003057;
   display: flex;
   align-items: center;
-  justify-content: center; /* Center the title horizontally */
+  justify-content: center; 
 }
 
+/* Step text */
 .title {
   color: white;
   font-size: 24px;
@@ -23,14 +25,16 @@
   padding-right: 55%;
 }
 
+/* Thank-A-Teacher title */
 .main-title {
   color: #333333;
   font-size: 64px;
   font-family: Helvetica;
   font-weight: 400;
-  margin: 30px 0; /* Updated margin */
+  margin: 30px 0; 
 }
 
+/* Used to design the selection boxes */
 .form-control {
   width: 100%;
   max-width: 400px;
@@ -40,12 +44,14 @@
   color: #333333;
 }
 
+/* wrapper for the selction boxes so that they resize with the screen */
 .select-wrapper {
   width: 100%;
   max-width: 400px;
   margin-bottom: 20px;
 }
 
+/* adds a down arrow to our personalized selection boxes */
 .select-wrapper select {
   width: 100%;
   padding: 10px;
@@ -57,12 +63,14 @@
   color: #333333;
 }
 
+/* adds padding for the text box */
 .textBox {
   width: 100%;
   max-width: 400px;
   padding-top: 20px;
 }
 
+/* design for the next button */
 .nextButton {
   width: 80px;
   height: 38px;

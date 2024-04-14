@@ -8,6 +8,7 @@ function App() {
   const [data, setData] = useState(null);
   const [selectedTAEmail, setSelectedTAEmail] = useState('');
 
+  /* fetch data from database */
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -20,8 +21,8 @@ function App() {
             return { id: `${index + 1}`, name: className };
           });
 
-          setClass(allClasses);
-          setData(jsonData);
+          setClass(allClasses); // set class data from JSON
+          setData(jsonData); // set Data var to be parsed from later
         }
       } catch (e) {
         console.log(e);
@@ -31,6 +32,7 @@ function App() {
     fetchData();
   }, []);
 
+  /* Only populate select TA from current TAs in class */
   const handleClass = (id) => {
     if (id !== "0" && data) {
       const selectedClass = classCS.find(c => c.id === id);
@@ -55,6 +57,7 @@ function App() {
     }
   }
 
+  /* Set email var of selected TA */
   const handleTASelction = (id) => {
     if (id !== "0") {
       const selectedTA = classTA.find(ta => ta.id === id);
