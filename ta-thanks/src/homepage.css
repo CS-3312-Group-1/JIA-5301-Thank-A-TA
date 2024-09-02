@@ -1,0 +1,87 @@
+.App {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #FBFBFB;
+    padding-bottom: 50px;
+    min-height: 100vh; 
+}
+  
+/* Header that contains the step and home button */
+.header {
+    width: 100%;
+    height: 50px;
+    background: #003057;
+    display: flex;
+    align-items: center;
+    justify-content: center; 
+}
+  
+/* Step text */
+.title {
+    color: white;
+    font-size: 24px;
+    font-weight: 400;
+    padding-right: 55%;
+}
+  
+/* Container for the cards, using a grid layout with three columns */
+.cards-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); 
+    gap: 100px; 
+    justify-items: right center; 
+    padding: 20px;
+}
+
+/* General styling for each card */
+.card {
+    width: 100%;
+    height: 100%;
+    margin: 10px;
+    text-align: center;
+    background-size: cover;
+    background-position: center;
+}
+
+/* Styling for the card title */
+.card-title {
+    font-size: 20px;
+    text-align: left;
+    font-family: Helvetica;
+}
+
+/* Styling for the card images/templates */
+.card-image {
+    width: 100%;
+    height: 300px; 
+    background-position: center;
+    background-size: cover;
+}
+
+/* Card template 1 */
+.card-1 .card-image{
+    background-image: url('Assets/Card\ 1.png');
+}
+
+/* Card template 2 */
+.card-2 .card-image{
+    background-image: url('Assets/Card\ 2.png');
+}
+
+/* Card template 3 */
+.card-3 .card-image{
+    background-image: url('Assets/Card\ 3.png');
+}
+
+/* Card template 4 */
+.card-4 .card-image{
+    background-image: url('Assets/Card\ 4.png');
+}
+
+/* Card template 5 */
+.card-5 .card-image{
+    background-image: url('Assets/Card\ 5.png');
+}
+
+
