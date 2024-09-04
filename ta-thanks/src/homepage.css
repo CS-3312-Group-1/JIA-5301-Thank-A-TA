@@ -6,7 +6,7 @@
     padding-bottom: 50px;
     min-height: 100vh; 
 }
-  
+
 /* Header that contains the step and home button */
 .header {
     width: 100%;
@@ -108,5 +108,39 @@
 /* Card template 5 */
 .card-5 .card-image{
     background-image: url('Assets/Card\ 5.png');
+}
+
+
+/* Modal styles */
+.image-modal {
+    display: flex; /* Use flex, visibility is controlled via state */
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8); /* Black background with opacity */
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    max-width: 40%;
+    max-height: 90%;
+}
+
+.close-modal {
+    position: absolute;
+    top: 20px;
+    right: 35px;
+    color: #ffffff;
+    font-size: 40px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close-modal:hover {
+    color: #bbbbbb;
 }
 

@@ -1,9 +1,27 @@
 import React, { useState } from 'react';
-import { NavLink } from "react-router-dom";
 import './homepage.css';
+import { NavLink } from "react-router-dom";
 import { useNavigate } from 'react-router-dom';
+import card1Image from './Assets/Card 1.png'
+import card2Image from './Assets/Card 2.png'
+import card3Image from './Assets/Card 3.png'
+import card4Image from './Assets/Card 4.png'
+import card5Image from './Assets/Card 5.png'
 
 function Home() {
+  / State to manage modal visibility
+  const [isModalVisible, setModalVisible] = useState(false);
+  const [modalImageSrc, setModalImageSrc] = useState('');
+
+  const handleImageClick = (imageUrl) => {
+    setModalImageSrc(imageUrl);  // Set the image source
+    setModalVisible(true);       // Show the modal
+  };
+
+  const handleCloseModal = () => {
+    setModalVisible(false);      // Hide the modal
+  };
+  
   // State for managing the selected category
   const [selectedCategory, setSelectedCategory] = useState('All');
 
@@ -46,16 +64,38 @@ function Home() {
           <option value="Academic">Academic</option>
         </select>
       </div>
+      
 
       {/* Cards container */}
       <div className="cards-container">
-        {filteredCards.map(card => (
-          <div key={card.id} className={`card card-${card.id}`}>
-            <div className="card-image"></div>
-            <div className="card-title">{card.title}</div>
-          </div>
-        ))}
+        <div className="card card-1" onClick={() => handleImageClick(card1Image)}>
+          <div className="card-image"></div>
+          <div className="card-title">Confetti Fun</div> 
+        </div>
+        <div className="card card-2" onClick={() => handleImageClick(card2Image)}>
+          <div className="card-image"></div>
+          <div className="card-title">Georgia Tech Theme</div>
+        </div>
+        <div className="card card-3" onClick={() => handleImageClick(card3Image)}>
+          <div className="card-image"></div>
+          <div className="card-title">Computer Thanks</div>
+        </div>
+        <div className="card card-4" onClick={() => handleImageClick(card4Image)}>
+          <div className="card-image"></div>
+          <div className="card-title">Sunny Day</div>
+        </div>
+        <div className="card card-5" onClick={() => handleImageClick(card5Image)}>
+          <div className="card-image"></div>
+          <div className="card-title">1332 Thanks</div>
+        </div>
       </div>
+      {/* Modal for previewing images */}
+      {isModalVisible && (
+        <div id="image-modal" className="image-modal">
+          <span className="close-modal" onClick={handleCloseModal}>&times;</span>
+          <img id="modal-image" className="modal-content" src={modalImageSrc} alt="" />
+        </div>
+      )}
     </div>
   </div>
 
