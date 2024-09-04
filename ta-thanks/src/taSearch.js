@@ -103,7 +103,7 @@ function TaSearch() {
       </div>
 
       <div className='textPadding'>
-        <button className='nextButton'>Next</button>
+        <button onClick={() => navigate('search')} className='nextButton'>Next</button>
       </div>
 
       <div className='textPadding'>
