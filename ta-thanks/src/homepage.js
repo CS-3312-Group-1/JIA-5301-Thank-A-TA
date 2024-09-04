@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
+import { NavLink } from "react-router-dom";
 import './homepage.css';
+import { useNavigate } from 'react-router-dom';
 
-function App() {
+function Home() {
   // State for managing the selected category
   const [selectedCategory, setSelectedCategory] = useState('All');
 
@@ -18,11 +20,13 @@ function App() {
   const filteredCards = selectedCategory === 'All'
     ? cards
     : cards.filter(card => card.category === selectedCategory);
-
+  const navigate = useNavigate();
   return (
+    
     <div className="App">
       <div className="header">
         <div className="title">2 of 3: Select Card</div>
+        <div className="search"> <button onClick={() => navigate('search')} >Search</button> </div>
       </div>
 
       {/* Filter dropdown */}
@@ -54,4 +58,4 @@ function App() {
   );
 }
 
-export default App;
+export default Home;
