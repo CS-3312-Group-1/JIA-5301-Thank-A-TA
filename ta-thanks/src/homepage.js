@@ -26,7 +26,7 @@ function Home() {
     <div className="App">
       <div className="header">
         <div className="title">2 of 3: Select Card</div>
-        <div className="search"> <button onClick={() => navigate('search')} >Search</button> </div>
+        <div className="search"> <button onClick={() => navigate('/')} >Search</button> </div>
       </div>
 
       {/* Filter dropdown */}
