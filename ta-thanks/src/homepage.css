@@ -25,25 +25,47 @@
     padding-right: 55%;
 }
   
-/* Container for the cards, using a grid layout with three columns */
+/* Main content that holds the filter and cards */
+.main-content {
+    display: flex;
+    align-items: flex-start; /* Align items to the top */
+    justify-content: flex-start;
+    width: 100%;
+    padding: 20px;
+}
+
+/* Move filter dropdown to the left */
+.filter-container {
+    width: 200px;
+    margin-right: 20px; /* Add space between filter and cards */
+    background-color: #f1f1f1; /* Optional: Add background color to differentiate */
+    padding: 10px;
+    border-radius: 8px;
+}
+
+/* Adjust card container to take up remaining space, but constrain its max width */
 .cards-container {
+    flex-grow: 1; /* Cards container takes remaining space */
     display: grid;
     grid-template-columns: repeat(3, 1fr); /* Keep 3 columns per row */
     gap: 20px; /* Adjust gap as needed */
     justify-content: center;
     padding: 20px;
+    max-width: 800px; /* Constrain the maximum width of the card container */
 }
 
+/* Card styling */
 .card {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: space-between;
-    margin: 10px;
     text-align: center;
     background-size: cover;
     background-position: center;
     overflow: hidden; /* Ensure content doesn't overflow */
+    width: 100%; /* Ensure the cards maintain a set width */
+    max-width: 250px; /* Optional: Set a max width for the cards */
 }
 
 .card-image {
@@ -53,6 +75,7 @@
     background-size: cover;
     flex-shrink: 0; /* Prevent shrinking of the image */
 }
+
 
 .card-title {
     padding: 10px;
@@ -87,6 +110,7 @@
     background-image: url('Assets/Card\ 5.png');
 }
 
+
 /* Modal styles */
 .image-modal {
     display: flex; /* Use flex, visibility is controlled via state */
@@ -119,3 +143,4 @@
 .close-modal:hover {
     color: #bbbbbb;
 }
+

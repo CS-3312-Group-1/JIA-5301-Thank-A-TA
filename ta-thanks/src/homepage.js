@@ -42,11 +42,13 @@ function Home() {
   return (
     
     <div className="App">
-      <div className="header">
-        <div className="title">2 of 3: Select Card</div>
-        <div className="search"> <button onClick={() => navigate('/')} >Search</button> </div>
-      </div>
+    <div className="header">
+      <div className="title">2 of 3: Select Card</div>
+      <div className="search"><button onClick={() => navigate('/')}>Search</button></div>
+    </div>
 
+    {/* Main layout container */}
+    <div className="main-content">
       {/* Filter dropdown */}
       <div className="filter-container">
         <label>Filter by Category: </label>
@@ -95,6 +97,8 @@ function Home() {
         </div>
       )}
     </div>
+  </div>
+
   );
 }
 
