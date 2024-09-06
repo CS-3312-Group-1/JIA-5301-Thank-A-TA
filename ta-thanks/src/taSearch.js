@@ -76,7 +76,6 @@ function TaSearch() {
     <div className="App">
       <div className="header">
         <div className="title">1 of 3: Select TA</div>
-        <div className="Homebtn"><button onClick={() => navigate(-1)}>Back</button></div>
       </div>
       <h1 className="main-title">Thank-a-Teacher</h1>
 
