@@ -41,17 +41,8 @@
     background-color: #f1f1f1; /* Optional: Add background color to differentiate */
     padding: 10px;
     border-radius: 8px;
-}
-
-/* Adjust card container to take up remaining space, but constrain its max width */
-.cards-container {
-    flex-grow: 1; /* Cards container takes remaining space */
-    display: grid;
-    grid-template-columns: repeat(3, 1fr); /* Keep 3 columns per row */
-    gap: 20px; /* Adjust gap as needed */
-    justify-content: center;
-    padding: 20px;
-    max-width: 800px; /* Constrain the maximum width of the card container */
+    margin-top: 40px;
+    margin-left: 40px;
 }
 
 /* Card styling */
@@ -59,71 +50,92 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start; /* Align items to the top */
     text-align: center;
-    background-size: cover;
-    background-position: center;
-    overflow: hidden; /* Ensure content doesn't overflow */
-    width: 100%; /* Ensure the cards maintain a set width */
-    max-width: 250px; /* Optional: Set a max width for the cards */
+    background-color: #FBFBFB !important;
+    border: none !important;  /* Ensure no border around the card */
+    box-shadow: none; 
+    width: 100%; 
+    max-width: 200px;
+    padding-right: 0; /* Remove padding */
+    margin: 0;
 }
+
+/* Adjust card container to take up remaining space, but constrain its max width */
+.cards-container {
+    flex-grow: 1; 
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); 
+    gap: 5px;
+    grid-row-gap: 20px;
+    justify-content: center;
+    padding-left: 100px;
+    padding-top: 40px !important;
+    max-width: 1000px; /* Constrain the maximum width of the card container */
+    border: none !important;
+    background: transparent;
+}
+
 
 .card-image {
     width: 100%;
-    height: 200px; /* Set a fixed height */
-    background-position: center;
-    background-size: cover;
-    flex-shrink: 0; /* Prevent shrinking of the image */
+    height: 100%; /* Allocate full height to the image */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent; /* Ensure the background of the image container is transparent */
+    border: none !important; /* Remove any borders */
+    height: 260px;
 }
 
+.card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Ensures the image covers the entire container while maintaining its aspect ratio */
+    background: transparent; /* Make sure the image itself has no background color */
+    border: none !important; /* Ensure no border around the image */
+}
 
 .card-title {
-    padding: 10px;
-    font-size: 20px;
-    text-align: left;
-    font-family: Helvetica;
-}
-
-
-/* Card template 1 */
-.card-1 .card-image{
-    background-image: url('Assets/Card\ 1.png');
-}
-
-/* Card template 2 */
-.card-2 .card-image{
-    background-image: url('Assets/Card\ 2.png');
-}
-
-/* Card template 3 */
-.card-3 .card-image{
-    background-image: url('Assets/Card\ 3.png');
-}
-
-/* Card template 4 */
-.card-4 .card-image{
-    background-image: url('Assets/Card\ 4.png');
-}
-
-/* Card template 5 */
-.card-5 .card-image{
-    background-image: url('Assets/Card\ 5.png');
+    font-size: 18px;
+    font-family: Helvetica, Arial, sans-serif;
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background: transparent; 
+    margin-top: 10px;
+    border: none; /* Ensure no border around the title */
 }
 
 
 /* Modal styles */
 .image-modal {
-    display: flex; /* Use flex, visibility is controlled via state */
+    display: flex;
     position: fixed;
     z-index: 1000;
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.8); /* Black background with opacity */
+    background-color: rgba(0, 0, 0, 0.8);
     align-items: center;
     justify-content: center;
 }
+
+.search button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    margin-left: 200px;
+  }
+  
+  .search button img {
+    width: 24px; /* Adjust icon size as needed */
+    height: 24px; /* Adjust icon size as needed */
+  }
 
 .modal-content {
     max-width: 40%;
@@ -143,4 +155,3 @@
 .close-modal:hover {
     color: #bbbbbb;
 }
-
