@@ -74,8 +74,8 @@ function TaSearch() {
   const navigate = useNavigate();
   return (
     <div className="App">
-      <div className="header">
-        <div className="title">1 of 3: Select TA</div>
+      <div className="header-search">
+        <div className="title-search">1 of 3: Select TA</div>
       </div>
       <h1 className="main-title">Thank-a-Teacher</h1>
 
