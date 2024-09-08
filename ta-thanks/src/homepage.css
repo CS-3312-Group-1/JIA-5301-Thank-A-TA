@@ -35,18 +35,6 @@
     padding: 20px;
 }
 
-<<<<<<< Updated upstream
-/* Move filter dropdown to the left */
-.filter-container {
-    width: 200px;
-    margin-right: 20px; /* Add space between filter and cards */
-    background-color: #e1e1e1; /* Optional: Add background color to differentiate */
-    padding: 10px;
-    border-radius: 8px;
-    margin-top: 40px;
-    margin-left: 40px;
-}
-=======
 /* \\\\\\\\\\\\\\\\\ */
 /* PAGE STRUCTURE ENDS */
 /* \\\\\\\\\\\\\\\\\ */
@@ -54,7 +42,6 @@
 /* \\\\\\\\\\\\\\\\\ */
 /* CARD STYLING STARTS */
 /* \\\\\\\\\\\\\\\\\ */
->>>>>>> Stashed changes
 
 .card {
     display: flex;
