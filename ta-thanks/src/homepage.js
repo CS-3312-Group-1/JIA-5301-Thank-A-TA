@@ -67,6 +67,7 @@ function Home() {
           value={selectedCategory} 
           onChange={(e) => setSelectedCategory(e.target.value)}
         >
+          //All options for card categories
           <option value="All">All</option>
           <option value="Fun">Fun</option>
           <option value="Professional">Professional</option>
@@ -81,6 +82,7 @@ function Home() {
         <label>Filter by Color: </label>
         <div className="color-options">
           {colors.map((color, index) => (
+            //mapping arrow function in use here
             <div 
               key={index}
               className={`color-circle ${selectedColor === color ? 'selected' : ''} ${color.toLowerCase()}`} 
