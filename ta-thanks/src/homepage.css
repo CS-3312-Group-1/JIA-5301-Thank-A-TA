@@ -50,7 +50,7 @@
     justify-content: flex-start; /* Align items to the top */
     text-align: center;
     background-color: #FBFBFB !important;
-    border: none !important;  /* Ensure no border around the card */
+    border: none !important;  /* Ensures no border around the card */
     box-shadow: none; 
     width: 100%; 
     max-width: 200px;
