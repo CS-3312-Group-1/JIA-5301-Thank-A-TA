@@ -15,11 +15,11 @@ function Home() {
 
   const handleImageClick = (imageUrl) => {
     setModalImageSrc(imageUrl);  // Set the image source
-    setModalVisible(true);       // Show the modal
+    setModalVisible(true);       // Showing the modal
   };
 
   const handleCloseModal = () => {
-    setModalVisible(false);      // Hide the modal
+    setModalVisible(false);      // Hiding the modal
   };
   
   const [selectedCategory, setSelectedCategory] = useState('All');
