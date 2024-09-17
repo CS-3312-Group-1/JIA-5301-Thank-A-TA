@@ -23,7 +23,7 @@ function BasePage(){
                     <textarea id="message" placeholder="Enter your message here"></textarea>
 
                     <div class="controls">
-                        <a href="#" class="back-button">&larr;</a>
+                        <button onClick={() => navigate('/search')} href="#" class="back-button">&larr;</button>
                         <button class="send-button">Send Card</button>
                     </div>
                 </div>

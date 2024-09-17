@@ -126,6 +126,13 @@
     justify-content: center;
 }
 
+.image-modal button {
+    width: 100px;
+    height: 60px;
+    font-size:large;
+    align-items:flex-end;
+}
+
 .search button {
     background: none;
     border: none;
