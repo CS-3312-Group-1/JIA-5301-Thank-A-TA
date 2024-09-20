@@ -1,11 +1,18 @@
-import { useNavigate } from 'react-router-dom';
-import React, { useState } from "react";
+import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useState , useEffect} from "react";
 import "./basepage.css";
-import homeIcon from './Assets/Vector.png' 
+import homeIcon from './Assets/Vector.png';
+import emptyCard1 from './Assets/card1_Empty.png';
+import emptyCard2 from './Assets/card2_Empty.png';
+import emptyCard3 from './Assets/Card3_Empty.png';
+import emptyCard4 from './Assets/card4_Empty.png';
+import emptyCard5 from './Assets/card5_Empty.png';
 
 
 function BasePage(){
     const navigate = useNavigate();
+    const location = useLocation();
+    const { selectedCard } = location.state || {};  // Retrieve card data from the router state
     const [textSize, setTextSize] = useState(0);
     const increaseTextSize = () => {
         setTextSize(textSize + 1);
@@ -13,6 +20,13 @@ function BasePage(){
     const decreaseTextSize = () => {
         setTextSize(textSize - 1);
     };
+    const cards = [
+        emptyCard1,
+        emptyCard2,
+        emptyCard3,
+        emptyCard4,
+        emptyCard5
+    ];
     return (
         <><div class="blue-section">
             <p>3 of 3: Edit Card</p>
@@ -23,6 +37,7 @@ function BasePage(){
                 {/* <!-- Card Preview Section (Without the Thank You text) --> */}
                 <div class="card-preview">
                     {/* <!-- Card content can be inserted here if needed in the future --> */}
+                    <img src={cards[selectedCard - 1]} alt={''}></img>
                 </div>
 
                 {/* <!-- Message Box Section --> */}
