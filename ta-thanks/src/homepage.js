@@ -12,10 +12,12 @@ function Home() {
   // State to manage modal visibility
   const [isModalVisible, setModalVisible] = useState(false);
   const [modalImageSrc, setModalImageSrc] = useState('');
+  const [selectedCard, setSelectedCard] = useState(null);
 
-  const handleImageClick = (imageUrl) => {
+  const handleImageClick = (imageUrl,card) => {
     setModalImageSrc(imageUrl);  // Set the image source
     setModalVisible(true);       // Showing the modal
+    setSelectedCard(card)        // Storing the card from the modal
   };
 
   const handleCloseModal = () => {
@@ -105,7 +107,7 @@ function Home() {
     {/* Cards Section */}
     <div className="cards-container">
       {filteredCards.map(card => (
-        <div key={card.id} className={`card card-${card.id}`} onClick={() => handleImageClick(card.image)}>
+        <div key={card.id} className={`card card-${card.id}`} onClick={() => handleImageClick(card.image,card.id)}>
           <div className="card-image">
             <img src={card.image} alt={card.title} />
           </div>
@@ -119,7 +121,7 @@ function Home() {
       <div id="image-modal" className="image-modal">
         <span className="close-modal" onClick={handleCloseModal}>&times;</span>
         <img id="modal-image" className="modal-content" src={modalImageSrc} alt="" />
-        <button onClick={() => navigate('/Design')}>Start Designing!</button>
+        <button onClick={() => navigate('/Design', { state: { selectedCard}})}>Start Designing!</button>
       </div>
     )}
   </div>
