@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import React, { useState , useEffect} from "react";
+import React, { useState } from "react";
 import "./basepage.css";
 import homeIcon from './Assets/Vector.png';
 import emptyCard1 from './Assets/card1_Empty.png';
@@ -20,6 +20,15 @@ function BasePage(){
     const decreaseTextSize = () => {
         setTextSize(textSize - 1);
     };
+
+    const handleHomeClick = () => {
+        // Confirm if the user wants to discard their changes
+        const confirmDiscard = window.confirm("Are you sure you want to discard your changes and go to the home page?");
+        if (confirmDiscard) {
+            navigate('/');
+        }
+    };
+
     const cards = [
         emptyCard1,
         emptyCard2,
@@ -30,7 +39,7 @@ function BasePage(){
     return (
         <><div class="blue-section">
             <p>3 of 3: Edit Card</p>
-            <button onClick={() => navigate('/')}>
+            <button onClick={handleHomeClick}>
                  <img src={homeIcon} alt="Home" />
             </button>
         </div><div class="container">
