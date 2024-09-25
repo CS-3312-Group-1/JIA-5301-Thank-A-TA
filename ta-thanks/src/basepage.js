@@ -27,6 +27,14 @@ function BasePage() {
         }
     };
 
+    const handleHomeClick = () => {
+        // Confirm if the user wants to discard their changes
+        const confirmDiscard = window.confirm("Are you sure you want to discard your changes and go to the hoome page?");
+        if (confirmDiscard) {
+            navigate('/');
+        };
+    };
+
     const handleAddTextBox = () => {
         if (text) {
             setTextBoxes([...textBoxes, { id: textBoxes.length + 1, content: text }]);
@@ -46,7 +54,7 @@ function BasePage() {
         <>
             <div className="blue-section">
                 <p>3 of 3: Edit Card</p>
-                <button onClick={() => navigate('/')}>
+                <button onClick={handleHomeClick}>
                     <img src={homeIcon} alt="Home" />
                 </button>
             </div>
