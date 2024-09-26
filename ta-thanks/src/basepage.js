@@ -29,10 +29,10 @@ function BasePage() {
 
     const handleHomeClick = () => {
         // Confirm if the user wants to discard their changes
-        const confirmDiscard = window.confirm("Are you sure you want to discard your changes and go to the hoome page?");
+        const confirmDiscard = window.confirm("Are you sure you want to discard your changes and go to the home page?");
         if (confirmDiscard) {
             navigate('/');
-        };
+        }
     };
 
     const handleAddTextBox = () => {
@@ -60,18 +60,29 @@ function BasePage() {
             </div>
             <div className="container">
                 {/* Card Preview Section */}
-                <div className="card-preview">
-                    <img src={cards[selectedCard - 1]} alt="Selected card" />
-                    {textBoxes.map((box) => (
-                        <Draggable key={box.id}>
-                            <div 
-                                className="draggable-text"
-                                style={{ fontSize: `${textSize}px`, cursor: 'move', color: 'black' }}
+                <div className="card-preview-container"> {/* Wrap the card in a bounding container */}
+                    <div className="card-preview">
+                        <img src={cards[selectedCard - 1]} alt="Selected card" />
+                        {textBoxes.map((box) => (
+                            <Draggable
+                                key={box.id}
+                                bounds="parent"  // Restrict movement within parent container
                             >
-                                {box.content}
-                            </div>
-                        </Draggable>
-                    ))}
+                                <div 
+                                    className="draggable-text"
+                                    style={{ 
+                                        fontSize: `${textSize}px`, 
+                                        cursor: 'move', 
+                                        background: 'transparent',  // Remove background to avoid green box
+                                        color: 'black',
+                                        whiteSpace: 'nowrap', // Prevent wrapping
+                                    }}
+                                >
+                                    {box.content}
+                                </div>
+                            </Draggable>
+                        ))}
+                    </div>
                 </div>
 
                 {/* Message Box Section */}
@@ -102,5 +113,3 @@ function BasePage() {
 }
 
 export default BasePage;
-
-
