@@ -6,13 +6,13 @@ body {
 }
 
 .home-icon {
-     position: absolute;
-     top: 20px;
-     right: 20px;
-     width: 40px;
-     height: 40px;
-     cursor: pointer;
- }
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+}
 
 .container {
     display: flex;
@@ -28,28 +28,37 @@ body {
     display: flex;
     align-items: center;
     justify-content: center; 
- }
+}
 
- .blue-section p {
+.blue-section p {
     color: white;
     font-size: 24px;
     font-weight: 400;
     padding-right: 1000px;
     padding-top: 18px;
- }
+}
 
- .blue-section button {
+.blue-section button {
     background: none;
     border: none;
     cursor: pointer;
     padding: 0;
-    cursor: pointer;
- }
+}
 
- .blue-section img {
+.blue-section img {
     width: 24px; 
     height: 24px;
- }
+}
+
+/* Card Preview Section */
+.card-preview-container {
+    position: relative; /* Important for draggable bounds */
+    width: 300px;  /* Match the width of the card */
+    height: 500px; /* Match the height of the card */
+    border: 1px solid #ddd; /* Optional border for card container */
+    overflow: hidden; /* Ensure draggable items do not leave the card */
+    margin-right: 20px; /* Adjust spacing between card and message box */
+}
 
 .card-preview {
     width: 300px;
@@ -67,6 +76,19 @@ body {
 .card-preview img {
     width: 300px;
     height: 600px;
+}
+
+/* Draggable Text */
+.draggable-text {
+    position: absolute;
+    padding: 5px;
+    border: 1px dashed #aaa;
+    border-radius: 3px;
+    max-width: 100%; /* Prevent text from overflowing the card's width */
+    background-color: transparent; /* Ensure no background color */
+    color: black;
+    white-space: nowrap; /* Prevent wrapping of text */
+    cursor: move; /* Indicate draggable element */
 }
 
 .message-box-container {
