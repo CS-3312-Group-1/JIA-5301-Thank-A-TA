@@ -121,7 +121,7 @@ function Home() {
       <div id="image-modal" className="image-modal">
         <span className="close-modal" onClick={handleCloseModal}>&times;</span>
         <img id="modal-image" className="modal-content" src={modalImageSrc} alt="" />
-        <button className="start-designing-button" onClick={() => navigate('/Design', { state: { selectedCard}})}>Start Designing!</button>
+        <button className="start-designing-button" onClick={() => navigate('/Design', { state: { selectedCard}})}>Select Card</button>
       </div>
     )}
   </div>
