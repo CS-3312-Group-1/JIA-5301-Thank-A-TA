@@ -57,6 +57,12 @@
     padding-right: 0; /* Remove padding */
     margin: 0;
     cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease; 
+}
+
+.card:hover {
+  transform: translateY(-10px) scale(1.05); 
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); 
 }
 
 .cards-container {
@@ -273,7 +279,12 @@
     border-radius: 50%;
     cursor: pointer;
     border: 2px solid transparent;
-    transition: border-color 0.3s;
+    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smooth transition for hover effects */
+}
+
+.color-circle:hover {
+  transform: translateY(-5px) scale(1.1); /* Lifts and scales the circle slightly on hover */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Adds a shadow to enhance the lifted effect */
 }
   
 .color-circle.selected {
