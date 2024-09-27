@@ -3,7 +3,24 @@
 Team 4115
 This application allows for undergraduate students to send thank you cards to TAs in the College of Computing.
 
-# Release Notes - Version 0.1.0
+# Release Notes 
+# Version 0.2.0
+### New Features
+- Created a base page for card editing that contains the selected card.
+- Added movable and interactive text boxes for cards.
+- Imported base cards without hardcoded text.
+- Created a button for changing the color of text.
+- Created a button for changing the size of text.
+- Added navigation from the card homepage to the design page.
+- Added navigation and a popup for students to discard the current card.
+- Final styling changes for the card homepage to enhance the overall look and feel of the card selection and editing process.
+### Bug Fixes
+- Addressed several styling and interactive bugs to ensure a smoother and more intuitive card customization experience.
+- Improved the stability of the navigation system to minimize delays when moving between pages.
+### Known Bugs
+- Card templates temporarily flickers and takes some time to load in when quickly swapping between pages. 
+  
+# Version 0.1.0
 ### New Features
 - Created 5 card templates to give users more choices when sending thank you cards.
 - Created a catalog page that will house the various card templates.
