@@ -172,27 +172,28 @@
 }
 
 .start-designing-button {
-  padding: 10px;
+  padding: 15px 80px;
   background-color: #003057; 
   color: #ffffff;
   border: none;
-  border-radius: 50%; 
+  border-radius: 10px; 
   font-size: 14px;
   font-weight: bold;
   cursor: pointer;
   transition: background-color 0.3s, transform 0.2s;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); 
-  width: 50px; 
-  height: 50px; 
+  white-space: nowrap;
+  position: fixed;
+  bottom: 40px;
+  right: 50px;
+
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: 20px; 
 }
 
 .start-designing-button:hover {
   background-color: #002244; 
-  transform: translateY(-3px); 
+  transform: translateY(-2px); 
 }
 
 /* \\\\\\\\\\\\\\\\\ */
