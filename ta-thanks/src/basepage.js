@@ -13,22 +13,13 @@ function BasePage() {
     const navigate = useNavigate();
     const location = useLocation();
     const { selectedCard } = location.state || {};  // Retrieve card data from the router state
-    const [textSize, setTextSize] = useState(20); // Set default text size to 20
     const [text, setText] = useState(''); // State to store the user's message
     const [textBoxes, setTextBoxes] = useState([]); // Store multiple draggable text boxes
-
-    const increaseTextSize = () => {
-        setTextSize(textSize + 1);
-    };
-
-    const decreaseTextSize = () => {
-        if (textSize > 1) {
-            setTextSize(textSize - 1); // Prevent text size from becoming too small
-        }
-    };
+    const [selectedBoxId, setSelectedBoxId] = useState(null); // Track the currently selected text box
+    const [previewTextSize, setPreviewTextSize] = useState(20); // Manage preview text size for new text boxes
+    const [textColor, setTextColor] = useState('#000000'); // Set default text color to black
 
     const handleHomeClick = () => {
-        // Confirm if the user wants to discard their changes
         const confirmDiscard = window.confirm("Are you sure you want to discard your changes and go to the home page?");
         if (confirmDiscard) {
             navigate('/');
@@ -37,8 +28,50 @@ function BasePage() {
 
     const handleAddTextBox = () => {
         if (text) {
-            setTextBoxes([...textBoxes, { id: textBoxes.length + 1, content: text }]);
+            setTextBoxes([...textBoxes, { id: textBoxes.length + 1, content: text, color: textColor, textSize: previewTextSize }]);
             setText(''); // Reset the input box after adding
+            setPreviewTextSize(20); // Reset preview text size for next addition
+        }
+    };
+
+    const handleDeleteTextBox = () => {
+        if (selectedBoxId) {
+            setTextBoxes(textBoxes.filter(box => box.id !== selectedBoxId));
+            setSelectedBoxId(null); // Reset the selected box ID after deletion
+        }
+    };
+
+    const handleTextClick = (id) => {
+        setSelectedBoxId(id); // Set the selected box ID when a text box is clicked
+
+        // Update color and size for the selected box
+        const selectedBox = textBoxes.find(box => box.id === id);
+        if (selectedBox) {
+            setTextColor(selectedBox.color); // Set color to the selected box's color
+            setPreviewTextSize(selectedBox.textSize); // Set size to the selected box's size
+        }
+    };
+
+    const updateTextBoxProperties = (id, newColor, newSize) => {
+        setTextBoxes(textBoxes.map(box => 
+            box.id === id 
+                ? { ...box, color: newColor, textSize: newSize } 
+                : box
+        ));
+    };
+
+    const handleColorChange = (e) => {
+        setTextColor(e.target.value);
+        if (selectedBoxId) {
+            updateTextBoxProperties(selectedBoxId, e.target.value, previewTextSize);
+        }
+    };
+
+    const handleSizeChange = (increment) => {
+        const newSize = Math.max(previewTextSize + increment, 1); // Prevent size from going below 1
+        setPreviewTextSize(newSize);
+        if (selectedBoxId) {
+            updateTextBoxProperties(selectedBoxId, textColor, newSize);
         }
     };
 
@@ -60,51 +93,61 @@ function BasePage() {
             </div>
             <div className="container">
                 {/* Card Preview Section */}
-                <div className="card-preview-container"> {/* Wrap the card in a bounding container */}
+                <div className="card-preview-container">
                     <div className="card-preview">
                         <img src={cards[selectedCard - 1]} alt="Selected card" />
                         {textBoxes.map((box) => (
-                            <Draggable
-                                key={box.id}
-                                bounds="parent"  // Restrict movement within parent container
-                            >
-                                <div 
+                            <Draggable key={box.id} bounds="parent">
+                                <div
                                     className="draggable-text"
-                                    style={{ 
-                                        fontSize: `${textSize}px`, 
-                                        cursor: 'move', 
-                                        background: 'transparent',  // Remove background to avoid green box
-                                        color: 'black',
-                                        whiteSpace: 'nowrap', // Prevent wrapping
+                                    style={{
+                                        fontSize: `${box.textSize}px`,
+                                        color: box.color,
+                                        border: selectedBoxId === box.id ? '2px solid blue' : 'none' // Highlight selected box
                                     }}
+                                    onClick={() => handleTextClick(box.id)} // Select the text box on click
                                 >
                                     {box.content}
                                 </div>
                             </Draggable>
                         ))}
+                        {/* Live preview of the current input message before it's added */}
+                        {text && (
+                            <Draggable bounds="parent">
+                                <div className="draggable-text" style={{ fontSize: `${previewTextSize}px`, color: textColor }}>
+                                    {text}
+                                </div>
+                            </Draggable>
+                        )}
                     </div>
                 </div>
 
                 {/* Message Box Section */}
                 <div className="message-box-container">
                     <label htmlFor="message">Add a Message</label>
-                    <textarea
-                        id="message"
-                        placeholder="Enter your message here"
-                        value={text}
-                        onChange={(e) => setText(e.target.value)}  // Track message input
-                    />
+                    <textarea id="message" value={text} onChange={(e) => setText(e.target.value)} placeholder="Enter your message here" />
+                    
+                    <label htmlFor="color-picker">Text Color:</label>
+                    <input type="color" id="color-picker" value={textColor} onChange={handleColorChange} />
+
                     <div className="controls">
-                        <button onClick={decreaseTextSize}> - </button>
-                        <button onClick={increaseTextSize}> + </button>
-                        <p>{textSize}</p> {/* Display current text size */}
+                        <button onClick={() => handleSizeChange(-1)}>-</button>
+                        <button onClick={() => handleSizeChange(1)}>+</button>
+                        <p>{previewTextSize}px</p>
                     </div>
+
                     <div className="controls">
                         <button onClick={() => navigate('/search')} className="back-button">&larr;</button>
                         <button className="send-button">Send Card</button>
                     </div>
+
                     <button className="add-text-button" onClick={handleAddTextBox}>
                         Add Text to Card
+                    </button>
+
+                    {/* Delete Selected Text Button */}
+                    <button className="delete-text-button" onClick={handleDeleteTextBox} disabled={!selectedBoxId}>
+                        Delete Selected Text
                     </button>
                 </div>
             </div>
