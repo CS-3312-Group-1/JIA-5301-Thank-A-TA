@@ -95,10 +95,10 @@ function BasePage() {
                         onChange={(e) => setText(e.target.value)}  // Track message input
                     />
                     <div className="controls">
-                        <button onClick={decreaseTextSize}> - </button>
-                        <button onClick={increaseTextSize}> + </button>
-                        <p>{textSize}</p> {/* Display current text size */}
+                        <button className="decButton" onClick={decreaseTextSize}> - </button>
+                        <button className="decButton" onClick={increaseTextSize}> + </button>
                     </div>
+                    <p>Text Size: {textSize}</p> {/* Display current text size */}
                     <div className="controls">
                         <button onClick={() => navigate('/search')} className="back-button">&larr;</button>
                         <button className="send-button">Send Card</button>

@@ -154,7 +154,30 @@ body {
     text-align: center;
     text-decoration: none;
 }
-
+.decButton{
+    display: inline-block;
+    padding: 10px 15px;
+    margin: 10px 5px;
+    background-color: #003057;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;  
+}
+.add-text-button {
+    display: inline-block;
+    padding: 10px 15px;
+    margin: 10px 5px;
+    background-color: #003057;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none; 
+}
 .back-button:hover,
 .send-button:hover {
     background-color: #00203f;
