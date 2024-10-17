@@ -1,5 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import html2canvas from 'html2canvas';
 import Draggable from 'react-draggable';  // Import Draggable
 import "./basepage.css";
 import homeIcon from './Assets/Vector.png';
@@ -19,6 +20,25 @@ function BasePage() {
     const [previewTextSize, setPreviewTextSize] = useState(20); // Manage preview text size for new text boxes
     const [textColor, setTextColor] = useState('#000000'); // Set default text color to black
     const [textStyle, setTextStyle] = useState('Aboreto'); // New state for text style (font)
+
+    useEffect(() => {
+        // Function to handle clicks outside the text box
+        const handleClickOutside = (event) => {
+            // Check if the click is outside the card-preview-container
+            const cardPreview = document.querySelector('.card-preview-container');
+            if (cardPreview && !cardPreview.contains(event.target)) {
+                setSelectedBoxId(null); // Deselect text box
+            }
+        };
+    
+        // Add event listener for clicks on the document
+        document.addEventListener('mousedown', handleClickOutside);
+    
+        // Cleanup function to remove event listener when component unmounts
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
 
     const handleHomeClick = () => {
         const confirmDiscard = window.confirm("Are you sure you want to discard your changes and go to the home page?");
@@ -95,6 +115,25 @@ function BasePage() {
         setTextStyle('Aboreto');
     };
 
+    const handleExportCard = async () => {
+        // Select the card preview container (the div that wraps the card and text)
+        const cardPreview = document.querySelector('.card-preview-container');
+
+        if (cardPreview) {
+            // Capture the card preview as an image using html2canvas
+            html2canvas(cardPreview, { useCORS: true }).then((canvas) => {
+                // Convert the canvas to an image data URL
+                const imgData = canvas.toDataURL('image/png');
+
+                // Create a download link
+                const link = document.createElement('a');
+                link.href = imgData;
+                link.download = 'card.png';  // Set the filename for download
+                link.click();  // Trigger the download
+            });
+        }
+    };
+
     // Static Color Palette (Rainbow + Black, White, Brown)
     const colors = [
         '#FF0000', '#FFA500', '#FFFF00', '#008000', '#0000FF', 
@@ -122,23 +161,26 @@ function BasePage() {
                 <div className="card-preview-container">
                     <div className="card-preview">
                         <img src={cards[selectedCard - 1]} alt="Selected card" />
-                        {textBoxes.map((box) => (
-                            <Draggable key={box.id} bounds="parent">
+                        { textBoxes.map((box) => (
+                            <Draggable 
+                                key={box.id} 
+                                bounds="parent"
+                                onStart={() => handleTextClick(box.id)} // Add the blue outline when dragging starts
+                                onDrag={() => handleTextClick(box.id)}  // Keep the blue outline while dragging
+                            >
                                 <div
                                     className="draggable-text"
                                     style={{
                                         fontSize: `${box.textSize}px`,
                                         color: box.color,
-                                        fontFamily: box.fontStyle, // Set font style for the text box
-                                        border: selectedBoxId === box.id ? '2px solid blue' : 'none' // Highlight selected box
+                                        fontFamily: box.fontStyle,
+                                        border: selectedBoxId === box.id ? '2px solid blue' : 'none' // Show blue border when selected
                                     }}
-                                    onClick={() => handleTextClick(box.id)} // Select the text box on click
                                 >
                                     {box.content}
                                 </div>
                             </Draggable>
                         ))}
-                        {/* Live preview of the current input message before it's added */}
                         {text && (
                             <Draggable bounds="parent">
                                 <div className="draggable-text" style={{ fontSize: `${previewTextSize}px`, color: textColor, fontFamily: textStyle }}>
@@ -200,6 +242,7 @@ function BasePage() {
                     <div className="controls">
                         <button onClick={() => navigate('/search')} className="back-button">&larr;</button>
                         <button onClick={handleSendClick} className="send-button">Send Card</button>
+                        <button onClick={handleExportCard} className="export-button">Export Card</button> 
                     </div>
 
                     <button className="add-text-button" onClick={handleAddTextBox}>
