@@ -29,6 +29,10 @@ function BasePage() {
 
     const handleSendClick = () => {
         const confirmSend = window.confirm("Are you sure you would like to send this card?");
+        if (confirmSend) {
+            // Navigate to the SentPage to show the animation
+            navigate('/sent');
+        }
     };
 
     const handleAddTextBox = () => {
