@@ -99,7 +99,10 @@ function BasePage() {
                 });
 
           }
-
+        if (confirmSend) {
+          // Navigate to the SentPage to show the animation
+          navigate('/sent');
+        }
     };
 
     const handleAddTextBox = () => {
