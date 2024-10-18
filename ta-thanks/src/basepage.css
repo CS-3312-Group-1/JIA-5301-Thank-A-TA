@@ -168,7 +168,8 @@
 .back-button,
 .send-button,
 .add-text-button,
-.delete-text-button {
+.delete-text-button,
+.export-button {
     background-color: #003057;
     color: white;
     border: none;

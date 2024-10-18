@@ -1,5 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import html2canvas from 'html2canvas';
 import Draggable from 'react-draggable';  // Import Draggable
 import "./basepage.css";
 import homeIcon from './Assets/Vector.png';
@@ -8,6 +9,7 @@ import emptyCard2 from './Assets/card2_Empty.png';
 import emptyCard3 from './Assets/Card3_Empty.png';
 import emptyCard4 from './Assets/card4_Empty.png';
 import emptyCard5 from './Assets/card5_Empty.png';
+import emailjs from 'emailjs-com';
 
 function BasePage() {
     const navigate = useNavigate();
@@ -20,6 +22,25 @@ function BasePage() {
     const [textColor, setTextColor] = useState('#000000'); // Set default text color to black
     const [textStyle, setTextStyle] = useState('Aboreto'); // New state for text style (font)
 
+    useEffect(() => {
+        // Function to handle clicks outside the text box
+        const handleClickOutside = (event) => {
+            // Check if the click is outside the card-preview-container
+            const cardPreview = document.querySelector('.card-preview-container');
+            if (cardPreview && !cardPreview.contains(event.target)) {
+                setSelectedBoxId(null); // Deselect text box
+            }
+        };
+    
+        // Add event listener for clicks on the document
+        document.addEventListener('mousedown', handleClickOutside);
+    
+        // Cleanup function to remove event listener when component unmounts
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
+
     const handleHomeClick = () => {
         const confirmDiscard = window.confirm("Are you sure you want to discard your changes and go to the home page?");
         if (confirmDiscard) {
@@ -27,11 +48,60 @@ function BasePage() {
         }
     };
 
+    const [cardLink, setCardLink] = useState('');
+
     const handleSendClick = () => {
         const confirmSend = window.confirm("Are you sure you would like to send this card?");
+
         if (confirmSend) {
-            // Navigate to the SentPage to show the animation
-            navigate('/sent');
+          var card = {'text': []}
+          let card_preview = document.getElementById("preview").children
+          for (let i = 0; i < card_preview.length; i++) {
+              console.log(card_preview.item(i))
+              let element = card_preview.item(i) 
+              //console.log(element.tagName)
+              if (element.tagName == "IMG"){
+                  card['img'] =  element.getAttribute("src")
+              }
+              if (element.tagName == "DIV"){
+                  //card["text-"+i] = {"text": "ee"}
+                  console.log(element.getAttribute("style"))
+                  card["text"].push({"style": element.getAttribute("style"), "text": element.innerHTML})
+              }
+          }
+          fetch('http://localhost:3001/card', {
+              method: 'POST',
+              // We convert the React state to JSON and send it as the POST body
+              body: "tests"
+            }).then(function(response) {
+              console.log(response)
+              return response.json();
+            });
+        }
+        if (confirmSend) {
+            const message = "hello world!"; // Assuming 'text' contains the card message
+            const cardImage = cards[selectedCard - 1]; // Get the selected card image
+    
+            const templateParams = {
+                to_email: 'jessierigsbee@gmail.com', // Recipient email
+                from_name: 'thankateacher', // Sender name (could be dynamic)
+                message: message,
+            };
+    
+            emailjs.send('service_zajqzw1', 'template_3annybp', templateParams, 'PCG3Qws_V456mFKTi')
+                .then((response) => {
+                    console.log('Email successfully sent!', response.status, response.text);
+                    alert('Email sent successfully!');
+                })
+                .catch((error) => {
+                    console.error('Failed to send email:', error);
+                    alert('Failed to send email.');
+                });
+
+          }
+        if (confirmSend) {
+          // Navigate to the SentPage to show the animation
+          navigate('/sent');
         }
     };
 
@@ -99,6 +169,31 @@ function BasePage() {
         setTextStyle('Aboreto');
     };
 
+    const handleExportCard = async () => {
+        // Select the card preview container (the div that wraps the card and text)
+        const cardPreview = document.querySelector('.card-preview-container');
+
+        if (cardPreview) {
+            // Capture the card preview as an image using html2canvas
+            html2canvas(cardPreview, { useCORS: true }).then((canvas) => {
+                // Convert the canvas to an image data URL
+                const imgData = canvas.toDataURL('image/png');
+
+                // Create a download link
+                const link = document.createElement('a');
+                link.href = imgData;
+                link.download = 'card.png';  // Set the filename for download
+                link.click();  // Trigger the download
+            });
+        }
+    };
+
+    const handleOpenInNewTab = () => {
+        if (cardLink) {
+            window.open(cardLink, '_blank'); // Open the generated Blob URL in a new tab
+        }
+    };
+
     // Static Color Palette (Rainbow + Black, White, Brown)
     const colors = [
         '#FF0000', '#FFA500', '#FFFF00', '#008000', '#0000FF', 
@@ -124,25 +219,28 @@ function BasePage() {
             <div className="container">
                 {/* Card Preview Section */}
                 <div className="card-preview-container">
-                    <div className="card-preview">
+                    <div id="preview" className="card-preview">
                         <img src={cards[selectedCard - 1]} alt="Selected card" />
-                        {textBoxes.map((box) => (
-                            <Draggable key={box.id} bounds="parent">
+                        { textBoxes.map((box) => (
+                            <Draggable 
+                                key={box.id} 
+                                bounds="parent"
+                                onStart={() => handleTextClick(box.id)} // Add the blue outline when dragging starts
+                                onDrag={() => handleTextClick(box.id)}  // Keep the blue outline while dragging
+                            >
                                 <div
                                     className="draggable-text"
                                     style={{
                                         fontSize: `${box.textSize}px`,
                                         color: box.color,
-                                        fontFamily: box.fontStyle, // Set font style for the text box
-                                        border: selectedBoxId === box.id ? '2px solid blue' : 'none' // Highlight selected box
+                                        fontFamily: box.fontStyle,
+                                        border: selectedBoxId === box.id ? '2px solid blue' : 'none' // Show blue border when selected
                                     }}
-                                    onClick={() => handleTextClick(box.id)} // Select the text box on click
                                 >
                                     {box.content}
                                 </div>
                             </Draggable>
                         ))}
-                        {/* Live preview of the current input message before it's added */}
                         {text && (
                             <Draggable bounds="parent">
                                 <div className="draggable-text" style={{ fontSize: `${previewTextSize}px`, color: textColor, fontFamily: textStyle }}>
@@ -204,6 +302,7 @@ function BasePage() {
                     <div className="controls">
                         <button onClick={() => navigate('/search')} className="back-button">&larr;</button>
                         <button onClick={handleSendClick} className="send-button">Send Card</button>
+                        <button onClick={handleExportCard} className="export-button">Export Card</button> 
                     </div>
 
                     <button className="add-text-button" onClick={handleAddTextBox}>
@@ -213,6 +312,14 @@ function BasePage() {
                     <button className="delete-text-button" onClick={handleDeleteTextBox} disabled={!selectedBoxId}>
                         Delete Selected Text
                     </button>
+                    
+                    {/* Display the link to the generated card */}
+                    {cardLink && (
+                        <div>
+                        <p>Here is the link to your generated card:</p>
+                        <button onClick={handleOpenInNewTab}>Open in New Tab</button>
+                    </div>
+                    )}
                 </div>
             </div>
         </>
