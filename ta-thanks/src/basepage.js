@@ -48,6 +48,8 @@ function BasePage() {
         }
     };
 
+    const [cardLink, setCardLink] = useState('');
+
     const handleSendClick = () => {
         const confirmSend = window.confirm("Are you sure you would like to send this card?");
         if (confirmSend) {
@@ -69,7 +71,8 @@ function BasePage() {
                     console.error('Failed to send email:', error);
                     alert('Failed to send email.');
                 });
-        }
+
+          }
     };
 
     const handleAddTextBox = () => {
@@ -152,6 +155,12 @@ function BasePage() {
                 link.download = 'card.png';  // Set the filename for download
                 link.click();  // Trigger the download
             });
+        }
+    };
+
+    const handleOpenInNewTab = () => {
+        if (cardLink) {
+            window.open(cardLink, '_blank'); // Open the generated Blob URL in a new tab
         }
     };
 
@@ -273,6 +282,14 @@ function BasePage() {
                     <button className="delete-text-button" onClick={handleDeleteTextBox} disabled={!selectedBoxId}>
                         Delete Selected Text
                     </button>
+                    
+                    {/* Display the link to the generated card */}
+                    {cardLink && (
+                        <div>
+                        <p>Here is the link to your generated card:</p>
+                        <button onClick={handleOpenInNewTab}>Open in New Tab</button>
+                    </div>
+                    )}
                 </div>
             </div>
         </>
