@@ -9,6 +9,7 @@ import emptyCard2 from './Assets/card2_Empty.png';
 import emptyCard3 from './Assets/Card3_Empty.png';
 import emptyCard4 from './Assets/card4_Empty.png';
 import emptyCard5 from './Assets/card5_Empty.png';
+import emailjs from 'emailjs-com';
 
 function BasePage() {
     const navigate = useNavigate();
@@ -49,6 +50,26 @@ function BasePage() {
 
     const handleSendClick = () => {
         const confirmSend = window.confirm("Are you sure you would like to send this card?");
+        if (confirmSend) {
+            const message = "hello world!"; // Assuming 'text' contains the card message
+            const cardImage = cards[selectedCard - 1]; // Get the selected card image
+    
+            const templateParams = {
+                to_email: 'jessierigsbee@gmail.com', // Recipient email
+                from_name: 'thankateacher', // Sender name (could be dynamic)
+                message: message,
+            };
+    
+            emailjs.send('service_zajqzw1', 'template_3annybp', templateParams, 'PCG3Qws_V456mFKTi')
+                .then((response) => {
+                    console.log('Email successfully sent!', response.status, response.text);
+                    alert('Email sent successfully!');
+                })
+                .catch((error) => {
+                    console.error('Failed to send email:', error);
+                    alert('Failed to send email.');
+                });
+        }
     };
 
     const handleAddTextBox = () => {
