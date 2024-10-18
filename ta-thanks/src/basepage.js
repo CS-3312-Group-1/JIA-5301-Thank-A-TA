@@ -9,6 +9,7 @@ import emptyCard2 from './Assets/card2_Empty.png';
 import emptyCard3 from './Assets/Card3_Empty.png';
 import emptyCard4 from './Assets/card4_Empty.png';
 import emptyCard5 from './Assets/card5_Empty.png';
+import emailjs from 'emailjs-com';
 
 function BasePage() {
     const navigate = useNavigate();
@@ -47,31 +48,58 @@ function BasePage() {
         }
     };
 
+    const [cardLink, setCardLink] = useState('');
+
     const handleSendClick = () => {
         const confirmSend = window.confirm("Are you sure you would like to send this card?");
-        var card = {'text': []}
-        let card_preview = document.getElementById("preview").children
-        for (let i = 0; i < card_preview.length; i++) {
-            console.log(card_preview.item(i))
-            let element = card_preview.item(i) 
-            //console.log(element.tagName)
-            if (element.tagName == "IMG"){
-                card['img'] =  element.getAttribute("src")
-            }
-            if (element.tagName == "DIV"){
-                //card["text-"+i] = {"text": "ee"}
-                console.log(element.getAttribute("style"))
-                card["text"].push({"style": element.getAttribute("style"), "text": element.innerHTML})
-            }
+
+        if (confirmSend) {
+          var card = {'text': []}
+          let card_preview = document.getElementById("preview").children
+          for (let i = 0; i < card_preview.length; i++) {
+              console.log(card_preview.item(i))
+              let element = card_preview.item(i) 
+              //console.log(element.tagName)
+              if (element.tagName == "IMG"){
+                  card['img'] =  element.getAttribute("src")
+              }
+              if (element.tagName == "DIV"){
+                  //card["text-"+i] = {"text": "ee"}
+                  console.log(element.getAttribute("style"))
+                  card["text"].push({"style": element.getAttribute("style"), "text": element.innerHTML})
+              }
+          }
+          fetch('http://localhost:3001/card', {
+              method: 'POST',
+              // We convert the React state to JSON and send it as the POST body
+              body: "tests"
+            }).then(function(response) {
+              console.log(response)
+              return response.json();
+            });
         }
-        fetch('http://localhost:3001/card', {
-            method: 'POST',
-            // We convert the React state to JSON and send it as the POST body
-            body: "tests"
-          }).then(function(response) {
-            console.log(response)
-            return response.json();
-          });
+        if (confirmSend) {
+            const message = "hello world!"; // Assuming 'text' contains the card message
+            const cardImage = cards[selectedCard - 1]; // Get the selected card image
+    
+            const templateParams = {
+                to_email: 'jessierigsbee@gmail.com', // Recipient email
+                from_name: 'thankateacher', // Sender name (could be dynamic)
+                message: message,
+            };
+    
+            emailjs.send('service_zajqzw1', 'template_3annybp', templateParams, 'PCG3Qws_V456mFKTi')
+                .then((response) => {
+                    console.log('Email successfully sent!', response.status, response.text);
+                    alert('Email sent successfully!');
+                })
+                .catch((error) => {
+                    console.error('Failed to send email:', error);
+                    alert('Failed to send email.');
+                });
+
+          }
+
     };
 
     const handleAddTextBox = () => {
@@ -154,6 +182,12 @@ function BasePage() {
                 link.download = 'card.png';  // Set the filename for download
                 link.click();  // Trigger the download
             });
+        }
+    };
+
+    const handleOpenInNewTab = () => {
+        if (cardLink) {
+            window.open(cardLink, '_blank'); // Open the generated Blob URL in a new tab
         }
     };
 
@@ -275,6 +309,14 @@ function BasePage() {
                     <button className="delete-text-button" onClick={handleDeleteTextBox} disabled={!selectedBoxId}>
                         Delete Selected Text
                     </button>
+                    
+                    {/* Display the link to the generated card */}
+                    {cardLink && (
+                        <div>
+                        <p>Here is the link to your generated card:</p>
+                        <button onClick={handleOpenInNewTab}>Open in New Tab</button>
+                    </div>
+                    )}
                 </div>
             </div>
         </>
