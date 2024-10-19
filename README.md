@@ -4,6 +4,23 @@ Team 4115
 This application allows for undergraduate students to send thank you cards to TAs in the College of Computing.
 
 # Release Notes 
+# Version 0.3.0
+### New Features
+- Implemented functionality to send the card to an email inbox when the 'send' button is clicked.
+- Email sent by the student includes a link to view the image of the card.
+- Enabled sending of card data to the database.
+- Added a popup that asks users to confirm before sending a card.
+- Created a database to store cards.
+- Enhanced the UI for the card design page to make the interface more intuitive and visually appealing.
+- Enabled exporting of the card image for users to save the completed card locally.
+- Updated the base text color for each page to maintain a consistent design aesthetic.
+- Added animation and page feedback to indicate that a card has been sent.
+### Bug Fixes
+- Resolved minor UI inconsistencies to enhance the overall user experience.
+- Improved the responsiveness of the 'send' feature to ensure cards are delivered to email inboxes without delay.
+### Known Bugs
+- Image hosting link occasionally loads slowly when there is high traffic.
+
 # Version 0.2.0
 ### New Features
 - Created a base page for card editing that contains the selected card.
