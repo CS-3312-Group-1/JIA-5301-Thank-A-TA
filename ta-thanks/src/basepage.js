@@ -53,58 +53,90 @@ function BasePage() {
     const handleSendClick = () => {
         const confirmSend = window.confirm("Are you sure you would like to send this card?");
 
-        if (confirmSend) {
-          var card = {'text': []}
-          let card_preview = document.getElementById("preview").children
-          for (let i = 0; i < card_preview.length; i++) {
-              console.log(card_preview.item(i))
-              let element = card_preview.item(i) 
-              //console.log(element.tagName)
-              if (element.tagName == "IMG"){
-                  card['img'] =  element.getAttribute("src")
-              }
-              if (element.tagName == "DIV"){
-                  //card["text-"+i] = {"text": "ee"}
-                  console.log(element.getAttribute("style"))
-                  card["text"].push({"style": element.getAttribute("style"), "text": element.innerHTML})
-              }
-          }
-          fetch('http://localhost:3001/card', {
-              method: 'POST',
-              // We convert the React state to JSON and send it as the POST body
-              body: "tests"
-            }).then(function(response) {
-              console.log(response)
-              return response.json();
-            });
-        }
-        if (confirmSend) {
-            const message = "hello world!"; // Assuming 'text' contains the card message
-            const cardImage = cards[selectedCard - 1]; // Get the selected card image
+        // if (confirmSend) {
+        //   var card = {'text': []}
+        //   let card_preview = document.getElementById("preview").children
+        //   for (let i = 0; i < card_preview.length; i++) {
+        //       console.log(card_preview.item(i))
+        //       let element = card_preview.item(i) 
+        //       //console.log(element.tagName)
+        //       if (element.tagName == "IMG"){
+        //           card['img'] =  element.getAttribute("src")
+        //       }
+        //       if (element.tagName == "DIV"){
+        //           //card["text-"+i] = {"text": "ee"}
+        //           console.log(element.getAttribute("style"))
+        //           card["text"].push({"style": element.getAttribute("style"), "text": element.innerHTML})
+        //       }
+        //   }
+        //   fetch('http://localhost:3001/card', {
+        //       method: 'POST',
+        //       // We convert the React state to JSON and send it as the POST body
+        //       body: "tests"
+        //     }).then(function(response) {
+        //       console.log(response)
+        //       return response.json();
+        //     });
+        // }
+        // if (confirmSend) {
+        //     const message = "hello world!"; // Assuming 'text' contains the card message
+        //     const cardImage = cards[selectedCard - 1]; // Get the selected card image
     
-            const templateParams = {
-                to_email: 'jessierigsbee@gmail.com', // Recipient email
-                from_name: 'thankateacher', // Sender name (could be dynamic)
-                message: message,
-            };
+        //     const templateParams = {
+        //         to_email: 'jessierigsbee@gmail.com', // Recipient email
+        //         from_name: 'thankateacher', // Sender name (could be dynamic)
+        //         message: message,
+        //     };
     
-            emailjs.send('service_zajqzw1', 'template_3annybp', templateParams, 'PCG3Qws_V456mFKTi')
-                .then((response) => {
-                    console.log('Email successfully sent!', response.status, response.text);
-                    alert('Email sent successfully!');
-                })
-                .catch((error) => {
-                    console.error('Failed to send email:', error);
-                    alert('Failed to send email.');
-                });
+        //     emailjs.send('service_zajqzw1', 'template_3annybp', templateParams, 'PCG3Qws_V456mFKTi')
+        //         .then((response) => {
+        //             console.log('Email successfully sent!', response.status, response.text);
+        //             alert('Email sent successfully!');
+        //         })
+        //         .catch((error) => {
+        //             console.error('Failed to send email:', error);
+        //             alert('Failed to send email.');
+        //         });
 
-          }
+        //   }
+
+        // Temporary function that creates a local link that hosts the image of the card
+        if (confirmSend) {
+            const cardPreview = document.querySelector('.card-preview-container');
+    
+            if (cardPreview) {
+                html2canvas(cardPreview, { useCORS: true }).then((canvas) => {
+                    canvas.toBlob((blob) => {
+                        const blobUrl = URL.createObjectURL(blob); 
+                        setCardLink(blobUrl); 
+    
+                        const templateParams = {
+                            to_email: 'ryanweng340@gmail.com', 
+                            from_name: 'thankateacher', 
+                            message: `Here is your card (Make sure to copy and paste "blob:" as well): ${blobUrl}`, 
+                        };
+    
+                        emailjs.send('service_zajqzw1', 'template_3annybp', templateParams, 'PCG3Qws_V456mFKTi')
+                            .then((response) => {
+                                console.log('Email successfully sent!', response.status, response.text);
+                                alert('Email sent successfully!');
+                           
+                            })
+                            .catch((error) => {
+                                console.error('Failed to send email:', error);
+                                alert('Failed to send email.');
+                            });
+                    }, 'image/png');
+                });
+            }
+        }
         if (confirmSend) {
           // Navigate to the SentPage to show the animation
           navigate('/sent');
         }
     };
 
+    
     const handleAddTextBox = () => {
         if (text) {
             setTextBoxes([...textBoxes, { id: textBoxes.length + 1, content: text, color: textColor, textSize: previewTextSize, fontStyle: textStyle }]);
@@ -188,11 +220,6 @@ function BasePage() {
         }
     };
 
-    const handleOpenInNewTab = () => {
-        if (cardLink) {
-            window.open(cardLink, '_blank'); // Open the generated Blob URL in a new tab
-        }
-    };
 
     // Static Color Palette (Rainbow + Black, White, Brown)
     const colors = [
@@ -313,13 +340,7 @@ function BasePage() {
                         Delete Selected Text
                     </button>
                     
-                    {/* Display the link to the generated card */}
-                    {cardLink && (
-                        <div>
-                        <p>Here is the link to your generated card:</p>
-                        <button onClick={handleOpenInNewTab}>Open in New Tab</button>
-                    </div>
-                    )}
+
                 </div>
             </div>
         </>
