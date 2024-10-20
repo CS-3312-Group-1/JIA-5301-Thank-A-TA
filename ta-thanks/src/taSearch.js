@@ -102,7 +102,10 @@ function TaSearch() {
       </div>
 
       <div className='textPadding'>
-        <button onClick={() => navigate('search')} className='nextButton'>Next</button>
+      <button onClick={() => navigate('search', { state: { email: selectedTAEmail } })} className='nextButton'>
+  Next
+</button>
+
       </div>
 
       <div className='textPadding'>

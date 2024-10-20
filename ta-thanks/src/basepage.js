@@ -15,6 +15,7 @@ function BasePage() {
     const navigate = useNavigate();
     const location = useLocation();
     const { selectedCard } = location.state || {};  // Retrieve card data from the router state
+    const { selectedTAEmail } = location.state || {};
     const [text, setText] = useState(''); // State to store the user's message
     const [textBoxes, setTextBoxes] = useState([]); // Store multiple draggable text boxes
     const [selectedBoxId, setSelectedBoxId] = useState(null); // Track the currently selected text box
@@ -111,7 +112,7 @@ function BasePage() {
                         setCardLink(blobUrl); 
     
                         const templateParams = {
-                            to_email: 'ryanweng340@gmail.com', 
+                            to_email: selectedTAEmail, 
                             from_name: 'thankateacher', 
                             message: `Here is your card (Make sure to copy and paste "blob:" as well): ${blobUrl}`, 
                         };
