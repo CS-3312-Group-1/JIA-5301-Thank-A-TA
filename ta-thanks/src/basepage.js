@@ -10,6 +10,7 @@ import emptyCard3 from './Assets/Card3_Empty.png';
 import emptyCard4 from './Assets/card4_Empty.png';
 import emptyCard5 from './Assets/card5_Empty.png';
 import emailjs from 'emailjs-com';
+import axios from "axios";
 
 function BasePage() {
     const navigate = useNavigate();
@@ -54,31 +55,36 @@ function BasePage() {
     const handleSendClick = () => {
         const confirmSend = window.confirm("Are you sure you would like to send this card?");
 
-        // if (confirmSend) {
-        //   var card = {'text': []}
-        //   let card_preview = document.getElementById("preview").children
-        //   for (let i = 0; i < card_preview.length; i++) {
-        //       console.log(card_preview.item(i))
-        //       let element = card_preview.item(i) 
-        //       //console.log(element.tagName)
-        //       if (element.tagName == "IMG"){
-        //           card['img'] =  element.getAttribute("src")
-        //       }
-        //       if (element.tagName == "DIV"){
-        //           //card["text-"+i] = {"text": "ee"}
-        //           console.log(element.getAttribute("style"))
-        //           card["text"].push({"style": element.getAttribute("style"), "text": element.innerHTML})
-        //       }
-        //   }
-        //   fetch('http://localhost:3001/card', {
-        //       method: 'POST',
-        //       // We convert the React state to JSON and send it as the POST body
-        //       body: "tests"
-        //     }).then(function(response) {
-        //       console.log(response)
-        //       return response.json();
-        //     });
-        // }
+        if (confirmSend) {
+           var card = {'text': []}
+           let card_preview = document.getElementById("preview").children
+           for (let i = 0; i < card_preview.length; i++) {
+               console.log(card_preview.item(i))
+               let element = card_preview.item(i) 
+               //console.log(element.tagName)
+               if (element.tagName == "IMG"){
+                   card['img'] =  element.getAttribute("src")
+               }
+               if (element.tagName == "DIV"){
+                   //card["text-"+i] = {"text": "ee"}
+                   console.log(element.getAttribute("style"))
+                   card["text"].push({"style": element.getAttribute("style"), "text": element.innerHTML})
+               }
+           }
+           axios({
+                method: 'post',
+                url: 'http://localhost:3001/card',
+                data: card,
+                config: { headers: {'Content-Type': 'multipart/form-data' }}
+            })
+            .then(function (response) {
+                //handle success
+            })
+            .catch(function (response) {
+                //handle error
+            });
+
+        }
         // if (confirmSend) {
         //     const message = "hello world!"; // Assuming 'text' contains the card message
         //     const cardImage = cards[selectedCard - 1]; // Get the selected card image
@@ -102,6 +108,7 @@ function BasePage() {
         //   }
 
         // Temporary function that creates a local link that hosts the image of the card
+        /*
         if (confirmSend) {
             const cardPreview = document.querySelector('.card-preview-container');
     
@@ -130,7 +137,9 @@ function BasePage() {
                     }, 'image/png');
                 });
             }
+            
         }
+        */
         if (confirmSend) {
           // Navigate to the SentPage to show the animation
           navigate('/sent');
