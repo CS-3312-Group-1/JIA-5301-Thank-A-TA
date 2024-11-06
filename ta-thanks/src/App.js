@@ -8,7 +8,7 @@ const App = () => {
    return (
       <>
          <Routes>
-            <Route path="/" element={<TaInbox/>} />
+            <Route path="/" element={<TaSearch/>} />
             <Route path="/search" element={<Home/>} />
             <Route path="/design" element={<Design/>} />
             <Route path="/sent" element={<SentPage />} />
