@@ -3,6 +3,7 @@ import Home from './homepage'
 import TaSearch from './taSearch';
 import Design from './basepage';
 import SentPage from './SentPage';
+import TaInbox from './taInbox';
 const App = () => {
    return (
       <>
