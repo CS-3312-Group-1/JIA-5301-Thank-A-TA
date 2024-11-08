@@ -12,6 +12,7 @@ const App = () => {
             <Route path="/search" element={<Home/>} />
             <Route path="/design" element={<Design/>} />
             <Route path="/sent" element={<SentPage />} />
+            <Route path ="/inbox" element={<TaInbox />} />
          </Routes>
       </>
    );
