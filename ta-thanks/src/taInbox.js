@@ -3,13 +3,18 @@ import './taInbox.css';
 import { useNavigate } from 'react-router-dom';
 import homeIcon from './Assets/Vector.png';
 
-
+// Main component for the TA inbox page
 function TaInbox() {
+    // State for the selected category in the category filter
     const [selectedCategory, setSelectedCategory] = useState('All');
-
+    
+    // Array of color options for the color filter
     const colors = ['Red', 'Gold', 'Yellow', 'Green', 'Blue', 'Purple', 'Pink', 'Gray', 'Black', 'Brown'];
+    
+    // State for the selected color in the color filter
     const [selectedColor, setSelectedColor] = useState('All');
 
+    // Hook for navigating to different routes
     const navigate = useNavigate();
 
     return (
