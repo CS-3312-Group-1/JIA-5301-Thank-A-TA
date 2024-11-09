@@ -1,0 +1,119 @@
+/* Ensure .main-content is a flex container */
+.main-content {
+    display: flex;
+    border: none;
+    align-items: flex-start; /* Align items to the top */
+    padding: 20px;
+    gap: 20px; /* Add space between .filters and .card-display */
+    min-width: 100%; /* Prevent .main-content from shrinking */
+}
+
+/* Style for the filters section */
+.filters {
+    flex-shrink: 0; /* Prevent .filters from shrinking */
+    width: 300px;
+    min-width: 300px; /* Set minimum width to prevent collapsing */
+    background-color: #f9f9f9;
+    padding: 20px; /* Increase padding for more spacing inside */
+    border-radius: 8px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.filters::after {
+    content: none; /* Removes the pseudo-element entirely */
+    background: none; /* Ensure any background is removed */
+}
+
+/* Increase font size of labels inside .filters */
+.filters label {
+    font-size: 1.2rem; /* Larger font for labels */
+    margin-bottom: 8px;
+    display: block;
+}
+
+/* Increase font size and padding of the select dropdown */
+.filters select {
+    font-size: 1.1rem; /* Larger text inside dropdown */
+    padding: 8px 12px; /* Increase padding for a larger clickable area */
+    width: 100%; /* Make it fill the available width */
+    border-radius: 5px;
+}
+
+/* Style for the color-options container */
+.color-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px; /* More space between color circles */
+    margin-top: 8px;
+}
+
+/* Increase size of color circles */
+.color-circle {
+    width: 30px; /* Larger width */
+    height: 30px; /* Larger height */
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+/* Selected color circle styling */
+.color-circle.selected {
+    border: 3px solid #000; /* Make border thicker for selected color */
+}
+
+/* Increase size and padding of the reset button */
+.reset-filters button {
+    font-size: 1.1rem;
+    padding: 10px 16px; /* Larger padding for button */
+    margin-top: 15px; /* Space above the button */
+    width: 100%; /* Make the button full-width */
+    border-radius: 5px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+}
+
+/* Optional: Style button on hover */
+.reset-filters button:hover {
+    background-color: #0056b3; /* Darker color on hover */
+}
+
+/* Style for the card-display section */
+.card-display {
+    flex: 1; /* Allow .card-display to take up the remaining space */
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(156px, 1fr)); /* Increased min width to 156px for larger cards */
+    gap: 20px; /* Increased gap for better spacing between larger cards */
+    overflow: auto; /* Add scrollbar if needed */
+}
+
+/* Style individual cards */
+.card {
+    background-color: #fff;
+    padding: 13px; /* Increased padding */
+    border-radius: 8px;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1); /* Smaller shadow */
+    text-align: center;
+    font-size: 1rem; /* Adjusted font size for readability on larger cards */
+    max-width: 182px; /* Increased max width to 182px */
+}
+
+/* Style the card image */
+.card img {
+    width: 100%; /* Make image fill the card width */
+    height: auto; /* Keep aspect ratio */
+    max-height: 234px; /* Increased max height to scale image proportionally */
+    border-radius: 4px; /* Slightly rounded corners */
+}
+
+/* Style the title inside each card */
+.card h3 {
+    font-size: 1.1rem; /* Increased font size for the title */
+    margin: 10px 0 6px; /* Adjusted margin for a balanced look */
+}
+
+/* Style category and color text */
+.card p {
+    font-size: 0.9rem; /* Slightly increased font size */
+    margin: 5px 0; /* Slightly increased margin */
+}

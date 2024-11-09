@@ -57,6 +57,20 @@ app.get("/", function (req, res) {
   res.json(list);
 });
 
+app.get('/cards/:taId', async (req, res) => {
+  const { taId } = req.params;
+  try {
+    const database = client.db("thank-a-teacher");
+    const cards = database.collection("CARD");
+    const taCards = await cards.find({ taId: taId }).toArray();
+    res.json(taCards);
+  } catch (err) {
+    console.error('Error fetching cards:', err);
+    res.status(500).send('Error fetching cards');
+  }
+});
+
+
 app.listen(port, function () {
   console.log(`Example app listening on port ${port}!`);
 });
