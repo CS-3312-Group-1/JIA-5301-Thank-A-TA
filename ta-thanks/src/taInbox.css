@@ -7,7 +7,7 @@
     gap: 20px; /* Add space between .filters and .card-display */
     min-width: 100%; /* Prevent .main-content from shrinking */
 }
-
+/* If styles are inadequate here, pop this into a LLM to figure out which elements to change*/
 /* Style for the filters section */
 .filters {
     flex-shrink: 0; /* Prevent .filters from shrinking */

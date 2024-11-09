@@ -16,6 +16,8 @@ function TaInbox() {
     const colors = ['Red', 'Gold', 'Yellow', 'Green', 'Blue', 'Purple', 'Pink', 'Gray', 'Black', 'Brown'];
 
     // Dummy card data using imported images
+    // After vhenrixon and radbrad3000 figure out how to overhaul the database we will be able to get cards 
+    // and not use this dummy data
     const dummyCards = [
         { _id: 1, image: Card1, title: "Blue Card 1", category: "Fun", color: "Blue" },
         { _id: 2, image: Card2, title: "Gold Card", category: "Professional", color: "Gold" },
@@ -86,6 +88,7 @@ function TaInbox() {
                 <div className="card-display">
                     {filteredCards.map(card => (
                         <div key={card._id} className="card">
+                            {/*We should be able to render the card.image after pulling from the db*/}
                             <img src={card.image} alt={`${card.title}`} />
                             <h3>{card.title}</h3>
                             <p>Category: {card.category}</p>
