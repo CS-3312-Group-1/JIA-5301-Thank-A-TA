@@ -4,6 +4,7 @@ const express = require("express");
 const cors = require('cors');
 
 const app = express();
+
 const corsOptions ={
     origin:'http://localhost:3000', 
     credentials:true,            //access-control-allow-credentials:true
@@ -15,8 +16,9 @@ const port = 3001;
 
 const uri = "mongodb+srv://vhenrixon:QQVTMsoHD2EqzdoC@cluster0.ayl3tmp.mongodb.net/?retryWrites=true&w=majority";
 const client = new MongoClient(uri);
+
 list = {}
-async function main(){
+async function populate_ta(){
 
     const database = client.db("thank-a-teacher");
     const ta = database.collection("TA");
@@ -30,7 +32,7 @@ async function main(){
 }
 
 
-main().catch(console.error);
+populate_ta().catch(console.error);
 
 app.post('/card', async (req, res) => {
   console.log(req.body)
@@ -54,6 +56,7 @@ app.post('/card', async (req, res) => {
 
 app.get("/", function (req, res) {
   res.set('Access-Control-Allow-Origin', '*');
+  populate_ta()
   res.json(list);
 });
 
