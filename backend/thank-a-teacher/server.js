@@ -16,19 +16,8 @@ const corsOptions ={
     optionSuccessStatus:200
 }
 app.use(cors(corsOptions));
-app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content, Accept, Content-Type, Authorization"
-  );
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "GET, POST, PUT, DELETE, PATCH, OPTIONS"
-  );
-  next();
-});
-app.use(express.json());
+app.use(express.json({limit: '50mb'}));
+//app.use(express.bodyParser({limit: '50mb'}));
 const port = 3001;
 
 const uri = "mongodb+srv://vhenrixon:QQVTMsoHD2EqzdoC@cluster0.ayl3tmp.mongodb.net/?retryWrites=true&w=majority";
@@ -54,6 +43,7 @@ populate_ta().catch(console.error);
 // login endpoint
 
 app.post("/login", (request, response) => {
+  console.log(request.body.email)
   // check if email exists
   User.findOne({ email: request.body.email })
 
@@ -138,9 +128,10 @@ app.post("/register", (request, response) => {
 })
 app.post('/card', async (req, res) => {
   try {
+    console.log(req.body)
     var card = {
-      img: req.body.img,
-      text: req.body.text,
+      data: req.body.data,
+      for: req.body.for,
     };
     const database = client.db("thank-a-teacher");
     const cards = database.collection("CARD");

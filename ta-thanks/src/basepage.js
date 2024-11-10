@@ -50,31 +50,21 @@ function BasePage() {
         }
     };
 
-    const [cardLink, setCardLink] = useState('');
 
-    const handleSendClick = () => {
+    const [cardLink, setCardLink] = useState('');
+    const printRef = React.useRef();
+    const handleSendClick = async () => {
         const confirmSend = window.confirm("Are you sure you would like to send this card?");
 
         if (confirmSend) {
-           var card = {'text': []}
-           let card_preview = document.getElementById("preview").children
-           for (let i = 0; i < card_preview.length; i++) {
-               console.log(card_preview.item(i))
-               let element = card_preview.item(i) 
-               //console.log(element.tagName)
-               if (element.tagName == "IMG"){
-                   card['img'] =  element.getAttribute("src")
-               }
-               if (element.tagName == "DIV"){
-                   //card["text-"+i] = {"text": "ee"}
-                   console.log(element.getAttribute("style"))
-                   card["text"].push({"style": element.getAttribute("style"), "text": element.innerHTML})
-               }
-           }
-           axios({
+            const element = printRef.current;
+            const canvas = await html2canvas(element);
+        
+            const data = canvas.toDataURL('image/jpg');
+            axios({
                 method: 'post',
                 url: 'http://localhost:3001/card',
-                data: card,
+                data: {"data":data,"for": "ta@placeholder"},
                 config: { headers: {'Content-Type': 'multipart/form-data' }}
             })
             .then(function (response) {
@@ -84,7 +74,7 @@ function BasePage() {
                 //handle error
             });
 
-        }
+        } 
         // if (confirmSend) {
         //     const message = "hello world!"; // Assuming 'text' contains the card message
         //     const cardImage = cards[selectedCard - 1]; // Get the selected card image
@@ -255,7 +245,7 @@ function BasePage() {
             </div>
             <div className="container">
                 {/* Card Preview Section */}
-                <div className="card-preview-container">
+                <div ref={printRef} className="card-preview-container">
                     <div id="preview" className="card-preview">
                         <img src={cards[selectedCard - 1]} alt="Selected card" />
                         { textBoxes.map((box) => (
