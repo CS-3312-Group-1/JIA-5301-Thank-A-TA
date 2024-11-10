@@ -5,7 +5,9 @@ const cors = require('cors');
 const bcrypt = require("bcrypt");
 const User = require("./db/userModel");
 const app = express();
+
 const jwt = require("jsonwebtoken");
+
 
 
 const corsOptions ={
@@ -48,6 +50,7 @@ async function populate_ta(){
 
 
 populate_ta().catch(console.error);
+
 // login endpoint
 
 app.post("/login", (request, response) => {
@@ -104,6 +107,7 @@ app.post("/login", (request, response) => {
       });
     });
 });
+
 
 app.post("/register", (request, response) => {
   bcrypt.hash(request.body.password, 10)
