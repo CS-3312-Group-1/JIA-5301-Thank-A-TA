@@ -9,6 +9,22 @@ import Card4 from './Assets/Card 4.png'; // Yellow card
 import Card5 from './Assets/Card 5.png'; // Blue card
 
 function TaInbox() {
+
+    // State to manage modal visibility
+  const [isModalVisible, setModalVisible] = useState(false);
+  const [modalImageSrc, setModalImageSrc] = useState('');
+  const [selectedCard, setSelectedCard] = useState(null);
+
+  const handleImageClick = (imageUrl, card) => {
+    setModalImageSrc(imageUrl);  // Set the image source
+    setModalVisible(true);       // Show the modal
+    setSelectedCard(card);       // Store the selected card
+  };
+
+  const handleCloseModal = () => {
+    setModalVisible(false);      // Hide the modal
+  };
+
     const [selectedCategory, setSelectedCategory] = useState('All');
     const [selectedColor, setSelectedColor] = useState('All');
     const navigate = useNavigate();
@@ -96,6 +112,14 @@ function TaInbox() {
                         </div>
                     ))}
                 </div>
+
+                {/* Modal for card image */}
+                    {isModalVisible && (
+                    <div id="image-modal" className="image-modal">
+                        <span className="close-modal" onClick={handleCloseModal}>&times;</span>
+                        <img id="modal-image" className="modal-content" src={modalImageSrc} alt="" />
+                        </div>
+                    )}
             </div>
         </div>
     );
