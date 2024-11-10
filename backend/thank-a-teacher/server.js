@@ -2,8 +2,13 @@ const http = require('node:http');
 const {MongoClient} = require('mongodb');
 const express = require("express");
 const cors = require('cors');
-
+const bcrypt = require("bcrypt");
+const User = require("./db/userModel");
 const app = express();
+
+const jwt = require("jsonwebtoken");
+
+
 
 const corsOptions ={
     origin:'http://localhost:3000', 
@@ -11,6 +16,18 @@ const corsOptions ={
     optionSuccessStatus:200
 }
 app.use(cors(corsOptions));
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content, Accept, Content-Type, Authorization"
+  );
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PUT, DELETE, PATCH, OPTIONS"
+  );
+  next();
+});
 app.use(express.json());
 const port = 3001;
 
@@ -34,8 +51,92 @@ async function populate_ta(){
 
 populate_ta().catch(console.error);
 
+// login endpoint
+
+app.post("/login", (request, response) => {
+  // check if email exists
+  User.findOne({ email: request.body.email })
+
+    // if email exists
+    .then((user) => {
+      // compare the password entered and the hashed password found
+      bcrypt
+        .compare(request.body.password, user.password)
+
+        // if the passwords match
+        .then((passwordCheck) => {
+
+          // check if password matches
+          if(!passwordCheck) {
+            return response.status(400).send({
+              message: "Passwords does not match",
+              error,
+            });
+          }
+
+          //   create JWT token
+          const token = jwt.sign(
+            {
+              userId: user._id,
+              userEmail: user.email,
+            },
+            "RANDOM-TOKEN",
+            { expiresIn: "24h" }
+          );
+
+          //   return success response
+          response.status(200).send({
+            message: "Login Successful",
+            email: user.email,
+            token,
+          });
+        })
+        // catch error if password does not match
+        .catch((error) => {
+          response.status(400).send({
+            message: "Passwords does not match",
+            error,
+          });
+        });
+    })
+    // catch error if email does not exist
+    .catch((e) => {
+      response.status(404).send({
+        message: "Email not found",
+        e,
+      });
+    });
+});
+
+
+app.post("/register", (request, response) => {
+  bcrypt.hash(request.body.password, 10)
+  .then((hashedPassword) => {
+    const user = new User({
+      email: request.body.email,
+      password: hashedPassword,
+    });
+})
+  .catch((e) => {
+    response.status(500).send({
+      message: "Password was not hashed successfully",
+      e,
+    });
+  });
+  user.save().then((result) => {
+    response.status(201).send({
+      message: "User Created Successfully",
+      result,
+    });
+  })
+  .catch((error) => {
+    response.status(500).send({
+      message: "Error creating user",
+      error,
+    });
+  });
+})
 app.post('/card', async (req, res) => {
-  console.log(req.body)
   try {
     var card = {
       img: req.body.img,
