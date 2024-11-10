@@ -4,6 +4,21 @@ Team 4115
 This application allows for undergraduate students to send thank you cards to TAs in the College of Computing.
 
 # Release Notes 
+# Version 0.4.0
+### New Features
+- Added a login page allowing users and TAs to access their accounts.
+- Created TA inbox page to display all cards for TAs.
+- Implemented TA card display, enabling TAs to view task cards on the TA page.
+- Added full-Screen card view for TAs to view cards in a larger format on the TA page.
+- Updated database for User/TA login.
+- Integrated email functionality that directs recipients to the card page.
+- Established login functionality with database to authenticate users through a secure database.
+### Bug Fixes
+- Resolved minor UI inconsistencies on the login and TA inbox pages, enhancing overall user experience.
+- Resolved inconsistencies in loading card image within the link.
+### Known Bugs
+- Occasional delay in loading the login page under high database load conditions.
+  
 # Version 0.3.0
 ### New Features
 - Implemented functionality to send the card to an email inbox when the 'send' button is clicked.
