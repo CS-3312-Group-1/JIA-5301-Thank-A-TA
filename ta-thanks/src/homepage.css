@@ -284,8 +284,8 @@
 }
 
 .color-circle:hover {
-  transform: translateY(-5px) scale(1.1); /* Lifts and scales the circle slightly on hover */
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Adds a shadow to enhance the lifted effect */
+  transform: translateY(-5px) scale(1.1); 
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); 
 }
   
 .color-circle.selected {
