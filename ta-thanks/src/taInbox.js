@@ -42,9 +42,9 @@ function TaInbox() {
                 </div>
             </div>
 
-            <div className="main-content">
+            <div className="main-contenti">
                 {/* Filters Section */}
-                <div className="filters">
+                <div className="filtersi">
                     <div className="filter-container">
                         <label>Filter by Category: </label>
                         <select
@@ -74,7 +74,7 @@ function TaInbox() {
                         </div>
                     </div>
 
-                    <div className="reset-filters">
+                    <div className="reseti-filters">
                         <button onClick={() => {
                             setSelectedCategory('All');
                             setSelectedColor('All');
@@ -85,9 +85,9 @@ function TaInbox() {
                 </div>
 
                 {/* Card Display Section */}
-                <div className="card-display">
+                <div className="cardi-display">
                     {filteredCards.map(card => (
-                        <div key={card._id} className="card">
+                        <div key={card._id} className="cardi">
                             {/*We should be able to render the card.image after pulling from the db*/}
                             <img src={card.image} alt={`${card.title}`} />
                             <h3>{card.title}</h3>
