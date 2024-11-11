@@ -5,6 +5,7 @@ import Design from './basepage';
 import SentPage from './SentPage';
 import TaInbox from './taInbox';
 import Login from './loginpage';
+import RegisterPage from './registerpage';
 
 
 function setToken(userToken) {
@@ -31,6 +32,7 @@ const App = () => {
             <Route path="/sent" element={<SentPage />} />
             <Route path ="/inbox" element={<TaInbox />} />
             <Route path="/login" element={<Login/>} />
+            <Route path="/register" element={<RegisterPage/>} />
          </Routes>
       </>
    );
