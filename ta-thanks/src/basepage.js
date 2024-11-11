@@ -59,43 +59,46 @@ function BasePage() {
         if (confirmSend) {
             const element = printRef.current;
             const canvas = await html2canvas(element);
+            console.log(selectedTAEmail);
         
             const data = canvas.toDataURL('image/jpg');
             axios({
                 method: 'post',
                 url: 'http://localhost:3001/card',
-                data: {"data":data,"for": "ta@placeholder"},
+                data: {"data":data,"for": selectedTAEmail},
                 config: { headers: {'Content-Type': 'multipart/form-data' }}
             })
             .then(function (response) {
-                //handle success
+                console.log(response);
             })
-            .catch(function (response) {
-                //handle error
+            .catch(function (error) {
+                console.log(error);
             });
 
         } 
-        // if (confirmSend) {
-        //     const message = "hello world!"; // Assuming 'text' contains the card message
-        //     const cardImage = cards[selectedCard - 1]; // Get the selected card image
+        /* un do after
+        if (confirmSend) {
+        const message = "hello world!"; // Assuming 'text' contains the card message
+        const cardImage = cards[selectedCard - 1]; // Get the selected card image
     
-        //     const templateParams = {
-        //         to_email: 'jessierigsbee@gmail.com', // Recipient email
-        //         from_name: 'thankateacher', // Sender name (could be dynamic)
-        //         message: message,
-        //     };
+        const templateParams = {
+            to_email: 'jessierigsbee@gmail.com', // Recipient email
+            from_name: 'thankateacher', // Sender name (could be dynamic)
+            message: message,
+        };
     
-        //     emailjs.send('service_zajqzw1', 'template_3annybp', templateParams, 'PCG3Qws_V456mFKTi')
-        //         .then((response) => {
-        //             console.log('Email successfully sent!', response.status, response.text);
-        //             alert('Email sent successfully!');
-        //         })
-        //         .catch((error) => {
-        //             console.error('Failed to send email:', error);
-        //             alert('Failed to send email.');
-        //         });
+            emailjs.send('service_zajqzw1', 'template_3annybp', templateParams, 'PCG3Qws_V456mFKTi')
+                .then((response) => {
+            console.log('Email successfully sent!', response.status, response.text);
+            alert('Email sent successfully!');
+        })
+            .catch((error) => {
+            console.error('Failed to send email:', error);
+            alert('Failed to send email.');
+        });
+        
 
-        //   }
+    }
 
         // Temporary function that creates a local link that hosts the image of the card
         /*

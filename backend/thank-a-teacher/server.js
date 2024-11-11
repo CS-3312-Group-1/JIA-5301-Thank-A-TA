@@ -127,6 +127,7 @@ app.post("/register", (request, response) => {
   });
 })
 app.post('/card', async (req, res) => {
+  console.log("Received request to /card", req.body);
   try {
     console.log(req.body)
     var card = {
@@ -157,13 +158,15 @@ app.get('/cards/:taId', async (req, res) => {
   try {
     const database = client.db("thank-a-teacher");
     const cards = database.collection("CARD");
-    const taCards = await cards.find({ taId: taId }).toArray();
+    // Match the field name to what is saved in the database
+    const taCards = await cards.find({ for: taId }).toArray();
     res.json(taCards);
   } catch (err) {
     console.error('Error fetching cards:', err);
     res.status(500).send('Error fetching cards');
   }
 });
+
 
 
 app.listen(port, function () {

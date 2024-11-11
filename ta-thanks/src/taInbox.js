@@ -1,51 +1,51 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import './taInbox.css';
 import { useNavigate } from 'react-router-dom';
 import homeIcon from './Assets/Vector.png';
-import Card1 from './Assets/Card 1.png'; // Blue card
-import Card2 from './Assets/Card 2.png'; // Gold card
-import Card3 from './Assets/Card 3.png'; // Red card
-import Card4 from './Assets/Card 4.png'; // Yellow card
-import Card5 from './Assets/Card 5.png'; // Blue card
 
-function TaInbox() {
+function TaInbox({ taId }) {
+    // State for modal
+    const [isModalVisible, setModalVisible] = useState(false);
+    const [modalImageSrc, setModalImageSrc] = useState('');
+    const [selectedCard, setSelectedCard] = useState(null);
 
-    // State to manage modal visibility
-  const [isModalVisible, setModalVisible] = useState(false);
-  const [modalImageSrc, setModalImageSrc] = useState('');
-  const [selectedCard, setSelectedCard] = useState(null);
-
-  const handleImageClick = (imageUrl, card) => {
-    setModalImageSrc(imageUrl);  // Set the image source
-    setModalVisible(true);       // Show the modal
-    setSelectedCard(card);       // Store the selected card
-  };
-
-  const handleCloseModal = () => {
-    setModalVisible(false);      // Hide the modal
-  };
-
+    // State for filtering
     const [selectedCategory, setSelectedCategory] = useState('All');
     const [selectedColor, setSelectedColor] = useState('All');
+    const [cards, setCards] = useState([]); // Store cards from DB
     const navigate = useNavigate();
-    
+
     const colors = ['Red', 'Gold', 'Yellow', 'Green', 'Blue', 'Purple', 'Pink', 'Gray', 'Black', 'Brown'];
 
-    // Dummy card data using imported images
-    // After vhenrixon and radbrad3000 figure out how to overhaul the database we will be able to get cards 
-    // and not use this dummy data
-    const dummyCards = [
-        { _id: 1, image: Card1, title: "Blue Card 1", category: "Fun", color: "Blue" },
-        { _id: 2, image: Card2, title: "Gold Card", category: "Professional", color: "Gold" },
-        { _id: 3, image: Card3, title: "Red Card", category: "Tech", color: "Red" },
-        { _id: 4, image: Card4, title: "Yellow Card", category: "Seasonal", color: "Yellow" },
-        { _id: 5, image: Card5, title: "Blue Card 2", category: "Academic", color: "Blue" }
-    ];
+    taId = 'jessierigsbee@gmail';
 
-    // Filter the dummy cards based on the selected category and color
-    const filteredCards = dummyCards
+    // Fetch cards for a specific TA from the database
+    useEffect(() => {
+        axios.get(`http://localhost:3001/cards/jessierigsbee@gmail.com`)
+            .then((response) => {
+                setCards(response.data);
+                console.log(cards);
+            })
+            .catch((error) => {
+                console.error("Error fetching cards:", error);
+            });
+    }, [taId]);
+
+    // Filter the cards based on the selected category and color
+    const filteredCards = cards
         .filter(card => selectedCategory === 'All' || card.category === selectedCategory)
         .filter(card => selectedColor === 'All' || card.color === selectedColor);
+
+    const handleImageClick = (imageUrl, card) => {
+        setModalImageSrc(imageUrl);
+        setModalVisible(true);
+        setSelectedCard(card);
+    };
+
+    const handleCloseModal = () => {
+        setModalVisible(false);
+    };
 
     return (
         <div className="App">
@@ -102,10 +102,14 @@ function TaInbox() {
 
                 {/* Card Display Section */}
                 <div className="cardi-display">
-                    {filteredCards.map(card => (
-                        <div key={card._id} className="cardi">
-                            {/*We should be able to render the card.image after pulling from the db*/}
-                            <img src={card.image} alt={`${card.title}`} />
+                    {filteredCards.map((card, index) => (
+                        <div key={card._id || index} className="cardi">
+                            <img 
+                                src={card.data} 
+                                alt={`Card ${index + 1}`} 
+                                onClick={() => handleImageClick(card.data, card)} 
+                                style={{ cursor: 'pointer' }}
+                            />
                             <h3>{card.title}</h3>
                             <p>Category: {card.category}</p>
                             <p>Color: {card.color}</p>
@@ -114,12 +118,12 @@ function TaInbox() {
                 </div>
 
                 {/* Modal for card image */}
-                    {isModalVisible && (
+                {isModalVisible && (
                     <div id="image-modal" className="image-modal">
                         <span className="close-modal" onClick={handleCloseModal}>&times;</span>
                         <img id="modal-image" className="modal-content" src={modalImageSrc} alt="" />
-                        </div>
-                    )}
+                    </div>
+                )}
             </div>
         </div>
     );
