@@ -1,6 +1,6 @@
 // RegisterPage.js
 import React, { useState } from 'react';
-import './RegisterPage.css';
+import './registerpage.css';
 
 const RegisterPage = () => {
     const [passwordVisible, setPasswordVisible] = useState(false);
