@@ -5,7 +5,7 @@ const cors = require('cors');
 const bcrypt = require("bcrypt");
 const User = require("./db/userModel");
 const app = express();
-
+const mongoose = require('mongoose');
 const jwt = require("jsonwebtoken");
 
 
@@ -22,7 +22,10 @@ const port = 3001;
 
 const uri = "mongodb+srv://vhenrixon:QQVTMsoHD2EqzdoC@cluster0.ayl3tmp.mongodb.net/?retryWrites=true&w=majority";
 const client = new MongoClient(uri);
-
+mongoose 
+ .connect(uri)   
+ .then(() => console.log("Database connected!"))
+ .catch(err => console.log(err));
 list = {}
 async function populate_ta(){
 
@@ -69,6 +72,7 @@ app.post("/login", (request, response) => {
             {
               userId: user._id,
               userEmail: user.email,
+              isTa: user.isTa
             },
             "RANDOM-TOKEN",
             { expiresIn: "24h" }
@@ -78,7 +82,8 @@ app.post("/login", (request, response) => {
           response.status(200).send({
             message: "Login Successful",
             email: user.email,
-            token,
+            jwt: token,
+            isTa: user.isTa
           });
         })
         // catch error if password does not match
@@ -99,42 +104,28 @@ app.post("/login", (request, response) => {
 });
 
 
-app.post("/register", (request, response) => {
-  bcrypt.hash(request.body.password, 10)
-  .then((hashedPassword) => {
-    const user = new User({
-      email: request.body.email,
-      password: hashedPassword,
-    });
-})
-  .catch((e) => {
-    response.status(500).send({
-      message: "Password was not hashed successfully",
-      e,
-    });
-  });
-  user.save().then((result) => {
-    const token = jwt.sign(
-      {
-        userId: user._id,
-        userEmail: user.email,
-      },
-      "RANDOM-TOKEN",
-      { expiresIn: "24h" }
-    );
-    response.status(201).send({
-      message: "User Created Successf0ully",
-      result,
-      token
-    });
-  })
-  .catch((error) => {
-    response.status(500).send({
-      message: "Error creating user",
-      error,
-    });
-  });
-})
+app.post("/register", (req, res) => {
+    const { email, password, fullname ,isTa } = req.body;
+    console.log(req.body)
+    const user = new User({ email, password, isTa, fullname });
+    console.log(user)
+    user.save().then(function() {
+      const token = jwt.sign(
+        {
+          userId: user._id,
+          userEmail: user.email,
+          isTa: user.isTa
+        },
+        "RANDOM-TOKEN",
+        { expiresIn: "24h" }
+      );
+      res.status(200).send({jwt: token, email: user.email, isTa: isTa});
+    }).catch(function(err) {
+      console.log(err)
+      res.status(500)
+      .send("Error registering new user please try again.");
+    })
+});
 app.post('/card', async (req, res) => {
   console.log("Received request to /card", req.body);
   try {
