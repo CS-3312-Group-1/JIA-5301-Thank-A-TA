@@ -16,6 +16,11 @@ const UserSchema = new mongoose.Schema({
         type: Boolean,
         required: [true, "Please provide TA status"],
         unique: false,
+      },
+      name: {
+        type: String, 
+        required: [true, "Please provide your name"],
+        unique: false
       }
 })
 

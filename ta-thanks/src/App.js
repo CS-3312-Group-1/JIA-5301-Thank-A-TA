@@ -22,7 +22,9 @@ function getToken() {
 const App = () => {
    const token = getToken();
 
- 
+   if(!token) {
+      return <Login setToken={setToken} />
+   }
    return (
       <>
          <Routes>

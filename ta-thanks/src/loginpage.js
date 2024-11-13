@@ -2,9 +2,31 @@ import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import "./loginpage.css";
 
-const LoginPage = () => {
-    const [passwordVisible, setPasswordVisible] = useState(false);
+async function loginUser(credentials) {
+    return fetch('http://localhost:3001/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(credentials)
+    })
+      .then(data => data.json())
+}
 
+const LoginPage = ({ setToken }) => {
+    const [passwordVisible, setPasswordVisible] = useState(false);
+    const [password, setPassword] = useState();
+    const [email, setEmail] = useState();
+    
+    const handleSubmit = async e => {
+        e.preventDefault();
+        const token = await loginUser({
+            "email": email,
+            "password" :password
+        });
+        setToken(token);
+      }
+    
     const togglePasswordVisibility = () => {
         setPasswordVisible(!passwordVisible);
     };
@@ -14,13 +36,14 @@ const LoginPage = () => {
             <h1>Georgia Tech Login</h1>
             <p>Log in with your Georgia Tech email to send cards to your TAs and teachers.</p>
             
-            <form action="/login" method="POST">
+            <form action="/login" method="POST" onSubmit={handleSubmit}>
                 <label htmlFor="email">Georgia Tech Email</label>
                 <input
                     type="email"
                     id="email"
                     name="email"
                     placeholder="example@gatech.edu"
+                    onChange={e => setEmail(e.target.value)}
                     required
                 />
                 
@@ -31,6 +54,7 @@ const LoginPage = () => {
                         id="password"
                         name="password"
                         placeholder="Enter your password"
+                        onChange={e => setPassword(e.target.value)}
                         required
                     />
                     <span
@@ -54,5 +78,4 @@ const LoginPage = () => {
         </div>
     );
 };
-
 export default LoginPage;

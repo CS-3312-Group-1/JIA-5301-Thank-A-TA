@@ -114,9 +114,18 @@ app.post("/register", (request, response) => {
     });
   });
   user.save().then((result) => {
+    const token = jwt.sign(
+      {
+        userId: user._id,
+        userEmail: user.email,
+      },
+      "RANDOM-TOKEN",
+      { expiresIn: "24h" }
+    );
     response.status(201).send({
-      message: "User Created Successfully",
+      message: "User Created Successf0ully",
       result,
+      token
     });
   })
   .catch((error) => {
