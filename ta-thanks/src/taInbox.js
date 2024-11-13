@@ -3,6 +3,7 @@ import axios from 'axios';
 import './taInbox.css';
 import { useNavigate } from 'react-router-dom';
 import homeIcon from './Assets/Vector.png';
+import { useUser } from './UserContext';
 
 function TaInbox({ taId }) {
     // State for modal
@@ -18,11 +19,12 @@ function TaInbox({ taId }) {
 
     const colors = ['Red', 'Gold', 'Yellow', 'Green', 'Blue', 'Purple', 'Pink', 'Gray', 'Black', 'Brown'];
 
-    taId = 'jessierigsbee@gmail';
+    const { userEmail } = useUser(); 
+    console.log(userEmail);
 
     // Fetch cards for a specific TA from the database
     useEffect(() => {
-        axios.get(`http://localhost:3001/cards/jessierigsbee@gmail.com`)
+        axios.get(`http://localhost:3001/cards/${userEmail}`)
             .then((response) => {
                 setCards(response.data);
                 console.log(cards);

@@ -6,6 +6,7 @@ import SentPage from './SentPage';
 import TaInbox from './taInbox';
 import Login from './loginpage';
 import RegisterPage from './registerpage';
+import { UserProvider } from './UserContext';
 
 
 function setToken(userToken) {
@@ -27,17 +28,17 @@ const App = () => {
      // return <Login setToken={setToken} />
   // }
    return (
-      <>
+      <UserProvider> {/* Wrap everything in UserProvider */}
          <Routes>
-            <Route path="/" element={<TaSearch/>} />
-            <Route path="/search" element={<Home/>} />
-            <Route path="/design" element={<Design/>} />
+            <Route path="/" element={<TaSearch />} />
+            <Route path="/search" element={<Home />} />
+            <Route path="/design" element={<Design />} />
             <Route path="/sent" element={<SentPage />} />
-            <Route path ="/inbox" element={<TaInbox />} />
-            <Route path="/login" element={<Login setToken={setToken}/>} />
-            <Route path="/register" element={<RegisterPage setToken={setToken}/>} />
+            <Route path="/inbox" element={<TaInbox />} />
+            <Route path="/login" element={<Login setToken={setToken} />} />
+            <Route path="/register" element={<RegisterPage setToken={setToken} />} />
          </Routes>
-      </>
+      </UserProvider>
    );
 };
  
