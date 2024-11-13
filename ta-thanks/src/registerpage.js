@@ -1,51 +1,64 @@
 import React, { useState } from 'react';
 import './registerpage.css';
-import  { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom';
+import { useUser } from './UserContext';
 
 async function register(credentials) {
     return fetch('http://localhost:3001/register', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(credentials)
-    })
-      .then(data => data.json())
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(credentials)
+    }).then(data => data.json());
 }
 
+// Sample TA data for verification
+const TAData = {
+    "CS-1332": { "Sam Neill": "sneill@gatech.edu", "Laura Dern": "ldern@gatech.edu" },
+    "CS-1331": { "Sydney Tod": "stod@gatech.edu", "Jeff Goldblum": "jgoldblum@gatech.edu" },
+    "CS-1100": { "Joseph Mazzello": "jmazzello@gatech.edu", "Jessie": "jessierigsbee@gmail.com" }
+};
 
+const flattenTAEmails = () => {
+    return Object.values(TAData).flatMap(course => Object.values(course));
+};
 
-const RegisterPage = ({setToken}) => {
+const RegisterPage = ({ setToken }) => {
     const [passwordVisible, setPasswordVisible] = useState(false);
     const [password, setPassword] = useState("");
     const [email, setEmail] = useState("");
     const [name, setName] = useState("");
-    const [isTA, setIsTA] = useState(false);
+    const { setUserEmail } = useUser();
     const navigate = useNavigate();
+    
     const handleSubmit = async e => {
         e.preventDefault();
-        console.log(email)
+
+        // Check if email is in the list of TA emails
+        const taEmails = flattenTAEmails();
+        const isTA = taEmails.includes(email);
+
+        // Proceed with registration and set isTA based on email verification
         const token = await register({
             "email": email,
             "password": password,
             "fullname": name,
             "isTa": isTA
         });
-        console.log(token)
+        
         setToken(token);
-        console.log(token.isTa)
-        if(token.isTa) {
-            return navigate('/inbox')
-        }else {
-            return navigate('/search')
+        setUserEmail(email);
+
+        if (token.isTa) {
+            return navigate('/inbox');
+        } else {
+            return navigate('/search');
         }
-      }
+    };
+
     const togglePasswordVisibility = () => {
         setPasswordVisible(!passwordVisible);
-    };
-    
-    const handleTACheckboxChange = () => {
-        setIsTA(!isTA);
     };
 
     return (
@@ -54,7 +67,6 @@ const RegisterPage = ({setToken}) => {
                 <h1>Georgia Tech Registration</h1>
                 <p>Register with your Georgia Tech email to send cards to your TAs and teachers.</p>
 
-                
                 <form action="/register" method="POST" onSubmit={handleSubmit}>
                     <label htmlFor="name">Full Name</label>
                     <input
@@ -63,9 +75,7 @@ const RegisterPage = ({setToken}) => {
                         name="name"
                         onChange={e => setName(e.target.value)}
                         placeholder="Your Full Name"
-
                         required
-
                     />
 
                     <label htmlFor="email">Georgia Tech Email</label>
@@ -78,7 +88,6 @@ const RegisterPage = ({setToken}) => {
                         required
                     />
                 
-            
                     <label htmlFor="password">Password</label>
                     <div className="password-wrapper">
                         <input
@@ -98,16 +107,6 @@ const RegisterPage = ({setToken}) => {
                             {passwordVisible ? "👁️‍🗨️" : "👁️"}
                         </span>
                     </div>
-                    <div className="ta-checkbox">
-                            <input
-                                type="checkbox"
-                                id="isTA"
-                                name="isTA"
-                                checked={isTA}
-                                onChange={handleTACheckboxChange}
-                            />
-                        <label htmlFor="isTA">I am a TA</label>
-                        </div>
                     <input type="submit" value="Register" />
                 </form>
 

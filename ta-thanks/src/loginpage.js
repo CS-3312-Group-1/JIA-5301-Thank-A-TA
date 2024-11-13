@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { useUser } from './UserContext';
 import "./loginpage.css";
 
 
@@ -19,6 +20,7 @@ const LoginPage = ({ setToken }) => {
     const [password, setPassword] = useState();
     const [email, setEmail] = useState();
     const navigate = useNavigate();
+    const { setUserEmail } = useUser();
     const handleSubmit = async e => {
         e.preventDefault();
         const token = await loginUser({
@@ -26,6 +28,7 @@ const LoginPage = ({ setToken }) => {
             "password" :password
         });
         setToken(token);
+        setUserEmail(email)
         
         if(token.isTa) {
             return navigate('/inbox')
