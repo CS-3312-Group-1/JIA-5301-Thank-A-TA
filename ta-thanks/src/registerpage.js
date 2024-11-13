@@ -1,6 +1,7 @@
 // RegisterPage.js
 import React, { useState } from 'react';
 import './registerpage.css';
+import  { useNavigate } from 'react-router-dom'
 
 async function register(credentials) {
     return fetch('http://localhost:3001/register', {
@@ -15,22 +16,30 @@ async function register(credentials) {
 
 
 
-const RegisterPage = () => {
+const RegisterPage = ({setToken}) => {
     const [passwordVisible, setPasswordVisible] = useState(false);
-    const [password, setPassword] = useState();
-    const [email, setEmail] = useState();
-    const [name, setName] = useState();
+    const [password, setPassword] = useState("");
+    const [email, setEmail] = useState("");
+    const [name, setName] = useState("");
     const [isTa, setIsTa] = useState();
-
+    const navigate = useNavigate();
     const handleSubmit = async e => {
         e.preventDefault();
+        console.log(email)
         const token = await register({
             "email": email,
             "password": password,
             "fullname": name,
-            "isTa": isTa
+            "isTa": true
         });
+        console.log(token)
         setToken(token);
+        console.log(token.isTa)
+        if(token.isTa) {
+            return navigate('/inbox')
+        }else {
+            return navigate('/search')
+        }
       }
     const togglePasswordVisibility = () => {
         setPasswordVisible(!passwordVisible);
@@ -48,6 +57,7 @@ const RegisterPage = () => {
                     id="name"
                     name="name"
                     placeholder="Your Full Name"
+                    onChange={e => setName(e.target.value)}
                     required
                 />
 
@@ -57,6 +67,7 @@ const RegisterPage = () => {
                     id="email"
                     name="email"
                     placeholder="example@gatech.edu"
+                    onChange={e => setEmail(e.target.value)}
                     required
                 />
                 
@@ -67,7 +78,9 @@ const RegisterPage = () => {
                         id="password"
                         name="password"
                         placeholder="Create a password"
+                        onChange={e => setPassword(e.target.value)}
                         required
+
                     />
                     <span
                         className="eye-icon"

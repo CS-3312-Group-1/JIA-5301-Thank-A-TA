@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import "./loginpage.css";
 
+
 async function loginUser(credentials) {
     return fetch('http://localhost:3001/login', {
       method: 'POST',
@@ -17,7 +18,7 @@ const LoginPage = ({ setToken }) => {
     const [passwordVisible, setPasswordVisible] = useState(false);
     const [password, setPassword] = useState();
     const [email, setEmail] = useState();
-    
+    const navigate = useNavigate();
     const handleSubmit = async e => {
         e.preventDefault();
         const token = await loginUser({
@@ -25,6 +26,12 @@ const LoginPage = ({ setToken }) => {
             "password" :password
         });
         setToken(token);
+        
+        if(token.isTa) {
+            return navigate('/inbox')
+        }else {
+            return navigate('/search')
+        }
       }
     
     const togglePasswordVisibility = () => {

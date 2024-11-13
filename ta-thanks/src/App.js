@@ -22,9 +22,10 @@ function getToken() {
 const App = () => {
    const token = getToken();
 
-   if(!token) {
-      return <Login setToken={setToken} />
-   }
+  // if(!token) {
+      // Figure out later
+     // return <Login setToken={setToken} />
+  // }
    return (
       <>
          <Routes>
@@ -33,8 +34,8 @@ const App = () => {
             <Route path="/design" element={<Design/>} />
             <Route path="/sent" element={<SentPage />} />
             <Route path ="/inbox" element={<TaInbox />} />
-            <Route path="/login" element={<Login/>} />
-            <Route path="/register" element={<RegisterPage/>} />
+            <Route path="/login" element={<Login setToken={setToken}/>} />
+            <Route path="/register" element={<RegisterPage setToken={setToken}/>} />
          </Routes>
       </>
    );
