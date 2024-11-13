@@ -20,7 +20,7 @@ const RegisterPage = ({setToken}) => {
     const [password, setPassword] = useState("");
     const [email, setEmail] = useState("");
     const [name, setName] = useState("");
-    const [isTa, setIsTa] = useState();
+    const [isTA, setIsTA] = useState(false);
     const navigate = useNavigate();
     const handleSubmit = async e => {
         e.preventDefault();
@@ -29,7 +29,7 @@ const RegisterPage = ({setToken}) => {
             "email": email,
             "password": password,
             "fullname": name,
-            "isTa": true
+            "isTa": isTA
         });
         console.log(token)
         setToken(token);
@@ -43,7 +43,6 @@ const RegisterPage = ({setToken}) => {
     const togglePasswordVisibility = () => {
         setPasswordVisible(!passwordVisible);
     };
-    const [isTA, setIsTA] = useState(false);
     
     const handleTACheckboxChange = () => {
         setIsTA(!isTA);
@@ -56,7 +55,7 @@ const RegisterPage = ({setToken}) => {
                 <p>Register with your Georgia Tech email to send cards to your TAs and teachers.</p>
 
                 
-                <form action="/register" method="POST">
+                <form action="/register" method="POST" onSubmit={handleSubmit}>
                     <label htmlFor="name">Full Name</label>
                     <input
                         type="text"

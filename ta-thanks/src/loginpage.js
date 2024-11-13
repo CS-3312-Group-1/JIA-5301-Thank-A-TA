@@ -45,7 +45,7 @@ const LoginPage = ({ setToken }) => {
                 <h1>Georgia Tech Login</h1>
                 <p>Log in with your Georgia Tech email to send cards to your TAs and teachers.</p>
                 
-                <form action="/login" method="POST">
+                <form action="/login" method="POST" onSubmit={handleSubmit}>
                     <label htmlFor="email">Georgia Tech Email</label>
                     <input
                         type="email"
