@@ -76,13 +76,12 @@ function BasePage() {
             });
 
         } 
-        /* un do after
         if (confirmSend) {
-        const message = "hello world!"; // Assuming 'text' contains the card message
+        const message = "You have been sent a card! http://localhost:3000/login"; // Assuming 'text' contains the card message
         const cardImage = cards[selectedCard - 1]; // Get the selected card image
     
         const templateParams = {
-            to_email: 'jessierigsbee@gmail.com', // Recipient email
+            to_email: selectedTAEmail, // Recipient email
             from_name: 'thankateacher', // Sender name (could be dynamic)
             message: message,
         };
@@ -97,42 +96,7 @@ function BasePage() {
             alert('Failed to send email.');
         });
         
-
     }
-
-        // Temporary function that creates a local link that hosts the image of the card
-        /*
-        if (confirmSend) {
-            const cardPreview = document.querySelector('.card-preview-container');
-    
-            if (cardPreview) {
-                html2canvas(cardPreview, { useCORS: true }).then((canvas) => {
-                    canvas.toBlob((blob) => {
-                        const blobUrl = URL.createObjectURL(blob); 
-                        setCardLink(blobUrl); 
-    
-                        const templateParams = {
-                            to_email: selectedTAEmail, 
-                            from_name: 'thankateacher', 
-                            message: `Here is your card (Make sure to copy and paste "blob:" as well): ${blobUrl}`, 
-                        };
-    
-                        emailjs.send('service_zajqzw1', 'template_3annybp', templateParams, 'PCG3Qws_V456mFKTi')
-                            .then((response) => {
-                                console.log('Email successfully sent!', response.status, response.text);
-                                alert('Email sent successfully!');
-                           
-                            })
-                            .catch((error) => {
-                                console.error('Failed to send email:', error);
-                                alert('Failed to send email.');
-                            });
-                    }, 'image/png');
-                });
-            }
-            
-        }
-        */
         if (confirmSend) {
           // Navigate to the SentPage to show the animation
           navigate('/sent');
