@@ -2,13 +2,43 @@ import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import "./loginpage.css";
 
-const LoginPage = () => {
-    const [passwordVisible, setPasswordVisible] = useState(false);
 
-    const togglePasswordVisibility = () => {
-        setPasswordVisible(!passwordVisible);
-    };
+async function loginUser(credentials) {
+    return fetch('http://localhost:3001/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(credentials)
+    })
+      .then(data => data.json())
+}
 
+const LoginPage = ({ setToken }) => {
+    const [passwordVisible, setPasswordVisible] = useState(false);
+    const [password, setPassword] = useState();
+    const [email, setEmail] = useState();
+    const navigate = useNavigate();
+    const handleSubmit = async e => {
+        e.preventDefault();
+        const token = await loginUser({
+            "email": email,
+            "password" :password
+        });
+        setToken(token);
+        
+        if(token.isTa) {
+            return navigate('/inbox')
+        }else {
+            return navigate('/search')
+        }
+      }
+    
+    const togglePasswordVisibility = () => {
+        setPasswordVisible(!passwordVisible);
+    };
+
+   
     return (
         <div className="login-page-wrapper"> {/* Wrapper for centering only the login page */}
             <div className="login-container">
@@ -22,6 +52,7 @@ const LoginPage = () => {
                         id="email"
                         name="email"
                         placeholder="example@gatech.edu"
+                        onChange={e => setEmail(e.target.value)}
                         required
                     />
                     
@@ -32,6 +63,7 @@ const LoginPage = () => {
                             id="password"
                             name="password"
                             placeholder="Enter your password"
+                            onChange={e => setPassword(e.target.value)}
                             required
                         />
                         <span
@@ -56,5 +88,4 @@ const LoginPage = () => {
         </div>
     );
 };
-
 export default LoginPage;

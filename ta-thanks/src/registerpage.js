@@ -1,9 +1,45 @@
 import React, { useState } from 'react';
 import './registerpage.css';
+import  { useNavigate } from 'react-router-dom'
 
-const RegisterPage = () => {
+async function register(credentials) {
+    return fetch('http://localhost:3001/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(credentials)
+    })
+      .then(data => data.json())
+}
+
+
+
+const RegisterPage = ({setToken}) => {
     const [passwordVisible, setPasswordVisible] = useState(false);
-
+    const [password, setPassword] = useState("");
+    const [email, setEmail] = useState("");
+    const [name, setName] = useState("");
+    const [isTa, setIsTa] = useState();
+    const navigate = useNavigate();
+    const handleSubmit = async e => {
+        e.preventDefault();
+        console.log(email)
+        const token = await register({
+            "email": email,
+            "password": password,
+            "fullname": name,
+            "isTa": true
+        });
+        console.log(token)
+        setToken(token);
+        console.log(token.isTa)
+        if(token.isTa) {
+            return navigate('/inbox')
+        }else {
+            return navigate('/search')
+        }
+      }
     const togglePasswordVisibility = () => {
         setPasswordVisible(!passwordVisible);
     };
@@ -18,6 +54,7 @@ const RegisterPage = () => {
             <div className="register-container">
                 <h1>Georgia Tech Registration</h1>
                 <p>Register with your Georgia Tech email to send cards to your TAs and teachers.</p>
+
                 
                 <form action="/register" method="POST">
                     <label htmlFor="name">Full Name</label>
@@ -25,8 +62,11 @@ const RegisterPage = () => {
                         type="text"
                         id="name"
                         name="name"
+                        onChange={e => setName(e.target.value)}
                         placeholder="Your Full Name"
+
                         required
+
                     />
 
                     <label htmlFor="email">Georgia Tech Email</label>
@@ -35,6 +75,7 @@ const RegisterPage = () => {
                         id="email"
                         name="email"
                         placeholder="example@gatech.edu"
+                        onChange={e => setEmail(e.target.value)}
                         required
                     />
                 
@@ -46,6 +87,7 @@ const RegisterPage = () => {
                             id="password"
                             name="password"
                             placeholder="Create a password"
+                            onChange={e => setPassword(e.target.value)}
                             required
                         />
                         <span
