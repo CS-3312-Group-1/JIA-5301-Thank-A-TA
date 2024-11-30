@@ -17,8 +17,10 @@ function TaInbox({ taId }) {
     const [cards, setCards] = useState([]); // Store cards from DB
     const navigate = useNavigate();
 
+    // List of colors for the color filter
     const colors = ['Red', 'Gold', 'Yellow', 'Green', 'Blue', 'Purple', 'Pink', 'Gray', 'Black', 'Brown'];
 
+    // Context to get the current user's email
     const { userEmail } = useUser(); 
     console.log(userEmail);
 
