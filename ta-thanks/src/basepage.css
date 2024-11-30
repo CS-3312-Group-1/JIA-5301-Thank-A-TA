@@ -71,6 +71,8 @@
     color: black;
     white-space: nowrap;
     cursor: move;
+    font-size: 20px;  /* Default font size */
+    font-family: 'Roboto', sans-serif;  /* Default font */
 }
 
 .message-box-container {
@@ -109,6 +111,7 @@
     border: 1px solid #ccc;
     border-radius: 5px;
     font-size: 16px;
+    font-family: 'Aboreto', sans-serif; /* Ensure consistency in font family */
 }
 
 /* Text Size Slider */
