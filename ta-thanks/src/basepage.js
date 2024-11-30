@@ -1,7 +1,7 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import html2canvas from 'html2canvas';
-import Draggable from 'react-draggable';  // Import Draggable
+import Draggable from 'react-draggable'; 
 import "./basepage.css";
 import homeIcon from './Assets/Vector.png';
 import emptyCard1 from './Assets/card1_Empty.png';
@@ -23,13 +23,23 @@ function BasePage() {
     const [previewTextSize, setPreviewTextSize] = useState(20); // Manage preview text size for new text boxes
     const [textColor, setTextColor] = useState('#000000'); // Set default text color to black
     const [textStyle, setTextStyle] = useState('Aboreto'); // New state for text style (font)
+    const controlsRef = useRef(null);
 
     useEffect(() => {
+
+        const defaultColor = defaultTextColors[selectedCard - 1];
+        setTextColor(defaultColor);
+
         // Function to handle clicks outside the text box
         const handleClickOutside = (event) => {
-            // Check if the click is outside the card-preview-container
             const cardPreview = document.querySelector('.card-preview-container');
-            if (cardPreview && !cardPreview.contains(event.target)) {
+            // Check if the click is outside both the text box and the controls section
+            if (
+                cardPreview && 
+                !cardPreview.contains(event.target) && 
+                controlsRef.current && 
+                !controlsRef.current.contains(event.target)
+            ) {
                 setSelectedBoxId(null); // Deselect text box
             }
         };
@@ -51,7 +61,6 @@ function BasePage() {
     };
 
 
-    const [cardLink, setCardLink] = useState('');
     const printRef = React.useRef();
     const handleSendClick = async () => {
         const confirmSend = window.confirm("Are you sure you would like to send this card?");
@@ -104,68 +113,89 @@ function BasePage() {
     };
 
     
+    // Reset when adding a new text box
     const handleAddTextBox = () => {
         if (text) {
-            setTextBoxes([...textBoxes, { id: textBoxes.length + 1, content: text, color: textColor, textSize: previewTextSize, fontStyle: textStyle }]);
-            setText(''); // Reset the input box after adding
-            setPreviewTextSize(20); // Reset preview text size for next addition
+    
+            // Add the new text box with the current textColor (not resetting it)
+            setTextBoxes([...textBoxes, {
+                id: textBoxes.length + 1,
+                content: text,
+                color: textColor,  // Use the currently selected color (not the default one)
+                textSize: previewTextSize,
+                fontStyle: textStyle
+            }]);
+            setText('');  // Clear the text input
+            setPreviewTextSize(20);  // Reset the text size for new box
+            setTextStyle('Aboreto');  // Reset the font style for new box
         }
     };
+    
+
+    
 
     const handleDeleteTextBox = () => {
-        if (selectedBoxId) {
-            setTextBoxes(textBoxes.filter(box => box.id !== selectedBoxId));
-            setSelectedBoxId(null); // Reset the selected box ID after deletion
+        if (selectedBoxId !== null) {
+            // Filter out the selected text box
+            setTextBoxes(prevBoxes => prevBoxes.filter(box => box.id !== selectedBoxId));
+            setSelectedBoxId(null); // Deselect after deletion
+        } else {
+            alert("No text box is selected!");
         }
     };
+    
 
     const handleTextClick = (id) => {
-        setSelectedBoxId(id); // Set the selected box ID when a text box is clicked
-
-        // Update color and size for the selected box
+        setSelectedBoxId(id);
+    
+        // Fetch and apply text box properties to the controls
         const selectedBox = textBoxes.find(box => box.id === id);
         if (selectedBox) {
-            setTextColor(selectedBox.color); // Set color to the selected box's color
-            setPreviewTextSize(selectedBox.textSize); // Set size to the selected box's size
-            setTextStyle(selectedBox.fontStyle); // Set font style to the selected box's style
+            setTextColor(selectedBox.color);
+            setPreviewTextSize(selectedBox.textSize);
+            setTextStyle(selectedBox.fontStyle); // Set the font style of the selected box
         }
-    };
-
-    const updateTextBoxProperties = (id, newColor, newSize, newStyle) => {
-        setTextBoxes(textBoxes.map(box => 
-            box.id === id 
-                ? { ...box, color: newColor, textSize: newSize, fontStyle: newStyle } 
-                : box
-        ));
     };
 
     const handleColorChange = (color) => {
         setTextColor(color);
-        if (selectedBoxId) {
-            updateTextBoxProperties(selectedBoxId, color, previewTextSize, textStyle);
+        if (selectedBoxId !== null) {
+            setTextBoxes(prevBoxes => 
+                prevBoxes.map(box =>
+                    box.id === selectedBoxId
+                        ? { ...box, color: color }
+                        : box
+                )
+            );
         }
     };
 
     const handleSizeChange = (e) => {
         const newSize = Math.max(e.target.value, 1); // Prevent size from going below 1
         setPreviewTextSize(newSize);
-        if (selectedBoxId) {
-            updateTextBoxProperties(selectedBoxId, textColor, newSize, textStyle);
+        if (selectedBoxId !== null) {
+            setTextBoxes(prevBoxes => 
+                prevBoxes.map(box =>
+                    box.id === selectedBoxId
+                        ? { ...box, textSize: newSize }
+                        : box
+                )
+            );
         }
     };
 
     const handleFontStyleChange = (e) => {
-        setTextStyle(e.target.value); // Update font style
-        if (selectedBoxId) {
-            updateTextBoxProperties(selectedBoxId, textColor, previewTextSize, e.target.value); // Apply font style change to selected text box
+        const newFontStyle = e.target.value;
+        setTextStyle(newFontStyle);
+        if (selectedBoxId !== null) {
+            setTextBoxes(prevBoxes => 
+                prevBoxes.map(box =>
+                    box.id === selectedBoxId
+                        ? { ...box, fontStyle: newFontStyle }
+                        : box
+                )
+            );
         }
-    };
-
-    const handleReset = () => {
-        setText('');
-        setTextColor('#000000');
-        setPreviewTextSize(20);
-        setTextStyle('Aboreto');
     };
 
     const handleExportCard = async () => {
@@ -187,6 +217,13 @@ function BasePage() {
         }
     };
 
+    const defaultTextColors = [
+        '#FFFFFF',  
+        '#FFFFFF', 
+        '#FFFFFF',  
+        '000000', 
+        '#FFFFFF'   
+    ];
 
     // Static Color Palette (Rainbow + Black, White, Brown)
     const colors = [
@@ -219,21 +256,22 @@ function BasePage() {
                             <Draggable 
                                 key={box.id} 
                                 bounds="parent"
-                                onStart={() => handleTextClick(box.id)} // Add the blue outline when dragging starts
-                                onDrag={() => handleTextClick(box.id)}  // Keep the blue outline while dragging
+                                onStart={() => handleTextClick(box.id)}
+                                onDrag={() => handleTextClick(box.id)}
                             >
                                 <div
                                     className="draggable-text"
                                     style={{
                                         fontSize: `${box.textSize}px`,
                                         color: box.color,
-                                        fontFamily: box.fontStyle,
-                                        border: selectedBoxId === box.id ? '2px solid blue' : 'none' // Show blue border when selected
+                                        fontFamily: box.fontStyle, // Dynamically set font style
+                                        border: selectedBoxId === box.id ? '2px solid blue' : 'none'
                                     }}
                                 >
                                     {box.content}
                                 </div>
                             </Draggable>
+
                         ))}
                         {text && (
                             <Draggable bounds="parent">
@@ -251,17 +289,17 @@ function BasePage() {
                     <textarea id="message" value={text} onChange={(e) => setText(e.target.value)} placeholder="Enter your message here" />
 
                     {/* Text Style Dropdown */}
-                    <label htmlFor="font-style">Text Style</label>
                     <select id="font-style" value={textStyle} onChange={handleFontStyleChange}>
-                        <option value="Aboreto">Aboreto</option>
-                        <option value="Awkward Gothic JNL">Awkward Gothic JNL</option>
-                        <option value="Barlow Semi Condensed Medium">Barlow Semi Condensed Medium</option>
-                        <option value="BN Bergen">BN Bergen</option>
-                        <option value="Brandon Grotesque Bold">Brandon Grotesque Bold</option>
-                        <option value="Fjalla One">Fjalla One</option>
-                        <option value="Function Caps Light">Function Caps Light</option>
+                        <option value="Roboto">Roboto</option>
+                        <option value="Open Sans">Open Sans</option>
+                        <option value="Lato">Lato</option>
+                        <option value="Poppins">Poppins</option>
+                        <option value="Montserrat">Montserrat</option>
+                        <option value="Merriweather">Merriweather</option>
+                        <option value="Playfair Display">Playfair Display</option>
+                        <option value="Raleway">Raleway</option>
+                        <option value="Oswald">Oswald</option>
                     </select>
-                    <a href="#" className="reset" onClick={handleReset}>Reset</a>
 
                     {/* Text Size Slider */}
                     <label htmlFor="text-size">Text Size</label>
@@ -276,7 +314,6 @@ function BasePage() {
                         />
                         <span className="slider-value">{previewTextSize} pt</span>
                     </div>
-                    <a href="#" className="reset" onClick={handleReset}>Reset</a>
 
                     {/* Text Color */}
                     <label htmlFor="color-picker">Text Color:</label>
@@ -290,7 +327,6 @@ function BasePage() {
                             ></div>
                         ))}
                     </div>
-                    <a href="#" className="reset" onClick={handleReset}>Reset</a>
 
                     {/* Buttons Section */}
                     <div className="controls">
@@ -303,10 +339,13 @@ function BasePage() {
                         Add Text to Card
                     </button>
 
-                    <button className="delete-text-button" onClick={handleDeleteTextBox} disabled={!selectedBoxId}>
+                    <button
+                        className="delete-text-button"
+                        onClick={handleDeleteTextBox}
+                        disabled={!selectedBoxId} // Disable button if no box is selected
+                        >
                         Delete Selected Text
-                    </button>
-                    
+                     </button>
 
                 </div>
             </div>
