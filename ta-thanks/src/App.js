@@ -6,6 +6,7 @@ import SentPage from './SentPage';
 import TaInbox from './taInbox';
 import Login from './loginpage';
 import RegisterPage from './registerpage';
+import Adminpage from './adminMenu';
 import { UserProvider } from './UserContext';
 
 
@@ -37,6 +38,7 @@ const App = () => {
             <Route path="/inbox" element={<TaInbox />} />
             <Route path="/login" element={<Login setToken={setToken} />} />
             <Route path="/register" element={<RegisterPage setToken={setToken} />} />
+            <Route path="/admin" element={<Adminpage />} />
          </Routes>
       </UserProvider>
    );

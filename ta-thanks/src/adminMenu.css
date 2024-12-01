@@ -1,0 +1,111 @@
+/* Main content layout */
+.main-content {
+    display: flex;
+    align-items: flex-start; /* Align items to the top */
+    padding: 20px;
+    gap: 20px; /* Add space between sections */
+    min-width: 100%; /* Prevent shrinking */
+    background-color: #f5f5f5; /* Light background for better contrast */
+}
+
+/* Header styling */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background-color: #007bff; /* Blue background */
+    color: white;
+    border-bottom: 2px solid #0056b3;
+}
+
+.header .title {
+    font-size: 1.8rem;
+    font-weight: bold;
+}
+
+.header .search button {
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.header .search img {
+    width: 24px;
+    height: 24px;
+}
+
+/* GIF Management Section */
+.gif-management {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    flex: 1; /* Allow to fill remaining space */
+    max-width: 600px; /* Set maximum width */
+}
+
+.gif-management h2 {
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+}
+
+.upload-section {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Space between input and button */
+    margin-bottom: 10px;
+}
+
+.upload-section input[type="file"] {
+    flex: 1; /* Make the input take up space */
+    padding: 5px;
+    font-size: 1rem;
+}
+
+.upload-section button {
+    padding: 8px 16px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.upload-section button:hover {
+    background-color: #0056b3;
+}
+
+/* Status message styling */
+.status-message {
+    margin-top: 10px;
+    font-size: 1rem;
+    color: #28a745; /* Green for success */
+}
+
+.status-message.error {
+    color: #dc3545; /* Red for errors */
+}
+
+/* General button styling */
+button {
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #0056b3;
+    color: #fff;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .main-content {
+        flex-direction: column; /* Stack sections vertically */
+    }
+
+    .gif-management {
+        max-width: 100%; /* Full width on small screens */
+    }
+}
