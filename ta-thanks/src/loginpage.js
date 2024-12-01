@@ -40,7 +40,7 @@ const LoginPage = ({ setToken }) => {
     const togglePasswordVisibility = () => {
         setPasswordVisible(!passwordVisible);
     };
-
+    // This toggles password visability 
    
     return (
         <div className="login-page-wrapper"> {/* Wrapper for centering only the login page */}
