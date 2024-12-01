@@ -5,7 +5,7 @@
     left: 0;
     width: 100vw;
     height: 100vh;
-    background-color: grey;
+    background-color: #003057;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -20,7 +20,7 @@
         background-color: transparent;
     }
     100% {
-        background-color: grey;
+        background-color: #003057;
     }
 }
 
@@ -28,8 +28,8 @@
 .sent-message {
     position: relative;
     z-index: 10;
-    color: white;
-    font-size: 10rem;
+    color: #B3A369;
+    font-size: 20rem;
     text-transform: uppercase;
     font-weight: bold;
     text-align: center;
