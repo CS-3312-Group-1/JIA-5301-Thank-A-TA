@@ -318,7 +318,7 @@ function BasePage() {
                     {/* Text Color */}
                     <label htmlFor="color-picker">Text Color:</label>
                     <div className="color-palette">
-                        {colors.map((color, index) => (
+                        {colors.map((color, index) => ( 
                             <div
                                 key={index}
                                 className="color-circle"
@@ -338,6 +338,10 @@ function BasePage() {
                     <button className="add-text-button" onClick={handleAddTextBox}>
                         Add Text to Card
                     </button>
+                    
+                    {/* A GIF selection menu that pulls from the available options in the database would go here */}
+
+                    {/* This would need its own style within basepage.css */}
 
                     <button
                         className="delete-text-button"
