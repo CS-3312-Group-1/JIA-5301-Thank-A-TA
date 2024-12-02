@@ -7,7 +7,26 @@
     min-width: 100%; /* Prevent shrinking */
     background-color: #f5f5f5; /* Light background for better contrast */
 }
+/* Drag-and-drop styling */
+.drag-drop-box {
+    border: 2px dashed #007bff;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    background-color: #e9f5ff;
+    color: #007bff;
+    transition: background-color 0.3s ease;
+    cursor: pointer;
+}
 
+.drag-drop-box:hover {
+    background-color: #d4e9ff;
+}
+
+.drag-drop-box.dragover {
+    background-color: #cce5ff;
+    border-color: #0056b3;
+    color: #0056b3;
 /* Header styling */
 .header {
     display: flex;
