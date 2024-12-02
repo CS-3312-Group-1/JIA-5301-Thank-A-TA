@@ -24,8 +24,6 @@ function BasePage() {
     const [textColor, setTextColor] = useState('#000000'); // Set default text color to black
     const [textStyle, setTextStyle] = useState('Aboreto'); // New state for text style (font)
     const controlsRef = useRef(null);
-    const [selectedGif, setSelectedGif] = useState(null); // State to track selected GIF
-    const [gifs, setGifs] = useState([]); // State to store GIF options
     const [gifBoxes, setGifBoxes] = useState([]); // Store draggable GIFs
 
     useEffect(() => {
@@ -220,10 +218,6 @@ function BasePage() {
         }
     };
 
-    const handleGifClick = (gifUrl) => {
-        setSelectedGif(gifUrl);
-    };
-
     const handleAddGif = (gifSrc) => {
         setGifBoxes([
             ...gifBoxes,
@@ -233,13 +227,6 @@ function BasePage() {
             },
         ]);
     };
-
-    useEffect(() => {
-        // Fetch GIF options from the database (mocking an example API)
-        axios.get('http://localhost:3001/gifs')
-            .then(response => setGifs(response.data))
-            .catch(error => console.error('Error fetching GIFs:', error));
-    }, []);
 
     const defaultTextColors = [
         '#FFFFFF',  
