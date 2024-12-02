@@ -225,3 +225,66 @@
     color: #666;
     cursor: not-allowed;
 }
+
+/* GIF Selection Container */
+.gif-selection-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 15px;
+    margin: 0 15px; /* Compact margin */
+    background-color: #ffffff; /* White background for consistency */
+    border: 1px solid #e0e0e0; /* Subtle border */
+    border-radius: 8px; /* Smooth corners */
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1); /* Light shadow for depth */
+    width: 300px; /* Fixed width for consistent alignment */
+    height: 250px; /* Fixed height for a defined container size */
+}
+
+/* GIF Selection Title */
+.gif-selection-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #003057; 
+    margin-bottom: 10px; 
+    text-align: center;
+}
+
+/* GIF Placeholder */
+.gif-placeholder {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px; 
+    justify-content: center;
+    align-items: center;
+    width: 100%; 
+    height: calc(100% - 30px); 
+    overflow-y: auto; 
+}
+
+/* Individual GIF Option */
+.gif-option {
+    width: 90px; 
+    height: 90px;
+    object-fit: cover; 
+    border-radius: 4px; 
+    border: 1px solid #ddd; 
+    transition: transform 0.2s, border-color 0.2s; 
+    cursor: pointer; 
+}
+
+.gif-option:hover {
+    border-color: #003057; 
+    transform: scale(1.05); 
+}
+
+.draggable-gif {
+    max-width: 150px; 
+    max-height: 150px; 
+    object-fit: cover; 
+    cursor: move; 
+    position: absolute; 
+    z-index: 10; 
+    border-radius: 8px; 
+}

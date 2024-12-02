@@ -24,6 +24,7 @@ function BasePage() {
     const [textColor, setTextColor] = useState('#000000'); // Set default text color to black
     const [textStyle, setTextStyle] = useState('Aboreto'); // New state for text style (font)
     const controlsRef = useRef(null);
+    const [gifBoxes, setGifBoxes] = useState([]); // Store draggable GIFs
 
     useEffect(() => {
 
@@ -217,6 +218,16 @@ function BasePage() {
         }
     };
 
+    const handleAddGif = (gifSrc) => {
+        setGifBoxes([
+            ...gifBoxes,
+            {
+                id: gifBoxes.length + 1,
+                src: gifSrc,
+            },
+        ]);
+    };
+
     const defaultTextColors = [
         '#FFFFFF',  
         '#FFFFFF', 
@@ -273,6 +284,16 @@ function BasePage() {
                             </Draggable>
 
                         ))}
+                        
+                        {gifBoxes.map((gif) => (
+                            <Draggable key={gif.id} bounds="parent">
+                                <img
+                                    src={gif.src}
+                                    alt="Draggable GIF"
+                                    className="draggable-gif"
+                                />
+                            </Draggable>
+                        ))}
                         {text && (
                             <Draggable bounds="parent">
                                 <div className="draggable-text" style={{ fontSize: `${previewTextSize}px`, color: textColor, fontFamily: textStyle }}>
@@ -280,6 +301,19 @@ function BasePage() {
                                 </div>
                             </Draggable>
                         )}
+                    </div>
+                </div>
+
+                {/* GIF Selection Menu */}
+                <div className="gif-selection-container">
+                    <h3 className="gif-selection-title">GIF Selection</h3>
+                    <div className="gif-placeholder">
+                        <img
+                            src={require('./Assets/Spongebob.gif')}
+                            alt="Spongebob GIF"
+                            className="gif-option"
+                            onClick={() => handleAddGif(require('./Assets/Spongebob.gif'))}
+                        />
                     </div>
                 </div>
 
@@ -339,9 +373,7 @@ function BasePage() {
                         Add Text to Card
                     </button>
                     
-                    {/* A GIF selection menu that pulls from the available options in the database would go here */}
 
-                    {/* This would need its own style within basepage.css */}
 
                     <button
                         className="delete-text-button"
