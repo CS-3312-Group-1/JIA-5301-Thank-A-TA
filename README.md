@@ -45,4 +45,4 @@ This application allows for undergraduate students to send thank you cards to TA
 ## Installtion Guide
 
 ## Detailed Design Document 
-Design-Document-Final.pdf
+./Design-Document-Final.pdf
