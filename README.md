@@ -41,3 +41,8 @@ This application allows for undergraduate students to send thank you cards to TA
 - Image hosting link loads slowly under high traffic.
 - Card templates flicker and take time to load when rapidly switching between tabs.
 - Teacher’s manage classes page crashes when adding a student without any created classes.
+
+## Installtion Guide
+
+## Detailed Design Document 
+Design-Document-Final.pdf
