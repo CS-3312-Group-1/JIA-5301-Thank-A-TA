@@ -314,6 +314,27 @@ function BasePage() {
                             className="gif-option"
                             onClick={() => handleAddGif(require('./Assets/Spongebob.gif'))}
                         />
+
+                        <img
+                            src={require('./Assets/TY1.gif')}
+                            alt="Thank You GIF"
+                            className="gif-option"
+                            onClick={() => handleAddGif(require('./Assets/TY1.gif'))}
+                        />
+
+                        <img
+                            src={require('./Assets/BearyBest.gif')}
+                            alt="Beary Best GIF"
+                            className="gif-option"
+                            onClick={() => handleAddGif(require('./Assets/BearyBest.gif'))}
+                        />
+
+<img
+                            src={require('./Assets/Heart.gif')}
+                            alt="Heart GIF"
+                            className="gif-option"
+                            onClick={() => handleAddGif(require('./Assets/Heart.gif'))}
+                        />
                     </div>
                 </div>
 
