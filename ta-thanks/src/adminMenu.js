@@ -8,11 +8,31 @@ function AdminMenu() {
     const navigate = useNavigate();
     const [selectedGif, setSelectedGif] = useState(null);
     const [uploadStatus, setUploadStatus] = useState('');
+    const [isDragging, setIsDragging] = useState(false);
 
     // Handle GIF selection
     const handleGifSelection = (event) => {
         setSelectedGif(event.target.files[0]);
         setUploadStatus('');
+    };
+
+    // Handle drag events
+    const handleDragOver = (event) => {
+        event.preventDefault();
+        setIsDragging(true);
+    };
+
+    const handleDragLeave = () => {
+        setIsDragging(false);
+    };
+
+    const handleDrop = (event) => {
+        event.preventDefault();
+        setIsDragging(false);
+        if (event.dataTransfer.files && event.dataTransfer.files[0]) {
+            setSelectedGif(event.dataTransfer.files[0]);
+            setUploadStatus('');
+        }
     };
 
     // Handle GIF upload
@@ -57,6 +77,22 @@ function AdminMenu() {
                 {/* GIF Management Section */}
                 <div className="gif-management">
                     <h2>GIF Management</h2>
+
+                    {/* Drag-and-drop section */}
+                    <div
+                        className={`drag-drop-box ${isDragging ? 'dragover' : ''}`}
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                        onDrop={handleDrop}
+                    >
+                        {selectedGif ? (
+                            <p>{selectedGif.name}</p>
+                        ) : (
+                            <p>Drag & drop a GIF here, or click to select a file.</p>
+                        )}
+                    </div>
+
+                    {/* File input fallback */}
                     <div className="upload-section">
                         <input
                             type="file"
@@ -65,6 +101,8 @@ function AdminMenu() {
                         />
                         <button onClick={handleGifUpload}>Upload GIF</button>
                     </div>
+
+                    {/* Status message */}
                     {uploadStatus && <p className="status-message">{uploadStatus}</p>}
                 </div>
             </div>
