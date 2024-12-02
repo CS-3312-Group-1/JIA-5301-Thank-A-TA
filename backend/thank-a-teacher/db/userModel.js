@@ -21,7 +21,12 @@ const UserSchema = new mongoose.Schema({
         type: String, 
         required: [false, "Please provide your name"],
         unique: false 
-      }
+      },
+      isAdmin: {
+        type: Boolean,
+        required: [false, "Please provide TA status"],
+        unique: false,
+      },
 })
 UserSchema.pre('save', function(next) {
   console.log("saving")
