@@ -43,8 +43,9 @@ function AdminMenu() {
         }
 
         const formData = new FormData();
+
         formData.append('gif', selectedGif);
-        // Not sure what we are going to do with the formData yet    
+
         try {
             const response = await axios.post('http://localhost:3001/upload-gif', formData, {
                 headers: {

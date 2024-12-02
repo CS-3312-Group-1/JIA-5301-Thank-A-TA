@@ -72,7 +72,8 @@ app.post("/login", (request, response) => {
             {
               userId: user._id,
               userEmail: user.email,
-              isTa: user.isTa
+              isTa: user.isTa,
+              isAdmin: user.isAdmin | false 
             },
             "RANDOM-TOKEN",
             { expiresIn: "24h" }
@@ -102,13 +103,13 @@ app.post("/login", (request, response) => {
       });
     });
 });
-
+app.post("/upload-gif", (req, res) => {
+  console.log(req.body)
+});
 
 app.post("/register", (req, res) => {
     const { email, password, fullname ,isTa } = req.body;
-    console.log(req.body)
-    const user = new User({ email, password, isTa, fullname });
-    console.log(user)
+    const user = new User({ email, password, isTa, fullname, "isAdmin": false});
     user.save().then(function() {
       const token = jwt.sign(
         {
