@@ -288,3 +288,16 @@
     z-index: 10; 
     border-radius: 8px; 
 }
+.delete-gif-button {
+    background-color: #ff6666;
+    color: white;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.delete-gif-button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}

@@ -25,6 +25,8 @@ function BasePage() {
     const [textStyle, setTextStyle] = useState('Aboreto'); // New state for text style (font)
     const controlsRef = useRef(null);
     const [gifBoxes, setGifBoxes] = useState([]); // Store draggable GIFs
+    const [selectedGifId, setSelectedGifId] = useState(null);
+    const gifContainerRef = useRef(null);
 
     useEffect(() => {
 
@@ -228,6 +230,17 @@ function BasePage() {
         ]);
     };
 
+    const handleDeleteGif = () => {
+        if (selectedGifId !== null) {
+            setGifBoxes((prevGifBoxes) => 
+                prevGifBoxes.filter((gif) => gif.id !== selectedGifId)
+            );
+            setSelectedGifId(null); // Deselect after deletion
+        } else {
+            alert("No GIF is selected!");
+        }
+    };
+
     const defaultTextColors = [
         '#FFFFFF',  
         '#FFFFFF', 
@@ -286,11 +299,18 @@ function BasePage() {
                         ))}
                         
                         {gifBoxes.map((gif) => (
-                            <Draggable key={gif.id} bounds="parent">
+                            <Draggable
+                                key={gif.id}
+                                bounds="parent"
+                                onStart={() => setSelectedGifId(gif.id)} // Select the GIF on click/drag
+                            >
                                 <img
                                     src={gif.src}
                                     alt="Draggable GIF"
                                     className="draggable-gif"
+                                    style={{
+                                        border: selectedGifId === gif.id ? '2px solid red' : 'none', // Highlight selected GIF
+                                    }}
                                 />
                             </Draggable>
                         ))}
@@ -404,6 +424,13 @@ function BasePage() {
                         Delete Selected Text
                      </button>
 
+                    <button
+                        className="delete-gif-button"
+                        onClick={handleDeleteGif}
+                        disabled={!selectedGifId} // Disable if no GIF is selected
+                        >
+                        Delete Selected GIF
+                    </button>
                 </div>
             </div>
         </>
