@@ -33,16 +33,15 @@ This application allows for undergraduate students to send thank you cards to TA
 - Resolved issues with card images loading inconsistently due to database delays.
 - Fixed incorrect rendering of progress bars in the dashboard.
 - Fixed alignment issues in the catalog UI and navigation responsiveness.
-- Resolved teacher dashboards displaying incorrect class information.
 - Fixed login page redirects when incorrect credentials were provided.
 
 ## Known Bugs
 - Occasional delay in loading the login page under high database load conditions.
 - Image hosting link loads slowly under high traffic.
 - Card templates flicker and take time to load when rapidly switching between tabs.
-- Teacher’s manage classes page crashes when adding a student without any created classes.
 
-## Installtion Guide
+
+## Installation Guide
 
 ## Detailed Design Document 
 Review our applications architecture and methodology here:
