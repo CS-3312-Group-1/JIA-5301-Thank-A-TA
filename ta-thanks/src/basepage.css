@@ -54,12 +54,14 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    position: relative;
 }
 
 .card-preview img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    position:absolute;
 }
 
 .draggable-text {
@@ -279,15 +281,23 @@
     transform: scale(1.05); 
 }
 
-.draggable-gif {
-    max-width: 150px; 
-    max-height: 150px; 
-    object-fit: cover; 
-    cursor: move; 
-    position: absolute; 
-    z-index: 10; 
-    border-radius: 8px; 
+.draggable-gif-container {
+    display: inline-block;
+    padding: 10px; /* Optional: Adds spacing around the gif */
+    border: 2px solid transparent; /* Optional: Adds a light border to help visualize the drag */
+    background-color: transparent; /* Optional: Background to make the gif stand out */
+    border-radius: 5px; /* Optional: Rounded corners */
+    cursor: move; /* Optional: Shows a "move" cursor when hovering over the GIF */
+    position: absolute;
+    height: 200px;
+    width: 200px;
 }
+
+.draggable-gif {
+    max-width: 200px; /* Optional: Ensure the gif stays within the container */
+    height: 200px;
+}
+
 .delete-gif-button {
     background-color: #ff6666;
     color: white;
