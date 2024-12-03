@@ -43,7 +43,7 @@ This application allows for undergraduate students to send thank you cards to TA
 
 ## Installation Guide
 For information on installing the Thank-A-Teacher Application and troubleshooting
-[Installation Guide](Installation-Guide.pdf)
+[Installation Guide](Installation Guide.pdf)
 
 ## Detailed Design Document 
 Review our applications architecture and methodology here:
