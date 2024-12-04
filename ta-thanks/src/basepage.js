@@ -205,7 +205,7 @@ function BasePage() {
                 console.error("Error in capturing screenshot or generating GIF", error);
             }
         }
-    /* UNDO AFTER DEBUG
+
     if (confirmSend) {
         const message = "You have been sent a card! http://localhost:3000/login"; // Assuming 'text' contains the card message
         const cardImage = cards[selectedCard - 1]; // Get the selected card image
@@ -228,12 +228,11 @@ function BasePage() {
         
     }
     
-        /*
+
         if (confirmSend) {
           // Navigate to the SentPage to show the animation
           navigate('/sent');
         }
-          */
     };
 
     
@@ -268,10 +267,12 @@ function BasePage() {
         }
     };
     
-
     const handleTextClick = (id) => {
-        setSelectedBoxId(id);
-    
+        if (selectedBoxId !== id) {
+            setSelectedBoxId(id); // Set selected only when it's not already selected
+        } else {
+            setSelectedBoxId(null); // Deselect if already selected
+        }
         // Fetch and apply text box properties to the controls
         const selectedBox = textBoxes.find(box => box.id === id);
         if (selectedBox) {
@@ -554,7 +555,8 @@ function BasePage() {
                         <button onClick={handleExportCard} className="export-button">Export Card</button> 
                     </div>
 
-                    <button className="add-text-button" onClick={handleAddTextBox}>
+                    <button clas
+sName="add-text-button" onClick={handleAddTextBox}>
                         Add Text to Card
                     </button>
                     
