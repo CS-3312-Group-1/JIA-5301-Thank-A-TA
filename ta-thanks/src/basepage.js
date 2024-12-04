@@ -205,7 +205,6 @@ function BasePage() {
                 console.error("Error in capturing screenshot or generating GIF", error);
             }
         }
-    /* UNDO AFTER DEBUG
     if (confirmSend) {
         const message = "You have been sent a card! http://localhost:3000/login"; // Assuming 'text' contains the card message
         const cardImage = cards[selectedCard - 1]; // Get the selected card image
@@ -228,12 +227,10 @@ function BasePage() {
         
     }
     
-        /*
         if (confirmSend) {
           // Navigate to the SentPage to show the animation
           navigate('/sent');
         }
-          */
     };
 
     
