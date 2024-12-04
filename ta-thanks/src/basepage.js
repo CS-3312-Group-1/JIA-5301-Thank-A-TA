@@ -33,7 +33,7 @@ function BasePage() {
     const [gifPositionID, setGifPositionID] = useState([])
     const [selectedGifId, setSelectedGifId] = useState(null);
     const gifContainerRef = useRef(null);
-
+    const [availableGifs, setAvailableGifs] = useState([]);
     useEffect(() => {
 
         const defaultColor = defaultTextColors[selectedCard - 1];
@@ -60,6 +60,20 @@ function BasePage() {
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
+    }, []);
+
+    // Fetch GIFs from the backend on component mount
+    useEffect(() => {
+        const fetchGifs = async () => {
+            try {
+                const response = await axios.get("http://localhost:3001/gifs"); 
+                setAvailableGifs(response.data.gifs); 
+            } catch (error) {
+                console.error("Error fetching GIFs:", error);
+            }
+        };
+
+        fetchGifs();
     }, []);
 
     const handleHomeClick = () => {
@@ -474,32 +488,41 @@ function BasePage() {
                     <h3 className="gif-selection-title">GIF Selection</h3>
                     <div className="gif-placeholder">
                         <img
-                            src={require('./Assets/Spongebob.gif')}
-                            alt="Spongebob GIF"
-                            className="gif-option"
-                            onClick={() => handleAddGif(require('./Assets/Spongebob.gif'))}
-                        />
+                                src={require('./Assets/Spongebob.gif')}
+                                alt="Spongebob GIF"
+                                className="gif-option"
+                                onClick={() => handleAddGif(require('./Assets/Spongebob.gif'))}
+                            />
 
-                        <img
-                            src={require('./Assets/TY1.gif')}
-                            alt="Thank You GIF"
-                            className="gif-option"
-                            onClick={() => handleAddGif(require('./Assets/TY1.gif'))}
-                        />
+                            <img
+                                src={require('./Assets/TY1.gif')}
+                                alt="Thank You GIF"
+                                className="gif-option"
+                                onClick={() => handleAddGif(require('./Assets/TY1.gif'))}
+                            />
 
-                        <img
-                            src={require('./Assets/BearyBest.gif')}
-                            alt="Beary Best GIF"
-                            className="gif-option"
-                            onClick={() => handleAddGif(require('./Assets/BearyBest.gif'))}
-                        />
+                            <img
+                                src={require('./Assets/BearyBest.gif')}
+                                alt="Beary Best GIF"
+                                className="gif-option"
+                                onClick={() => handleAddGif(require('./Assets/BearyBest.gif'))}
+                            />
 
+                            <img
+                                src={require('./Assets/Heart.gif')}
+                                alt="Heart GIF"
+                                className="gif-option"
+                                onClick={() => handleAddGif(require('./Assets/Heart.gif'))}
+                            />
+                      {availableGifs.map((gif, index) => (
                         <img
-                            src={require('./Assets/Heart.gif')}
-                            alt="Heart GIF"
+                            key={gif.id}
+                            src={gif.dataUrl} // Use the Base64 data URL
+                            alt={gif.name}
                             className="gif-option"
-                            onClick={() => handleAddGif(require('./Assets/Heart.gif'))}
+                            onClick={() => handleAddGif(gif.dataUrl)}
                         />
+                    ))}
                     </div>
                 </div>
 
