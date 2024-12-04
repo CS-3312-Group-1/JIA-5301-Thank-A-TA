@@ -26,7 +26,7 @@ function TaInbox({ taId }) {
 
     // Fetch cards for a specific TA from the database
     useEffect(() => {
-        axios.get(`http://localhost:3001/cards/${userEmail}`)
+        axios.get(`http://127.0.0.1:3001/cards/${userEmail}`)
             .then((response) => {
                 setCards(response.data);
                 console.log(cards);
