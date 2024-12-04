@@ -8,7 +8,7 @@ const app = express();
 const mongoose = require('mongoose');
 const jwt = require("jsonwebtoken");
 const GIF = require("./db/GIFmodel2");
-const assert = rqeuire('assert');
+
 
 const multer = require('multer');
 const storage = multer.memoryStorage(); // Store files in memory buffer
@@ -171,7 +171,7 @@ app.post('/card', async (req, res) => {
     const database = client.db("thank-a-teacher");
     const cards = database.collection("CARD");
     cards.insertOne(card, function (err, result) {
-      assert.equal(null, err);
+     
       console.log('item has been inserted');
     }) 
 
