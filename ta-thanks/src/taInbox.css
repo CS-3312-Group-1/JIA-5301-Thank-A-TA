@@ -67,7 +67,7 @@
     margin-top: 15px; /* Space above the button */
     width: 100%; /* Make the button full-width */
     border-radius: 5px;
-    background-color: #007bff;
+    background-color: #003057;
     color: #fff;
     border: none;
     cursor: pointer;
@@ -117,3 +117,51 @@
     font-size: 0.9rem; /* Slightly increased font size */
     margin: 5px 0; /* Slightly increased margin */
 }
+
+/* Style the dropdown container */
+.sort-filter {
+    margin: 10px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-direction: column; /* Stack items vertically */
+    align-items: flex-start; /* Align label and dropdown to the left */
+}
+
+/* Style the label */
+.sort-label {
+    font-size: 16px;
+    color: #333;
+    font-weight: bold;
+}
+
+/* Style the dropdown */
+.custom-dropdown {
+    font-size: 16px;
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    color: #333;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+/* Hover and focus styles */
+.custom-dropdown:hover {
+    border-color: #888;
+    background-color: #fff;
+}
+
+.custom-dropdown:focus {
+    outline: none;
+    border-color: #5b9bd5;
+    box-shadow: 0 0 4px rgba(91, 155, 213, 0.8);
+}
+
+/* Style dropdown options */
+.custom-dropdown option {
+    font-size: 16px;
+    padding: 5px;
+}
+
