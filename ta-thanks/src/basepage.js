@@ -78,86 +78,135 @@ function BasePage() {
       }
     var loadedGIF = []
     var waitingOnGIF = gifPositionID.length;
-    const loadGIF = async(src) => {
-        var myGif = GIF();
-        myGif.onerror = function(e){
+
+    const loadGIF = async (src, callback) => {
+        const myGif = GIF();
+        myGif.onerror = function(e) {
             console.log("Gif loading error " + e.type);
-        }
-        console.log("src")
-        console.log(src)
+        };
+    
         myGif.load(src);
-        myGif.onload = function(event){
-            console.log("LOADED GIF")
-            loadedGIF.push(myGif)
-            waitingOnGIF--;
-            return;
-        }
-    }
+        myGif.onload = function() {
+            console.log("LOADED GIF", src);
+            loadedGIF.push(myGif);
+            callback(); // Notify that the GIF has loaded
+        };
+    };
+    
     const loadGIFs = async() => {
-        for(var gif of gifPositionID.entries()){
-            var index = gif[0];
-            var gifID = gif[1];
-            
-            var myGif;
-            var position = gifPosition[index]
-            var x = position[0]
-            var y = position[1]
-            var src = gifBoxes[index].src
-            await loadGIF(src)
+        for (let index = 0; index < gifPositionID.length; index++) {
+            const gifID = gifPositionID[index];
+            const position = gifPosition[index];
+            const x = position[0];
+            const y = position[1];
+            const src = gifBoxes[index].src;
+
+            // Process GIF loading with timeout to allow UI updates
+            await new Promise((resolve) => {
+                setTimeout(() => {
+                    loadGIF(src, resolve); // Load the GIF and resolve once it's loaded
+                }, 0); // 0 ms delay to yield control to the UI thread
+            });
         }
-        console.log("LOADED all GIF")
-    }
+
+        console.log("All GIFs loaded");
+    };
+
     const printRef = React.useRef();
     const handleSendClick = async () => {
         const confirmSend = window.confirm("Are you sure you would like to send this card?");
         if (confirmSend) {
-            //console.log(x)
-            const element = printRef.current;
-            console.log(element)
-            const canvas = await html2canvas(element);
-            const ctx = canvas.getContext('2d');
-            var encoder = new GIFEncoder();
-            encoder.setRepeat(0); //0  -> loop forever
-            //1+ -> loop n times then stop
-            // LOAD GIF ONCE
-            var binary_gif = ""
-            await loadGIFs()
-            encoder.setDelay(500); //go to next frame every n milliseconds
-            encoder.start();
-            console.log("EHRE")
-            for(var frame = 0; frame<20; frame++){
-                console.log(loadedGIF)
-                for (var gif of loadedGIF.keys()){
-                    console.log(gif)
-                    console.log("Drawing")
-                    console.log(gif[0].frames[frame].image) 
-                    ctx.drawImage(gif[0].frames[frame].image,0,0)
+            try {
+                const element = printRef.current; // Reference to the .card-preview-container
+                console.log("Element: ", element);
+    
+                // Use html2canvas to capture the content
+                const canvas = await html2canvas(element, {
+                    useCORS: true,
+                    logging: true,
+                });
+    
+                const canvasWidth = canvas.width; // html2canvas will set the actual canvas width
+                const canvasHeight = canvas.height; // html2canvas will set the actual canvas height
+    
+                console.log("Canvas Size: ", canvasWidth, canvasHeight);
+    
+                // Loop through all GIF positions and update their positions based on their image's DOM position
+                const adjustedPositions = await Promise.all(gifPosition.map(async ([x, y], index) => {
+                    const imgElement = document.getElementById(gifPositionID[index]);
+                    if (imgElement) {
+                        // Get the position of the image element relative to the screen or container
+                        const rect = imgElement.getBoundingClientRect();
+                        const imgX = rect.left + window.scrollX; // X position relative to the screen
+                        const imgY = rect.top + window.scrollY;  // Y position relative to the screen
+    
+                        // Return the updated position
+                        return [imgX, imgY];
+                    }
+                    return [x, y]; // If the image is not found, fallback to original position
+                }));
+    
+                console.log("Adjusted Positions: ", adjustedPositions);
+    
+                const ctx = canvas.getContext("2d");
+                const encoder = new GIFEncoder();
+                encoder.setRepeat(0); // 0 -> loop forever
+                encoder.setDelay(500); // Delay for each frame
+                encoder.start();
+    
+                // Dynamically load GIFs and add frames
+                await loadGIFs();
+    
+                // Capture each frame of the GIF
+                for (let frame = 0; frame < 20; frame++) {
+                    for (let index = 0; index < loadedGIF.length; index++) {
+                        const gif = loadedGIF[index];
+                        const position = adjustedPositions[index];
+                        const x = position[0];
+                        const y = position[1];
+    
+                        // Ensure gif.frames[frame] exists and has an image
+                        if (gif.frames && gif.frames[frame] && gif.frames[frame].image) {
+                            const gifFrame = gif.frames[frame];
+                            const image = gifFrame.image;
+
+                        // Draw the GIF frame with the adjusted position and size
+                            ctx.drawImage(image, x, y, 150, 150);
+                        } else {
+                            console.warn(`Frame ${frame} does not exist for GIF at index ${index}.`);
+                        }
+                    }
+    
+                    encoder.addFrame(ctx);
                 }
-                encoder.addFrame(ctx);
+    
+                encoder.finish();
+                const binaryGif = encoder.stream().getData();
+                encoder.download("download.gif"); // Download the GIF
+    
+                // Prepare to send the generated GIF data
+                const data = "data:image/gif;base64," + encode64(binaryGif);
+                downloadURI(data, "test.gif");
+    
+                // Send the data via axios
+                axios({
+                    method: "post",
+                    url: "http://localhost:3001/card",
+                    data: { data: data, for: selectedTAEmail },
+                    config: { headers: { "Content-Type": "multipart/form-data" } },
+                })
+                    .then(function (response) {
+                        console.log(response);
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    });
+            } catch (error) {
+                console.error("Error in capturing screenshot or generating GIF", error);
             }
-
-            encoder.finish();
-            binary_gif = encoder.stream().getData()
-            encoder.download("download.gif"); 
-            console.log(selectedTAEmail);
-            
-            const data = "data:image/gif;base64,"+encode64(binary_gif);
-            downloadURI(data,"test.gif")
-            axios({
-                method: 'post',
-                url: 'http://localhost:3001/card',
-                data: {"data":data,"for": selectedTAEmail},
-                config: { headers: {'Content-Type': 'multipart/form-data' }}
-            })
-            .then(function (response) {
-                console.log(response);
-            })
-            .catch(function (error) {
-                console.log(error);
-            });
-
-        } 
-        if (confirmSend) {
+        }
+    /* UNDO AFTER DEBUG
+    if (confirmSend) {
         const message = "You have been sent a card! http://localhost:3000/login"; // Assuming 'text' contains the card message
         const cardImage = cards[selectedCard - 1]; // Get the selected card image
     
@@ -178,6 +227,7 @@ function BasePage() {
         });
         
     }
+    
         /*
         if (confirmSend) {
           // Navigate to the SentPage to show the animation
