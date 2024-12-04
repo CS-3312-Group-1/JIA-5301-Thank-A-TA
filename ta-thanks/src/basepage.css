@@ -289,13 +289,13 @@
     border-radius: 5px; /* Optional: Rounded corners */
     cursor: move; /* Optional: Shows a "move" cursor when hovering over the GIF */
     position: absolute;
-    height: 200px;
-    width: 200px;
+    height: 150px;
+    width: 150px;
 }
 
 .draggable-gif {
-    max-width: 200px; /* Optional: Ensure the gif stays within the container */
-    height: 200px;
+    max-width: 150px; /* Optional: Ensure the gif stays within the container */
+    max-height: 150px;
 }
 
 .delete-gif-button {

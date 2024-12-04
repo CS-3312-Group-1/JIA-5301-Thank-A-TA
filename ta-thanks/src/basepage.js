@@ -205,6 +205,7 @@ function BasePage() {
                 console.error("Error in capturing screenshot or generating GIF", error);
             }
         }
+    /* UNDO AFTER DEBUG
     if (confirmSend) {
         const message = "You have been sent a card! http://localhost:3000/login"; // Assuming 'text' contains the card message
         const cardImage = cards[selectedCard - 1]; // Get the selected card image
@@ -227,10 +228,12 @@ function BasePage() {
         
     }
     
+        /*
         if (confirmSend) {
           // Navigate to the SentPage to show the animation
           navigate('/sent');
         }
+          */
     };
 
     
@@ -253,6 +256,8 @@ function BasePage() {
     };
     
 
+    
+
     const handleDeleteTextBox = () => {
         if (selectedBoxId !== null) {
             // Filter out the selected text box
@@ -265,12 +270,7 @@ function BasePage() {
     
 
     const handleTextClick = (id) => {
-            if (selectedBoxId !== id) {
-                setSelectedBoxId(id); // Set selected only when it's not already selected
-            } else {
-                setSelectedBoxId(null); // Deselect if already selected
-            }
-        
+        setSelectedBoxId(id);
     
         // Fetch and apply text box properties to the controls
         const selectedBox = textBoxes.find(box => box.id === id);
@@ -429,14 +429,12 @@ function BasePage() {
                                     style={{
                                         fontSize: `${box.textSize}px`,
                                         color: box.color,
-                                        fontFamily: box.fontStyle,
-                                        border: selectedBoxId === box.id ? '2px solid blue' : 'none' // Only apply border if selected
+                                        fontFamily: box.fontStyle, // Dynamically set font style
+                                        border: selectedBoxId === box.id ? '2px solid blue' : 'none'
                                     }}
-                                    onClick={() => handleTextClick(box.id)} // Allow click to toggle selection
                                 >
                                     {box.content}
                                 </div>
-
                             </Draggable>
 
                         ))}
@@ -452,16 +450,14 @@ function BasePage() {
                                 }
                                 } // Select the GIF on click/drag
                             >
-                                <div className="draggable-gif-container">
-                                    <img
-                                        src={gif.src}
-                                        alt="Draggable GIF"
-                                        className="draggable-gif"
-                                    />
-                                </div>
+                                <img
+                                    id={gif.id}
+                                    src={gif.src}
+                                    alt="Draggable GIF"
+                                    className="draggable-gif"
+                                />
                             </Draggable>
                         ))}
-
                         {text && (
                             <Draggable bounds="parent">
                                 <div className="draggable-text" style={{ fontSize: `${previewTextSize}px`, color: textColor, fontFamily: textStyle }}>
