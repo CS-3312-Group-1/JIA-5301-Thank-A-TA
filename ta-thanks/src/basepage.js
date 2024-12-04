@@ -580,8 +580,7 @@ function BasePage() {
                         <button onClick={handleExportCard} className="export-button">Export Card</button> 
                     </div>
 
-                    <button clas
-sName="add-text-button" onClick={handleAddTextBox}>
+                    <button className="add-text-button" onClick={handleAddTextBox}>
                         Add Text to Card
                     </button>
                     

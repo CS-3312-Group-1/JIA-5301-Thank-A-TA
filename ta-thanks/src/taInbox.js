@@ -51,6 +51,15 @@ function TaInbox({ taId }) {
         setModalVisible(false);
     };
 
+    const [sortOrder, setSortOrder] = useState('ascending'); // Default: ascending
+
+    const sortedCards = [...filteredCards].sort((a, b) => {
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+        return sortOrder === 'ascending' ? dateA - dateB : dateB - dateA;
+    });
+    
+
     return (
         <div className="App">
             <div className="header">
@@ -65,34 +74,20 @@ function TaInbox({ taId }) {
             <div className="main-contenti">
                 {/* Filters Section */}
                 <div className="filtersi">
-                    <div className="filter-container">
-                        <label>Filter by Category: </label>
+                    {/* Sort by Date */}
+                    <div className="sort-filter">
+                        <label htmlFor="sortOrder" className="sort-label">Sort by Date: </label>
                         <select
-                            value={selectedCategory}
-                            onChange={(e) => setSelectedCategory(e.target.value)}
+                            id="sortOrder"
+                            value={sortOrder}
+                            onChange={(e) => setSortOrder(e.target.value)}
+                            className="custom-dropdown"
                         >
-                            <option value="All">All</option>
-                            <option value="Fun">Fun</option>
-                            <option value="Professional">Professional</option>
-                            <option value="Tech">Tech</option>
-                            <option value="Seasonal">Seasonal</option>
-                            <option value="Academic">Academic</option>
+                            <option value="ascending">Oldest First</option>
+                            <option value="descending">Newest First</option>
                         </select>
                     </div>
 
-                    {/* Color Filter */}
-                    <div className="color-filter">
-                        <label>Filter by Color: </label>
-                        <div className="color-options">
-                            {colors.map((color, index) => (
-                                <div
-                                    key={index}
-                                    className={`color-circle ${selectedColor === color ? 'selected' : ''} ${color.toLowerCase()}`}
-                                    onClick={() => setSelectedColor(color)}
-                                />
-                            ))}
-                        </div>
-                    </div>
 
                     <div className="reseti-filters">
                         <button onClick={() => {
@@ -106,7 +101,7 @@ function TaInbox({ taId }) {
 
                 {/* Card Display Section */}
                 <div className="cardi-display">
-                    {filteredCards.map((card, index) => (
+                    {sortedCards.map((card, index) => (
                         <div key={card._id || index} className="cardi">
                             <img 
                                 src={card.data} 
@@ -115,11 +110,10 @@ function TaInbox({ taId }) {
                                 style={{ cursor: 'pointer' }}
                             />
                             <h3>{card.title}</h3>
-                            <p>Category: {card.category}</p>
-                            <p>Color: {card.color}</p>
                         </div>
                     ))}
                 </div>
+
 
                 {/* Modal for card image */}
                 {isModalVisible && (
