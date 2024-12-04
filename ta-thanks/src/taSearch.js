@@ -97,11 +97,7 @@ function TaSearch() {
         </select>
       </div>
 
-      <div className='textBox'>
-        <input className="form-control" type="text" placeholder="Your Email" />
-      </div>
-
-      <div className='textPadding'>
+       <div className='textPadding'>
       <button onClick={() => navigate('search', { state: { email: selectedTAEmail } })} className='nextButton'>
   Next
 </button>

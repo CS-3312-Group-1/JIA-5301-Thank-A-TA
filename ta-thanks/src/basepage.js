@@ -1,5 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import React, { useState, useEffect, useRef } from "react";
+import ReactDOM from 'react-dom';
 import html2canvas from 'html2canvas';
 import Draggable from 'react-draggable'; 
 import "./basepage.css";
@@ -11,6 +12,9 @@ import emptyCard4 from './Assets/card4_Empty.png';
 import emptyCard5 from './Assets/card5_Empty.png';
 import emailjs from 'emailjs-com';
 import axios from "axios";
+import GIF from './GIF';
+import GIFEncoder from './GIFEncoder';
+import { encode64 } from './b64';
 
 function BasePage() {
     const navigate = useNavigate();
@@ -25,6 +29,8 @@ function BasePage() {
     const [textStyle, setTextStyle] = useState('Aboreto'); // New state for text style (font)
     const controlsRef = useRef(null);
     const [gifBoxes, setGifBoxes] = useState([]); // Store draggable GIFs
+    const [gifPosition, setGifPosition] = useState([]);
+    const [gifPositionID, setGifPositionID] = useState([])
     const [selectedGifId, setSelectedGifId] = useState(null);
     const gifContainerRef = useRef(null);
 
@@ -62,18 +68,81 @@ function BasePage() {
             navigate('/');
         }
     };
-
-
+    function downloadURI(uri, name) {
+        var link = document.createElement("a");
+        link.download = name;
+        link.href = uri;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    var loadedGIF = []
+    var waitingOnGIF = gifPositionID.length;
+    const loadGIF = async(src) => {
+        var myGif = GIF();
+        myGif.onerror = function(e){
+            console.log("Gif loading error " + e.type);
+        }
+        console.log("src")
+        console.log(src)
+        myGif.load(src);
+        myGif.onload = function(event){
+            console.log("LOADED GIF")
+            loadedGIF.push(myGif)
+            waitingOnGIF--;
+            return;
+        }
+    }
+    const loadGIFs = async() => {
+        for(var gif of gifPositionID.entries()){
+            var index = gif[0];
+            var gifID = gif[1];
+            
+            var myGif;
+            var position = gifPosition[index]
+            var x = position[0]
+            var y = position[1]
+            var src = gifBoxes[index].src
+            await loadGIF(src)
+        }
+        console.log("LOADED all GIF")
+    }
     const printRef = React.useRef();
     const handleSendClick = async () => {
         const confirmSend = window.confirm("Are you sure you would like to send this card?");
-
         if (confirmSend) {
+            //console.log(x)
             const element = printRef.current;
+            console.log(element)
             const canvas = await html2canvas(element);
+            const ctx = canvas.getContext('2d');
+            var encoder = new GIFEncoder();
+            encoder.setRepeat(0); //0  -> loop forever
+            //1+ -> loop n times then stop
+            // LOAD GIF ONCE
+            var binary_gif = ""
+            await loadGIFs()
+            encoder.setDelay(500); //go to next frame every n milliseconds
+            encoder.start();
+            console.log("EHRE")
+            for(var frame = 0; frame<20; frame++){
+                console.log(loadedGIF)
+                for (var gif of loadedGIF.keys()){
+                    console.log(gif)
+                    console.log("Drawing")
+                    console.log(gif[0].frames[frame].image) 
+                    ctx.drawImage(gif[0].frames[frame].image,0,0)
+                }
+                encoder.addFrame(ctx);
+            }
+
+            encoder.finish();
+            binary_gif = encoder.stream().getData()
+            encoder.download("download.gif"); 
             console.log(selectedTAEmail);
-        
-            const data = canvas.toDataURL('image/jpg');
+            
+            const data = "data:image/gif;base64,"+encode64(binary_gif);
+            downloadURI(data,"test.gif")
             axios({
                 method: 'post',
                 url: 'http://localhost:3001/card',
@@ -109,10 +178,12 @@ function BasePage() {
         });
         
     }
+        /*
         if (confirmSend) {
           // Navigate to the SentPage to show the animation
           navigate('/sent');
         }
+          */
     };
 
     
@@ -221,10 +292,11 @@ function BasePage() {
     };
 
     const handleAddGif = (gifSrc) => {
+
         setGifBoxes([
             ...gifBoxes,
             {
-                id: gifBoxes.length + 1,
+                id: "GIF"+gifBoxes.length + 1,
                 src: gifSrc,
             },
         ]);
@@ -240,7 +312,26 @@ function BasePage() {
             alert("No GIF is selected!");
         }
     };
-
+    const handleStop = (event, dragElement) => {
+        var id = event.target.id;
+        if (id === '') {
+            return
+        }
+        console.log(id)
+        console.log(gifPositionID)
+        for(var v of gifPositionID.entries()) {
+            if(v[1] === id) {
+                gifPosition[v[0]] = [dragElement.x,  dragElement.y]
+                setGifPosition(gifPosition) 
+                console.log(gifPosition) 
+                return;
+            }
+        }
+        setGifPositionID([...gifPositionID, id])
+        setGifPosition([...gifPosition, [dragElement.x,  dragElement.y]])
+        console.log(gifPosition)
+        console.log(gifBoxes)
+      };
     const defaultTextColors = [
         '#FFFFFF',  
         '#FFFFFF', 
@@ -300,11 +391,17 @@ function BasePage() {
                         
                         {gifBoxes.map((gif) => (
                             <Draggable
-                                key={gif.id}
+                                key={"GIF"+gif.id}
+                                onStop={handleStop} 
                                 bounds="parent"
-                                onStart={() => setSelectedGifId(gif.id)} // Select the GIF on click/drag
+                                position= {null}
+                                onStart={() => {
+                                    setSelectedGifId(gif.id)
+                                }
+                                } // Select the GIF on click/drag
                             >
                                 <img
+                                    id={gif.id}
                                     src={gif.src}
                                     alt="Draggable GIF"
                                     className="draggable-gif"
@@ -349,7 +446,7 @@ function BasePage() {
                             onClick={() => handleAddGif(require('./Assets/BearyBest.gif'))}
                         />
 
-<img
+                        <img
                             src={require('./Assets/Heart.gif')}
                             alt="Heart GIF"
                             className="gif-option"
