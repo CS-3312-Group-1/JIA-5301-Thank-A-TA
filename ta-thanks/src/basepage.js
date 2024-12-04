@@ -137,8 +137,10 @@ function BasePage() {
                     if (imgElement) {
                         // Get the position of the image element relative to the screen or container
                         const rect = imgElement.getBoundingClientRect();
-                        const imgX = rect.left + window.scrollX; // X position relative to the screen
-                        const imgY = rect.top + window.scrollY;  // Y position relative to the screen
+                        const containerRect = element.getBoundingClientRect();
+                        const imgX = rect.left; // X position relative to the screen
+                        const imgY = rect.top + window.scrollY - ((containerRect.y / 3 ) - 10);  // Y position relative to the screen
+                        console.log(imgY);
     
                         // Return the updated position
                         return [imgX, imgY];
@@ -163,7 +165,7 @@ function BasePage() {
                         const gif = loadedGIF[index];
                         const position = adjustedPositions[index];
                         const x = position[0];
-                        const y = position[1];
+                        const y = position[1] + 25;
     
                         // Ensure gif.frames[frame] exists and has an image
                         if (gif.frames && gif.frames[frame] && gif.frames[frame].image) {
@@ -188,7 +190,6 @@ function BasePage() {
                 const data = "data:image/gif;base64," + encode64(binaryGif);
                 downloadURI(data, "test.gif");
     
-                // Send the data via axios
                 axios({
                     method: "post",
                     url: "http://localhost:3001/card",
@@ -204,6 +205,7 @@ function BasePage() {
             } catch (error) {
                 console.error("Error in capturing screenshot or generating GIF", error);
             }
+            
         }
 
     if (confirmSend) {
