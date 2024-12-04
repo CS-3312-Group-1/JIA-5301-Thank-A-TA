@@ -7,7 +7,15 @@ const User = require("./db/userModel");
 const app = express();
 const mongoose = require('mongoose');
 const jwt = require("jsonwebtoken");
+const GIF = require("./db/GIFmodel2");
 
+
+const multer = require('multer');
+const storage = multer.memoryStorage(); // Store files in memory buffer
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 5 * 1024 * 1024 } // 5 MB limit
+});
 
 
 const corsOptions ={
@@ -103,8 +111,33 @@ app.post("/login", (request, response) => {
       });
     });
 });
-app.post("/upload-gif", (req, res) => {
-  console.log(req.body)
+
+app.post("/upload-gif", upload.single('gif'), async (req, res) => {
+  if (!req.file) {
+      return res.status(400).send('No file uploaded.');
+  }
+
+  if (req.file.mimetype !== 'image/gif') {
+      return res.status(400).send('Only GIF files are allowed.');
+  }
+
+  try {
+      const newGif = new GIF({
+          name: req.file.originalname,
+          img: {
+              data: req.file.buffer,
+              contentType: req.file.mimetype
+          },
+          size: req.file.size,
+          uploadedBy: "admin@example.com" // Replace with actual uploader info if needed
+      });
+
+      await newGif.save();
+      res.status(200).send('GIF uploaded and saved successfully!');
+  } catch (error) {
+      console.error('Error saving GIF:', error);
+      res.status(500).send('Error saving GIF to the database.');
+  }
 });
 
 app.post("/register", (req, res) => {
@@ -138,7 +171,7 @@ app.post('/card', async (req, res) => {
     const database = client.db("thank-a-teacher");
     const cards = database.collection("CARD");
     cards.insertOne(card, function (err, result) {
-      assert.equal(null, err);
+     
       console.log('item has been inserted');
     }) 
 
