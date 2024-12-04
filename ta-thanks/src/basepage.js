@@ -1,5 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import React, { useState, useEffect, useRef } from "react";
+import ReactDOM from 'react-dom';
 import html2canvas from 'html2canvas';
 import Draggable from 'react-draggable'; 
 import "./basepage.css";
@@ -11,6 +12,9 @@ import emptyCard4 from './Assets/card4_Empty.png';
 import emptyCard5 from './Assets/card5_Empty.png';
 import emailjs from 'emailjs-com';
 import axios from "axios";
+import GIF from './GIF';
+import GIFEncoder from './GIFEncoder';
+import { encode64 } from './b64';
 
 function BasePage() {
     const navigate = useNavigate();
@@ -25,6 +29,8 @@ function BasePage() {
     const [textStyle, setTextStyle] = useState('Aboreto'); // New state for text style (font)
     const controlsRef = useRef(null);
     const [gifBoxes, setGifBoxes] = useState([]); // Store draggable GIFs
+    const [gifPosition, setGifPosition] = useState([]);
+    const [gifPositionID, setGifPositionID] = useState([])
     const [selectedGifId, setSelectedGifId] = useState(null);
     const gifContainerRef = useRef(null);
 
@@ -62,33 +68,144 @@ function BasePage() {
             navigate('/');
         }
     };
+    function downloadURI(uri, name) {
+        var link = document.createElement("a");
+        link.download = name;
+        link.href = uri;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    var loadedGIF = []
+    var waitingOnGIF = gifPositionID.length;
 
+    const loadGIF = async (src, callback) => {
+        const myGif = GIF();
+        myGif.onerror = function(e) {
+            console.log("Gif loading error " + e.type);
+        };
+    
+        myGif.load(src);
+        myGif.onload = function() {
+            console.log("LOADED GIF", src);
+            loadedGIF.push(myGif);
+            callback(); // Notify that the GIF has loaded
+        };
+    };
+    
+    const loadGIFs = async() => {
+        for (let index = 0; index < gifPositionID.length; index++) {
+            const gifID = gifPositionID[index];
+            const position = gifPosition[index];
+            const x = position[0];
+            const y = position[1];
+            const src = gifBoxes[index].src;
+
+            // Process GIF loading with timeout to allow UI updates
+            await new Promise((resolve) => {
+                setTimeout(() => {
+                    loadGIF(src, resolve); // Load the GIF and resolve once it's loaded
+                }, 0); // 0 ms delay to yield control to the UI thread
+            });
+        }
+
+        console.log("All GIFs loaded");
+    };
 
     const printRef = React.useRef();
     const handleSendClick = async () => {
         const confirmSend = window.confirm("Are you sure you would like to send this card?");
-
         if (confirmSend) {
-            const element = printRef.current;
-            const canvas = await html2canvas(element);
-            console.log(selectedTAEmail);
-        
-            const data = canvas.toDataURL('image/jpg');
-            axios({
-                method: 'post',
-                url: 'http://localhost:3001/card',
-                data: {"data":data,"for": selectedTAEmail},
-                config: { headers: {'Content-Type': 'multipart/form-data' }}
-            })
-            .then(function (response) {
-                console.log(response);
-            })
-            .catch(function (error) {
-                console.log(error);
-            });
+            try {
+                const element = printRef.current; // Reference to the .card-preview-container
+                console.log("Element: ", element);
+    
+                // Use html2canvas to capture the content
+                const canvas = await html2canvas(element, {
+                    useCORS: true,
+                    logging: true,
+                });
+    
+                const canvasWidth = canvas.width; // html2canvas will set the actual canvas width
+                const canvasHeight = canvas.height; // html2canvas will set the actual canvas height
+    
+                console.log("Canvas Size: ", canvasWidth, canvasHeight);
+    
+                // Loop through all GIF positions and update their positions based on their image's DOM position
+                const adjustedPositions = await Promise.all(gifPosition.map(async ([x, y], index) => {
+                    const imgElement = document.getElementById(gifPositionID[index]);
+                    if (imgElement) {
+                        // Get the position of the image element relative to the screen or container
+                        const rect = imgElement.getBoundingClientRect();
+                        const imgX = rect.left + window.scrollX; // X position relative to the screen
+                        const imgY = rect.top + window.scrollY;  // Y position relative to the screen
+    
+                        // Return the updated position
+                        return [imgX, imgY];
+                    }
+                    return [x, y]; // If the image is not found, fallback to original position
+                }));
+    
+                console.log("Adjusted Positions: ", adjustedPositions);
+    
+                const ctx = canvas.getContext("2d");
+                const encoder = new GIFEncoder();
+                encoder.setRepeat(0); // 0 -> loop forever
+                encoder.setDelay(500); // Delay for each frame
+                encoder.start();
+    
+                // Dynamically load GIFs and add frames
+                await loadGIFs();
+    
+                // Capture each frame of the GIF
+                for (let frame = 0; frame < 20; frame++) {
+                    for (let index = 0; index < loadedGIF.length; index++) {
+                        const gif = loadedGIF[index];
+                        const position = adjustedPositions[index];
+                        const x = position[0];
+                        const y = position[1];
+    
+                        // Ensure gif.frames[frame] exists and has an image
+                        if (gif.frames && gif.frames[frame] && gif.frames[frame].image) {
+                            const gifFrame = gif.frames[frame];
+                            const image = gifFrame.image;
 
-        } 
-        if (confirmSend) {
+                        // Draw the GIF frame with the adjusted position and size
+                            ctx.drawImage(image, x, y, 150, 150);
+                        } else {
+                            console.warn(`Frame ${frame} does not exist for GIF at index ${index}.`);
+                        }
+                    }
+    
+                    encoder.addFrame(ctx);
+                }
+    
+                encoder.finish();
+                const binaryGif = encoder.stream().getData();
+                encoder.download("download.gif"); // Download the GIF
+    
+                // Prepare to send the generated GIF data
+                const data = "data:image/gif;base64," + encode64(binaryGif);
+                downloadURI(data, "test.gif");
+    
+                // Send the data via axios
+                axios({
+                    method: "post",
+                    url: "http://localhost:3001/card",
+                    data: { data: data, for: selectedTAEmail },
+                    config: { headers: { "Content-Type": "multipart/form-data" } },
+                })
+                    .then(function (response) {
+                        console.log(response);
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    });
+            } catch (error) {
+                console.error("Error in capturing screenshot or generating GIF", error);
+            }
+        }
+    if (confirmSend) {
         const message = "You have been sent a card! http://localhost:3000/login"; // Assuming 'text' contains the card message
         const cardImage = cards[selectedCard - 1]; // Get the selected card image
     
@@ -109,6 +226,7 @@ function BasePage() {
         });
         
     }
+    
         if (confirmSend) {
           // Navigate to the SentPage to show the animation
           navigate('/sent');
@@ -224,10 +342,11 @@ function BasePage() {
     };
 
     const handleAddGif = (gifSrc) => {
+
         setGifBoxes([
             ...gifBoxes,
             {
-                id: gifBoxes.length + 1,
+                id: "GIF"+gifBoxes.length + 1,
                 src: gifSrc,
             },
         ]);
@@ -243,7 +362,26 @@ function BasePage() {
             alert("No GIF is selected!");
         }
     };
-
+    const handleStop = (event, dragElement) => {
+        var id = event.target.id;
+        if (id === '') {
+            return
+        }
+        console.log(id)
+        console.log(gifPositionID)
+        for(var v of gifPositionID.entries()) {
+            if(v[1] === id) {
+                gifPosition[v[0]] = [dragElement.x,  dragElement.y]
+                setGifPosition(gifPosition) 
+                console.log(gifPosition) 
+                return;
+            }
+        }
+        setGifPositionID([...gifPositionID, id])
+        setGifPosition([...gifPosition, [dragElement.x,  dragElement.y]])
+        console.log(gifPosition)
+        console.log(gifBoxes)
+      };
     const defaultTextColors = [
         '#FFFFFF',  
         '#FFFFFF', 
@@ -305,9 +443,14 @@ function BasePage() {
                         
                         {gifBoxes.map((gif) => (
                             <Draggable
-                                key={gif.id}
+                                key={"GIF"+gif.id}
+                                onStop={handleStop} 
                                 bounds="parent"
-                                onStart={() => setSelectedGifId(gif.id)} // Select the GIF on click/drag
+                                position= {null}
+                                onStart={() => {
+                                    setSelectedGifId(gif.id)
+                                }
+                                } // Select the GIF on click/drag
                             >
                                 <div className="draggable-gif-container">
                                     <img
