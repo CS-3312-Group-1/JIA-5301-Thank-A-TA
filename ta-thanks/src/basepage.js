@@ -253,8 +253,6 @@ function BasePage() {
     };
     
 
-    
-
     const handleDeleteTextBox = () => {
         if (selectedBoxId !== null) {
             // Filter out the selected text box
@@ -267,7 +265,12 @@ function BasePage() {
     
 
     const handleTextClick = (id) => {
-        setSelectedBoxId(id);
+            if (selectedBoxId !== id) {
+                setSelectedBoxId(id); // Set selected only when it's not already selected
+            } else {
+                setSelectedBoxId(null); // Deselect if already selected
+            }
+        
     
         // Fetch and apply text box properties to the controls
         const selectedBox = textBoxes.find(box => box.id === id);
@@ -426,12 +429,14 @@ function BasePage() {
                                     style={{
                                         fontSize: `${box.textSize}px`,
                                         color: box.color,
-                                        fontFamily: box.fontStyle, // Dynamically set font style
-                                        border: selectedBoxId === box.id ? '2px solid blue' : 'none'
+                                        fontFamily: box.fontStyle,
+                                        border: selectedBoxId === box.id ? '2px solid blue' : 'none' // Only apply border if selected
                                     }}
+                                    onClick={() => handleTextClick(box.id)} // Allow click to toggle selection
                                 >
                                     {box.content}
                                 </div>
+
                             </Draggable>
 
                         ))}
@@ -447,17 +452,16 @@ function BasePage() {
                                 }
                                 } // Select the GIF on click/drag
                             >
-                                <img
-                                    id={gif.id}
-                                    src={gif.src}
-                                    alt="Draggable GIF"
-                                    className="draggable-gif"
-                                    style={{
-                                        border: selectedGifId === gif.id ? '2px solid red' : 'none', // Highlight selected GIF
-                                    }}
-                                />
+                                <div className="draggable-gif-container">
+                                    <img
+                                        src={gif.src}
+                                        alt="Draggable GIF"
+                                        className="draggable-gif"
+                                    />
+                                </div>
                             </Draggable>
                         ))}
+
                         {text && (
                             <Draggable bounds="parent">
                                 <div className="draggable-text" style={{ fontSize: `${previewTextSize}px`, color: textColor, fontFamily: textStyle }}>
