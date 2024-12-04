@@ -140,6 +140,30 @@ app.post("/upload-gif", upload.single('gif'), async (req, res) => {
   }
 });
 
+app.get("/gifs", async (req, res) => {
+  try {
+      const database = client.db("test");
+      const gifsCollection = database.collection("gif2"); 
+
+      // Fetch all GIFs from the collection
+      const gifs = await gifsCollection.find().toArray();
+
+      // Convert each GIF to Base64 format
+      const processedGifs = gifs.map((gif) => ({
+          id: gif._id,
+          name: gif.name,
+          size: gif.size,
+          uploadedBy: gif.uploadedBy,
+          dataUrl: `data:${gif.img.contentType};base64,${gif.img.data.toString("base64")}`
+      }));
+
+      res.status(200).json({ gifs: processedGifs });
+  } catch (error) {
+      console.error("Error fetching GIFs:", error);
+      res.status(500).send("Error fetching GIFs from the database.");
+  }
+});
+
 app.post("/register", (req, res) => {
     const { email, password, fullname ,isTa } = req.body;
     const user = new User({ email, password, isTa, fullname, "isAdmin": false});
