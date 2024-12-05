@@ -1,5 +1,5 @@
 /* Main content layout */
-.main-content {
+.main-contenta {
     display: flex;
     align-items: flex-start; /* Align items to the top */
     padding: 20px;
@@ -27,47 +27,57 @@
     background-color: #cce5ff;
     border-color: #0056b3;
     color: #0056b3;
-/* Header styling */
-.header {
+}
+
+/* GIF Gallery */
+.gif-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Automatically adjust columns */
+    gap: 15px; /* Space between each GIF item */
+    margin-top: 20px;
+}
+
+.gif-item {
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
     align-items: center;
-    padding: 20px;
-    background-color: #007bff; /* Blue background */
-    color: white;
-    border-bottom: 2px solid #0056b3;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.header .title {
-    font-size: 1.8rem;
-    font-weight: bold;
+.gif-item img {
+    width: 100%;
+    height: auto;
+    border-radius: 5px;
 }
 
-.header .search button {
-    background: none;
-    border: none;
-    cursor: pointer;
+.gif-item p {
+    margin-top: 10px;
+    text-align: center;
+    font-size: 1rem;
+    color: #333;
 }
 
-.header .search img {
-    width: 24px;
-    height: 24px;
+/* Hover effects */
+.gif-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.2);
 }
 
-/* GIF Management Section */
+/* GIF Management */
 .gif-management {
     background-color: #fff;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
     flex: 1; /* Allow to fill remaining space */
-    max-width: 600px; /* Set maximum width */
+    max-width: 100%; /* Full width */
 }
 
-.gif-management h2 {
-    font-size: 1.5rem;
-    margin-bottom: 15px;
-}
 
 .upload-section {
     display: flex;
@@ -128,4 +138,15 @@ button:hover {
         max-width: 100%; /* Full width on small screens */
     }
 }
+.gif-item button {
+    margin-top: 10px;
+    padding: 5px 10px;
+    background-color: red;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.gif-item button:hover {
+    background-color: darkred;
 }

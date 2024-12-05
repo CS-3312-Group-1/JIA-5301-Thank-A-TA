@@ -357,17 +357,31 @@ function BasePage() {
             });
         }
     };
-
     const handleAddGif = (gifSrc) => {
-
+        // Add the new GIF to the gifBoxes state
         setGifBoxes([
             ...gifBoxes,
             {
-                id: "GIF"+gifBoxes.length + 1,
+                id: "GIF" + (gifBoxes.length + 1), // Unique ID for each GIF
                 src: gifSrc,
             },
         ]);
     };
+
+    const [gifs, setGifs] = useState([]);
+    const fetchGifs = async () => {
+        try {
+            const response = await axios.get('http://127.0.0.1:3001/get-gifs');
+            console.log(response.data); // Log the response to inspect the data
+            setGifs(response.data);
+        } catch (error) {
+            console.error('Error fetching GIFs:', error);
+        }
+    };
+
+    useEffect(() => {
+        fetchGifs();
+    }, []);
 
     const handleDeleteGif = () => {
         if (selectedGifId !== null) {
@@ -430,103 +444,103 @@ function BasePage() {
                 </button>
             </div>
             <div className="container">
-                {/* Card Preview Section */}
-                <div ref={printRef} className="card-preview-container">
-                    <div id="preview" className="card-preview">
-                        <img src={cards[selectedCard - 1]} alt="Selected card" />
-                        { textBoxes.map((box) => (
-                            <Draggable 
-                                key={box.id} 
-                                bounds="parent"
-                                onStart={() => handleTextClick(box.id)}
-                                onDrag={() => handleTextClick(box.id)}
+            {/* Card Preview Section */}
+            <div ref={printRef} className="card-preview-container">
+                <div id="preview" className="card-preview">
+                    <img src={cards[selectedCard - 1]} alt="Selected card" />
+                    {textBoxes.map((box) => (
+                        <Draggable
+                            key={box.id}
+                            bounds="parent"
+                            onStart={() => handleTextClick(box.id)}
+                            onDrag={() => handleTextClick(box.id)}
+                        >
+                            <div
+                                className="draggable-text"
+                                style={{
+                                    fontSize: `${box.textSize}px`,
+                                    color: box.color,
+                                    fontFamily: box.fontStyle,
+                                    border: selectedBoxId === box.id ? '2px solid blue' : 'none'
+                                }}
                             >
-                                <div
-                                    className="draggable-text"
-                                    style={{
-                                        fontSize: `${box.textSize}px`,
-                                        color: box.color,
-                                        fontFamily: box.fontStyle, // Dynamically set font style
-                                        border: selectedBoxId === box.id ? '2px solid blue' : 'none'
-                                    }}
-                                >
-                                    {box.content}
-                                </div>
-                            </Draggable>
-
-                        ))}
-                        
-                        {gifBoxes.map((gif) => (
-                            <Draggable
-                                key={"GIF"+gif.id}
-                                onStop={handleStop} 
-                                bounds="parent"
-                                position= {null}
-                                onStart={() => {
-                                    setSelectedGifId(gif.id)
-                                }
-                                } // Select the GIF on click/drag
-                            >
-                                <img
-                                    id={gif.id}
-                                    src={gif.src}
-                                    alt="Draggable GIF"
-                                    className="draggable-gif"
-                                />
-                            </Draggable>
-                        ))}
-                        {text && (
-                            <Draggable bounds="parent">
-                                <div className="draggable-text" style={{ fontSize: `${previewTextSize}px`, color: textColor, fontFamily: textStyle }}>
-                                    {text}
-                                </div>
-                            </Draggable>
-                        )}
-                    </div>
-                </div>
-
-                {/* GIF Selection Menu */}
-                <div className="gif-selection-container">
-                    <h3 className="gif-selection-title">GIF Selection</h3>
-                    <div className="gif-placeholder">
-                        <img
-                                src={require('./Assets/Spongebob.gif')}
-                                alt="Spongebob GIF"
-                                className="gif-option"
-                                onClick={() => handleAddGif(require('./Assets/Spongebob.gif'))}
-                            />
-
-                            <img
-                                src={require('./Assets/TY1.gif')}
-                                alt="Thank You GIF"
-                                className="gif-option"
-                                onClick={() => handleAddGif(require('./Assets/TY1.gif'))}
-                            />
-
-                            <img
-                                src={require('./Assets/BearyBest.gif')}
-                                alt="Beary Best GIF"
-                                className="gif-option"
-                                onClick={() => handleAddGif(require('./Assets/BearyBest.gif'))}
-                            />
-
-                            <img
-                                src={require('./Assets/Heart.gif')}
-                                alt="Heart GIF"
-                                className="gif-option"
-                                onClick={() => handleAddGif(require('./Assets/Heart.gif'))}
-                            />
-                      {availableGifs.map((gif, index) => (
-                        <img
+                                {box.content}
+                            </div>
+                        </Draggable>
+                    ))}
+                    
+                    {gifBoxes.map((gif) => (
+                        <Draggable
                             key={gif.id}
-                            src={gif.dataUrl} // Use the Base64 data URL
-                            alt={gif.name}
+                            onStop={handleStop}
+                            bounds="parent"
+                            onStart={() => setSelectedGifId(gif.id)} // Select the GIF on click/drag
+                        >
+                            <img
+                                id={gif.id}
+                                src={gif.src}
+                                alt="Draggable GIF"
+                                className="draggable-gif"
+                            />
+                        </Draggable>
+                    ))}
+
+
+                    {text && (
+                        <Draggable bounds="parent">
+                            <div className="draggable-text" style={{ fontSize: `${previewTextSize}px`, color: textColor, fontFamily: textStyle }}>
+                                {text}
+                            </div>
+                        </Draggable>
+                    )}
+                </div>
+            </div>
+
+            {/* GIF Selection Menu */}
+            <div className="gif-selection-container">
+                <h3 className="gif-selection-title">GIF Selection</h3>
+                <div className="gif-placeholder">
+                    {/* Static GIFs */}
+                    <img
+                        src={require('./Assets/Spongebob.gif')}
+                        alt="Spongebob GIF"
+                        className="gif-option"
+                        onClick={() => handleAddGif(require('./Assets/Spongebob.gif'))}
+                    />
+                    <img
+                        src={require('./Assets/TY1.gif')}
+                        alt="Thank You GIF"
+                        className="gif-option"
+                        onClick={() => handleAddGif(require('./Assets/TY1.gif'))}
+                    />
+                    <img
+                        src={require('./Assets/BearyBest.gif')}
+                        alt="Beary Best GIF"
+                        className="gif-option"
+                        onClick={() => handleAddGif(require('./Assets/BearyBest.gif'))}
+                    />
+                    <img
+                        src={require('./Assets/Heart.gif')}
+                        alt="Heart GIF"
+                        className="gif-option"
+                        onClick={() => handleAddGif(require('./Assets/Heart.gif'))}
+                    />
+
+                    {/* Dynamically loaded GIFs from database */}
+                    {gifs.map((gif) => (
+                        <img
+                            key={gif._id} // Use _id from the database
+                            src={`http://127.0.0.1:3001/get-gif/${gif._id}`} // Construct the URL for the GIF
+                            alt={gif.name} // Optional alt text for accessibility
                             className="gif-option"
-                            onClick={() => handleAddGif(gif.dataUrl)}
+                            onClick={() => handleAddGif(`http://127.0.0.1:3001/get-gif/${gif._id}`)} // Pass URL to handler
                         />
                     ))}
-                    </div>
+
                 </div>
+            </div>
+
+        </div>
 
                 {/* Message Box Section */}
                 <div className="message-box-container">
@@ -602,7 +616,6 @@ function BasePage() {
                         Delete Selected GIF
                     </button>
                 </div>
-            </div>
         </>
     );
 }
