@@ -76,6 +76,24 @@ function AdminMenu() {
             setFetchError('Failed to load available GIFs.');
         }
     };
+
+    const handleDeleteGif = async (gifId) => {
+        try {
+            console.log(`Deleting GIF with ID: ${gifId}`);
+            const response = await axios.delete(`http://127.0.0.1:3001/delete-gif/${gifId}`);
+            
+            if (response.status === 200) {
+                setUploadStatus('GIF deleted successfully!');
+                fetchGifs(); // Refresh the GIF list
+            } else {
+                setUploadStatus('Failed to delete GIF.');
+            }
+        } catch (error) {
+            console.error('Error deleting GIF:', error);
+            setUploadStatus('Error deleting GIF.');
+        }
+    };
+    
     
 
     useEffect(() => {
@@ -125,17 +143,24 @@ function AdminMenu() {
                     {fetchError && <p className="error-message">{fetchError}</p>}
 
                     <div className="gif-gallery">
-                    {gifs.length > 0 ? (
-                        gifs.map((gif) => (
-                            <div key={gif._id} className="gif-item">
-                                <img src={`http://127.0.0.1:3001/get-gif/${gif._id}`} alt={gif.name} />
-                                <p>{gif.name}</p>
-                            </div>
-                        ))
-                    ) : (
-                        <p>No GIFs available.</p>
-                    )}
-                </div>
+    {gifs.length > 0 ? (
+        gifs.map((gif) => (
+            <div key={gif._id} className="gif-item">
+                <img src={`http://127.0.0.1:3001/get-gif/${gif._id}`} alt={gif.name} />
+                <p>{gif.name}</p>
+                <button
+                    className="delete-button"
+                    onClick={() => handleDeleteGif(gif._id)}
+                >
+                    Delete
+                </button>
+            </div>
+        ))
+    ) : (
+        <p>No GIFs available.</p>
+    )}
+</div>
+
 
                 </div>
             </div>

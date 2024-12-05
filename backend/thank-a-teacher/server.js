@@ -245,6 +245,27 @@ app.get('/get-gif/:id', async (req, res) => {
 });
 
 
+app.delete('/delete-gif/:id', async (req, res) => {
+  const gifId = req.params.id;
+  console.log(`Delete Route Hit`);
+
+  try {
+    const deletedGif = await GIF.findByIdAndDelete(gifId);
+    if (!deletedGif) {
+      console.log(`GIF with ID ${gifId} not found`);
+      return res.status(404).send({ message: `GIF with ID ${gifId} not found` });
+    }
+
+    console.log(`GIF with ID ${gifId} deleted successfully`);
+    res.status(200).send({ message: 'GIF deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting GIF:', error);
+    res.status(500).send({ message: 'Server error' });
+  }
+});
+
+
+
 ///////////////////////
 
 app.listen(port, function () {
