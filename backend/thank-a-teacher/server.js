@@ -18,12 +18,14 @@ const upload = multer({
 });
 
 
-const corsOptions ={
-  AccessControlAllowOrigin: '*',  
-  origin: '*',  
-  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE' 
-}
+const corsOptions = {
+  origin: '*',  // Allow all domains (you can adjust it later for security)
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
+
 app.use(cors(corsOptions));
+
 app.use(express.json({limit: '50mb'}));
 //app.use(express.bodyParser({limit: '50mb'}));
 const port = 3001;
@@ -201,7 +203,49 @@ app.get('/cards/:taId', async (req, res) => {
   }
 });
 
+///////////////////
+const GifSchema = new mongoose.Schema({ url: String, name: String });
+const GifModel = mongoose.model('Gif', GifSchema);
 
+app.get('/get-gifs', async (req, res) => {
+  try {
+    // Retrieve all GIFs from the GIF collection
+    const gifs = await GIF.find();
+
+    if (!gifs || gifs.length === 0) {
+      return res.status(404).send('No GIFs found');
+    }
+
+    // Return the list of GIFs
+    res.json(gifs.map(gif => ({ name: gif.name, _id: gif._id })));
+  } catch (err) {
+    console.error('Error retrieving GIFs:', err);
+    res.status(500).send('Error retrieving GIFs');
+  }
+});
+
+app.get('/get-gif/:id', async (req, res) => {
+  const gifId = req.params.id;  // Get the 'id' from the request URL
+
+  try {
+    // Fetch the GIF document from the database
+    const gif = await GIF.findById(gifId);
+
+    if (!gif) {
+      return res.status(404).send('GIF not found');
+    }
+
+    // Send the image as a response with the correct content type
+    res.set('Content-Type', gif.img.contentType);  // Set the correct MIME type
+    res.send(gif.img.data);  // Send the GIF buffer as the response
+  } catch (err) {
+    console.error('Error retrieving GIF:', err);
+    res.status(500).send('Error retrieving GIF');
+  }
+});
+
+
+///////////////////////
 
 app.listen(port, function () {
   console.log(`Example app listening on port ${port}!`);
