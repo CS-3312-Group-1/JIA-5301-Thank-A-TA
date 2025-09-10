@@ -1,0 +1,94 @@
+import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { useUser } from '../../context/UserContext';
+import "../../styles/login.css";
+
+
+async function loginUser(credentials) {
+    return fetch('http://127.0.0.1:3001/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(credentials)
+    })
+      .then(data => data.json())
+}
+
+const LoginPage = ({ setToken }) => {
+    const [passwordVisible, setPasswordVisible] = useState(false);
+    const [password, setPassword] = useState();
+    const [email, setEmail] = useState();
+    const navigate = useNavigate();
+    const { setUserEmail } = useUser();
+    const handleSubmit = async e => {
+        e.preventDefault();
+        const token = await loginUser({
+            "email": email,
+            "password" :password
+        });
+        setToken(token);
+        setUserEmail(email)
+        
+        if(token.isTa) {
+            return navigate('/inbox')
+        }else {
+            return navigate('/')
+        }
+      }
+    
+    const togglePasswordVisibility = () => {
+        setPasswordVisible(!passwordVisible);
+    };
+    // This toggles password visability 
+   
+    return (
+        <div className="login-page-wrapper"> {/* Wrapper for centering only the login page */}
+            <div className="login-container">
+                <h1>Georgia Tech Login</h1>
+                <p>Log in with your Georgia Tech email to send cards to your TAs and teachers.</p>
+                
+                <form action="/login" method="POST" onSubmit={handleSubmit}>
+                    <label htmlFor="email">Georgia Tech Email</label>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        placeholder="example@gatech.edu"
+                        onChange={e => setEmail(e.target.value)}
+                        required
+                    />
+                    
+                    <label htmlFor="password">Password</label>
+                    <div className="password-wrapper">
+                        <input
+                            type={passwordVisible ? "text" : "password"}
+                            id="password"
+                            name="password"
+                            placeholder="Enter your password"
+                            onChange={e => setPassword(e.target.value)}
+                            required
+                        />
+                        <span
+                            className="eye-icon"
+                            onClick={togglePasswordVisibility}
+                            role="button"
+                            aria-label="Toggle password visibility"
+                        >
+                            {passwordVisible ? "👁️‍🗨️" : "👁️"}
+                        </span>
+                    </div>
+
+                    <input type="submit" value="Login" />
+                </form>
+
+                <div className="footer">
+                    <p>
+                        Not a Georgia Tech student? <a href="/register">Sign up here</a>.
+                    </p>
+                </div>
+            </div>
+        </div>
+    );
+};
+export default LoginPage;

@@ -30,7 +30,7 @@ app.use(express.json({limit: '50mb'}));
 //app.use(express.bodyParser({limit: '50mb'}));
 const port = 3001;
 
-const uri = "mongodb+srv://vhenrixon:QQVTMsoHD2EqzdoC@cluster0.ayl3tmp.mongodb.net/?retryWrites=true&w=majority";
+const uri = "mongodb+srv://vvudathu_db_user:Ez4%23gatech@cluster0.jfc4qnc.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 const client = new MongoClient(uri);
 mongoose 
  .connect(uri)   
@@ -174,7 +174,7 @@ app.post('/card', async (req, res) => {
     const cards = database.collection("CARD");
     cards.insertOne(card, function (err, result) {
      
-      console.log('item has been inserted');
+    console.log('item has been inserted');
     }) 
 
   } catch (err) {

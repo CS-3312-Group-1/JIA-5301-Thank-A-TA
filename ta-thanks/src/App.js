@@ -1,13 +1,13 @@
 import { Routes, Route } from 'react-router-dom';
-import Home from './homepage'
-import TaSearch from './taSearch';
-import Design from './basepage';
-import SentPage from './SentPage';
-import TaInbox from './taInbox';
-import Login from './loginpage';
-import RegisterPage from './registerpage';
-import Adminpage from './adminMenu';
-import { UserProvider } from './UserContext';
+import Home from './components/pages/home'
+import TaSearch from './components/pages/taSearch';
+import Design from './components/pages/base';
+import Sent from './components/pages/sent';
+import TaInbox from './components/pages/taInbox';
+import Login from './components/pages/login';
+import Register from './components/pages/register';
+import Admin from './components/pages/admin';
+import { UserProvider } from './context/UserContext';
 
 
 function setToken(userToken) {
@@ -34,11 +34,11 @@ const App = () => {
             <Route path="/" element={<TaSearch />} />
             <Route path="/search" element={<Home />} />
             <Route path="/design" element={<Design />} />
-            <Route path="/sent" element={<SentPage />} />
+            <Route path="/sent" element={<Sent />} />
             <Route path="/inbox" element={<TaInbox />} />
             <Route path="/login" element={<Login setToken={setToken} />} />
-            <Route path="/register" element={<RegisterPage setToken={setToken} />} />
-            <Route path="/admin" element={<Adminpage />} />
+            <Route path="/register" element={<Register setToken={setToken} />} />
+            <Route path="/admin" element={<Admin />} />
          </Routes>
       </UserProvider>
    );
