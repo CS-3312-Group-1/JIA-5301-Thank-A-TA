@@ -62,11 +62,11 @@ function TaInbox({ taId }) {
         <div className="App">
             <div className="header">
                 <div className="title">TA Thank You Cards</div>
-                <div className="search">
+                {/* <div className="search">
                     <button onClick={() => navigate('/')}>
                         <img src={homeIcon} alt="Home" />
                     </button>
-                </div>
+                </div> */}
             </div>
 
             <div className="main-contenti">
@@ -107,7 +107,8 @@ function TaInbox({ taId }) {
                                 onClick={() => handleImageClick(card.data, card)} 
                                 style={{ cursor: 'pointer' }}
                             />
-                            <h3>{card.title}</h3>
+                            <p>From: {card.fromName}</p>
+                            <p>Class: {card.fromClass}</p>
                         </div>
                     ))}
                 </div>

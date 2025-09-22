@@ -15,12 +15,16 @@ import axios from "axios";
 import GIF from '../../utils/GIF';
 import GIFEncoder from '../../utils/GIFEncoder';
 import { encode64 } from '../../utils/b64';
+import { getUserName } from '../../App';
+import ConfirmationModal from '../common/ConfirmationModal';
 
 function BasePage() {
     const navigate = useNavigate();
     const location = useLocation();
-    const { selectedCard } = location.state || {};  // Retrieve card data from the router state
-    const { selectedTAEmail } = location.state || {};
+    const { selectedCard, selectedTAEmail, selectedClass } = location.state || {};  // Retrieve card data from the router state
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [modalMessage, setModalMessage] = useState('');
+    const [onConfirmAction, setOnConfirmAction] = useState(null);
     const [text, setText] = useState(''); // State to store the user's message
     const [textBoxes, setTextBoxes] = useState([]); // Store multiple draggable text boxes
     const [selectedBoxId, setSelectedBoxId] = useState(null); // Track the currently selected text box
@@ -77,10 +81,9 @@ function BasePage() {
     }, []);
 
     const handleHomeClick = () => {
-        const confirmDiscard = window.confirm("Are you sure you want to discard your changes and go to the home page?");
-        if (confirmDiscard) {
-            navigate('/');
-        }
+        setModalMessage("Are you sure you want to discard your changes and go to the home page?");
+        setOnConfirmAction(() => () => navigate('/'));
+        setIsModalOpen(true);
     };
     function downloadURI(uri, name) {
         var link = document.createElement("a");
@@ -127,126 +130,96 @@ function BasePage() {
     };
 
     const printRef = React.useRef();
-    const handleSendClick = async () => {
-        const confirmSend = window.confirm("Are you sure you would like to send this card?");
-        if (confirmSend) {
+    const handleSendClick = () => {
+        setModalMessage("Are you sure you would like to send this card?");
+        setOnConfirmAction(() => async () => {
             try {
-                const element = printRef.current; // Reference to the .card-preview-container
-                console.log("Element: ", element);
-    
-                // Use html2canvas to capture the content
+                const element = printRef.current;
                 const canvas = await html2canvas(element, {
                     useCORS: true,
                     logging: true,
                 });
-    
-                const canvasWidth = canvas.width; // html2canvas will set the actual canvas width
-                const canvasHeight = canvas.height; // html2canvas will set the actual canvas height
-    
-                console.log("Canvas Size: ", canvasWidth, canvasHeight);
-    
-                // Loop through all GIF positions and update their positions based on their image's DOM position
+
                 const adjustedPositions = await Promise.all(gifPosition.map(async ([x, y], index) => {
                     const imgElement = document.getElementById(gifPositionID[index]);
                     if (imgElement) {
-                        // Get the position of the image element relative to the screen or container
                         const rect = imgElement.getBoundingClientRect();
                         const containerRect = element.getBoundingClientRect();
-                        const imgX = rect.left; // X position relative to the screen
-                        const imgY = rect.top + window.scrollY - ((containerRect.y / 3 ) - 10);  // Y position relative to the screen
-                        console.log(imgY);
-    
-                        // Return the updated position
+                        const imgX = rect.left;
+                        const imgY = rect.top + window.scrollY - ((containerRect.y / 3 ) - 10);
                         return [imgX, imgY];
                     }
-                    return [x, y]; // If the image is not found, fallback to original position
+                    return [x, y];
                 }));
-    
-                console.log("Adjusted Positions: ", adjustedPositions);
-    
+
                 const ctx = canvas.getContext("2d");
                 const encoder = new GIFEncoder();
-                encoder.setRepeat(0); // 0 -> loop forever
-                encoder.setDelay(500); // Delay for each frame
+                encoder.setRepeat(0);
+                encoder.setDelay(500);
                 encoder.start();
-    
-                // Dynamically load GIFs and add frames
+
                 await loadGIFs();
-    
-                // Capture each frame of the GIF
+
                 for (let frame = 0; frame < 20; frame++) {
                     for (let index = 0; index < loadedGIF.length; index++) {
                         const gif = loadedGIF[index];
                         const position = adjustedPositions[index];
                         const x = position[0];
                         const y = position[1] + 25;
-    
-                        // Ensure gif.frames[frame] exists and has an image
+
                         if (gif.frames && gif.frames[frame] && gif.frames[frame].image) {
                             const gifFrame = gif.frames[frame];
                             const image = gifFrame.image;
-
-                        // Draw the GIF frame with the adjusted position and size
                             ctx.drawImage(image, x, y, 150, 150);
                         } else {
                             console.warn(`Frame ${frame} does not exist for GIF at index ${index}.`);
                         }
                     }
-    
                     encoder.addFrame(ctx);
                 }
-    
+
                 encoder.finish();
                 const binaryGif = encoder.stream().getData();
-                encoder.download("download.gif"); // Download the GIF
-    
-                // Prepare to send the generated GIF data
                 const data = "data:image/gif;base64," + encode64(binaryGif);
-                downloadURI(data, "test.gif");
-    
+
                 axios({
                     method: "post",
                     url: "http://localhost:3001/card",
-                    data: { data: data, for: selectedTAEmail },
+                    data: {
+                        data: data,
+                        for: selectedTAEmail,
+                        fromName: getUserName(),
+                        fromClass: selectedClass
+                    },
                     config: { headers: { "Content-Type": "multipart/form-data" } },
-                })
-                    .then(function (response) {
-                        console.log(response);
-                    })
-                    .catch(function (error) {
-                        console.log(error);
-                    });
-            } catch (error) {
-                console.error("Error in capturing screenshot or generating GIF", error);
-            }
-            
-        }
-
-        if (confirmSend) {
-            const message = "You have been sent a card! http://localhost:3000/login"; // Assuming 'text' contains the card message
-            const cardImage = cards[selectedCard - 1]; // Get the selected card image
-
-            console.log(selectedTAEmail);
-        
-            const templateParams = {
-                to_email: selectedTAEmail, // Recipient email
-                from_name: 'thankateacher', // Sender name (could be dynamic)
-                message: message,
-            };
-        
-            emailjs.send('service_2q7ey7a', 'template_2s72nqg', templateParams, 'BnWkvVIrhnA4im9HN')
-                .then((response) => {
-                    console.log('Email successfully sent!', response.status, response.text);
-                    alert('Email sent successfully!');
-                    navigate('/sent');
-                }).catch((error) => {
-                    console.error('Failed to send email:', error);
-                    alert('Failed to send email.');
                 });
-        
-        }
+
+                const message = "You have been sent a card! http://localhost:3000/login";
+                const templateParams = {
+                    to_email: selectedTAEmail,
+                    from_name: 'thankateacher',
+                    message: message,
+                };
+
+                await emailjs.send('service_2q7ey7a', 'template_2s72nqg', templateParams, 'BnWkvVIrhnA4im9HN');
+                alert('Email sent successfully!');
+                navigate('/sent');
+
+            } catch (error) {
+                console.error("Error in sending card process:", error);
+                alert('Failed to send card.');
+            }
+        });
+        setIsModalOpen(true);
     };
 
+    const handleConfirm = async () => {
+        setIsModalOpen(false);
+        if (onConfirmAction) {
+            await onConfirmAction();
+        }
+        setOnConfirmAction(null);
+    };
     
     // Reset when adding a new text box
     const handleAddTextBox = () => {
@@ -433,6 +406,12 @@ function BasePage() {
 
     return (
         <>
+            <ConfirmationModal 
+                isOpen={isModalOpen} 
+                onClose={() => setIsModalOpen(false)} 
+                onConfirm={handleConfirm} 
+                message={modalMessage} 
+            />
             <div className="blue-section">
                 <p>3 of 3: Edit Card</p>
                 <button onClick={handleHomeClick}>

@@ -12,12 +12,17 @@ import { UserProvider } from './context/UserContext';
 
 function setToken(userToken) {
    sessionStorage.setItem('token', JSON.stringify(userToken));
+   sessionStorage.setItem('name', userToken.name);
 }
 
 function getToken() {
    const tokenString = sessionStorage.getItem('token');
    const userToken = JSON.parse(tokenString);
    return userToken?.token
+}
+
+export function getUserName() {
+    return sessionStorage.getItem('name');
 }
 
 

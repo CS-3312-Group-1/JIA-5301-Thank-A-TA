@@ -93,6 +93,7 @@ app.post("/login", (request, response) => {
           response.status(200).send({
             message: "Login Successful",
             email: user.email,
+            name: user.name,
             jwt: token,
             isTa: user.isTa
           });
@@ -169,6 +170,8 @@ app.post('/card', async (req, res) => {
     var card = {
       data: req.body.data,
       for: req.body.for,
+      fromName: req.body.fromName,
+      fromClass: req.body.fromClass,
     };
     const database = client.db("thank-a-teacher");
     const cards = database.collection("CARD");

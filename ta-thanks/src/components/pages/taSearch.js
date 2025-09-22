@@ -9,6 +9,8 @@ function TaSearch() {
   const [email, setEmail] = useState([]);
   const [data, setData] = useState(null);
   const [selectedTAEmail, setSelectedTAEmail] = useState('');
+  const [selectedClass, setSelectedClass] = useState('');
+  const [selectedTA, setSelectedTA] = useState('0');
 
   /* fetch data from database */
   useEffect(() => {
@@ -36,12 +38,14 @@ function TaSearch() {
     if (data) {
       const selectedClass = classCS.find(c => c.id === id);
       if (selectedClass) {
+        setSelectedClass(selectedClass.name);
         const selectedTAs = data["0"].data.filter(o => o.class === selectedClass.name).map(({ name, email }) => ({ id: name, name, email }));
 
         setTA(selectedTAs); 
         const emails = selectedTAs.map(ta => ta.email);
         setEmail(emails);
         setSelectedTAEmail('');
+        setSelectedTA('0');
       } else {
         setTA([]);
         setEmail([]);
@@ -56,6 +60,7 @@ function TaSearch() {
 
   /* Set email var of selected TA */
   const handleTASelction = (id) => {
+    setSelectedTA(id);
     if (id !== "0") {
       const selectedTA = classTA.find(ta => ta.id === id);
       if (selectedTA) {
@@ -77,7 +82,7 @@ function TaSearch() {
 
       <div className='select-wrapper textPadding'>
         <select id="ddlClasses" className='form-control' onChange={(e) => handleClass(e.target.value)}>
-          <option value="0">Select Class</option>
+          <option value="0" disabled selected>Select Class</option>
           {classCS && classCS !== undefined ? classCS.map((ctr, index) => {
             return <option key={index} value={ctr.id}>{ctr.name}</option>
           }) : "No Class"}
@@ -85,8 +90,8 @@ function TaSearch() {
       </div>
 
       <div className='select-wrapper textPadding'>
-        <select id="ddlTAs" className='form-control' onChange={(e) => handleTASelction(e.target.value)}>
-          <option value="0">Select TA</option>
+        <select id="ddlTAs" className='form-control' value={selectedTA} onChange={(e) => handleTASelction(e.target.value)} disabled={classTA.length === 0}>
+          <option value="0" disabled selected>Select TA</option>
           {classTA && classTA !== undefined ? classTA.map((ctr, index) => {
             return <option key={index} value={ctr.id}>{ctr.name}</option>
           }) : "No TA"}
@@ -94,7 +99,7 @@ function TaSearch() {
       </div>
 
        <div className='textPadding'>
-      <button onClick={() => navigate('search', { state: { email: selectedTAEmail } })} className='nextButton'>
+      <button onClick={() => navigate('search', { state: { email: selectedTAEmail, selectedClass: selectedClass } })} className='nextButton'>
   Next
 </button>
 

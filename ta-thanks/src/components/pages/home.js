@@ -10,7 +10,7 @@ import homeIcon from '../../assets/Vector.png';
 
 function Home() {
   const location = useLocation();
-  const selectedTAEmail = location.state?.email || 'No email selected';  // Receive email from previous page
+  const { email: selectedTAEmail, selectedClass } = location.state || {};
 
   // State to manage modal visibility
   const [isModalVisible, setModalVisible] = useState(false);
@@ -124,7 +124,7 @@ function Home() {
             <img id="modal-image" className="modal-content" src={modalImageSrc} alt="" />
             <button
               className="start-designing-button"
-              onClick={() => navigate('/design', { state: { selectedCard, selectedTAEmail } })}
+              onClick={() => navigate('/design', { state: { selectedCard, selectedTAEmail, selectedClass } })}
             >
               Select Card
             </button>
