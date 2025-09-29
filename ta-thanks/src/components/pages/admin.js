@@ -9,15 +9,65 @@ function Admin() {
     const navigate = useNavigate();
     const [selectedGif, setSelectedGif] = useState(null);
     const [uploadStatus, setUploadStatus] = useState('');
+    const [taUploadStatus, setTaUploadStatus] = useState('');
     const [isDragging, setIsDragging] = useState(false);
     const [gifs, setGifs] = useState([]);
     const [fetchError, setFetchError] = useState('');
+    const [selectedCsv, setSelectedCsv] = useState(null);
+    const [taLists, setTaLists] = useState([]);
+
+    const fetchTaLists = async () => {
+        try {
+            const response = await axios.get('http://127.0.0.1:3001/tas');
+            setTaLists(response.data);
+        } catch (error) {
+            console.error('Error fetching TA lists:', error);
+        }
+    };
+
+    useEffect(() => {
+        fetchTaLists();
+    }, []);
 
     // Handle GIF selection
     const handleGifSelection = (event) => {
         setSelectedGif(event.target.files[0]);
         setUploadStatus('');
     };
+
+    const handleCsvSelection = (event) => {
+        setSelectedCsv(event.target.files[0]);
+        setTaUploadStatus('');
+    };
+
+    const handleCsvUpload = async () => {
+        if (!selectedCsv) {
+            setTaUploadStatus('Please select a CSV file before uploading.');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('csv', selectedCsv);
+
+        try {
+            const response = await axios.post('http://127.0.0.1:3001/upload-tas', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+
+            if (response.status === 200) {
+                setTaUploadStatus('TA data uploaded successfully!');
+                fetchTaLists();
+            } else {
+                setTaUploadStatus('Failed to upload TA data.');
+            }
+        } catch (error) {
+            console.error('Error uploading TA data:', error);
+            setTaUploadStatus('Error uploading TA data.');
+        }
+    };
+
 
     const handleDragOver = (event) => {
         event.preventDefault();
@@ -96,8 +146,18 @@ function Admin() {
     
     
 
+    const handleDeleteTaList = async (taListId) => {
+        try {
+            await axios.delete(`http://127.0.0.1:3001/tas/${taListId}`);
+            fetchTaLists();
+        } catch (error) {
+            console.error('Error deleting TA list:', error);
+        }
+    };
+
     useEffect(() => {
         fetchGifs();
+        fetchTaLists();
     }, []);
 
     return (
@@ -162,6 +222,28 @@ function Admin() {
 </div>
 
 
+                </div>
+                <div className="ta-management">
+                    <h2>TA Management</h2>
+                    <div className="upload-section">
+                        <input
+                            type="file"
+                            accept=".csv"
+                            onChange={handleCsvSelection}
+                        />
+                        <button onClick={handleCsvUpload}>Upload TA Data</button>
+                    </div>
+                    {taUploadStatus && <p className="status-message">{taUploadStatus}</p>}
+
+                    <h2>Uploaded TA Lists</h2>
+                    <div className="ta-lists">
+                        {taLists.map((taList) => (
+                            <div key={taList._id} className="ta-list-item">
+                                <span>{taList.semester} - {taList.filename}</span>
+                                <button onClick={() => handleDeleteTaList(taList._id)} className='delete-ta-list-btn'>Delete</button>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
         </div>

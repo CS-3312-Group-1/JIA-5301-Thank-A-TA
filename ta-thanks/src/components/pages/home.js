@@ -6,7 +6,7 @@ import card2Image from '../../assets/Card 2.png';
 import card3Image from '../../assets/Card 3.png';
 import card4Image from '../../assets/Card 4.png';
 import card5Image from '../../assets/Card 5.png';
-import homeIcon from '../../assets/Vector.png';
+import Navbar from '../common/Navbar';
 
 function Home() {
   const location = useLocation();
@@ -54,14 +54,7 @@ function Home() {
 
   return (
     <div className="App">
-      <div className="header">
-        <div className="title">2 of 3: Select Card</div>
-        <div className="search">
-          <button onClick={() => navigate('/')}>
-            <img src={homeIcon} alt="Home" />
-          </button>
-        </div>
-      </div>
+      <Navbar title="2 of 3: Select Card" />
 
       <div className="main-content">
         {/* Filters Section */}

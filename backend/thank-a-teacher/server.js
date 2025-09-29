@@ -1,276 +1,306 @@
-const http = require('node:http');
-const {MongoClient} = require('mongodb');
+// server.js
 const express = require("express");
-const cors = require('cors');
+const cors = require("cors");
 const bcrypt = require("bcrypt");
-const User = require("./db/userModel");
-const app = express();
-const mongoose = require('mongoose');
 const jwt = require("jsonwebtoken");
+const mongoose = require("mongoose");
+const { MongoClient } = require("mongodb");
+const multer = require("multer");
+const csv = require("csv-parser");
+const stream = require("stream");
+
+require('dotenv').config();
+
+// MODELS
+const User = require("./db/userModel");
 const GIF = require("./db/GIFmodel2");
 
+// ---- CONFIG ----
+const app = express();
+const PORT = process.env.PORT;
+const MONGO_URI = process.env.MONGO_URI;
 
-const multer = require('multer');
-const storage = multer.memoryStorage(); // Store files in memory buffer
-const upload = multer({
-  storage: storage,
-  limits: { fileSize: 5 * 1024 * 1024 } // 5 MB limit
-});
+// CORS
+app.use(cors({
+  origin: "*",
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
 
+// Body parsing
+app.use(express.json({ limit: "50mb" }));
 
-const corsOptions = {
-  origin: '*',  // Allow all domains (you can adjust it later for security)
-  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-  allowedHeaders: ['Content-Type', 'Authorization']
-};
+// ---- DB INIT ----
+let client;                                         // native Mongo client (used for TA/CARD collections)
+let list = {};
 
-app.use(cors(corsOptions));
+async function initDbs() {
+  // Mongoose (used by Mongoose models: User, GIF)
+  await mongoose.connect(MONGO_URI);
+  console.log("Mongoose connected");
 
-app.use(express.json({limit: '50mb'}));
-//app.use(express.bodyParser({limit: '50mb'}));
-const port = 3001;
+  // Native client (used by populate_ta / CARD endpoints)
+  client = new MongoClient(MONGO_URI);
+  await client.connect();                           // ★ you were missing this
+  console.log("MongoClient connected");
 
-const uri = "mongodb+srv://vvudathu_db_user:Ez4%23gatech@cluster0.jfc4qnc.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
-const client = new MongoClient(uri);
-mongoose 
- .connect(uri)   
- .then(() => console.log("Database connected!"))
- .catch(err => console.log(err));
-list = {}
-async function populate_ta(){
-
-    const database = client.db("thank-a-teacher");
-    const ta = database.collection("TA");
-
-    const ta_list = ta.find();
-    i = 0
-    for await (const doc of ta_list) {
-      list[i] = doc
-      i++
-    }
+  await populate_ta();
 }
 
+async function populate_ta() {
+  const database = client.db("thank-a-teacher");
+  const ta = database.collection("TA");
+  const cursor = ta.find({});
+  const tmp = {};
+  let i = 0;
+  for await (const doc of cursor) {
+    tmp[i++] = doc;
+  }
+  list = tmp;
+}
 
-populate_ta().catch(console.error);
+// ---- UPLOADS (multer) ----
+const storage = multer.memoryStorage();
+const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } });
 
-// login endpoint
+// ---- ROUTES ----
 
-app.post("/login", (request, response) => {
-  console.log(request.body.email)
-  // check if email exists
-  User.findOne({ email: request.body.email })
+// Health
+app.get("/health", (_req, res) => res.json({ ok: true }));
 
-    // if email exists
-    .then((user) => {
-      // compare the password entered and the hashed password found
-      bcrypt
-        .compare(request.body.password, user.password)
+// Upload TAs via CSV
+app.post("/upload-tas", upload.single("csv"), (req, res) => {
+  if (!req.file) return res.status(400).send("No file uploaded.");
 
-        // if the passwords match
-        .then((passwordCheck) => {
+  const bufferStream = new stream.PassThrough();
+  bufferStream.end(req.file.buffer);
 
-          // check if password matches
-          if(!passwordCheck) {
-            return response.status(400).send({
-              message: "Passwords does not match",
-              error,
-            });
-          }
+  const results = [];
+  let semester = null;
 
-          //   create JWT token
-          const token = jwt.sign(
-            {
-              userId: user._id,
-              userEmail: user.email,
-              isTa: user.isTa,
-              isAdmin: user.isAdmin | false 
-            },
-            "RANDOM-TOKEN",
-            { expiresIn: "24h" }
-          );
-
-          //   return success response
-          response.status(200).send({
-            message: "Login Successful",
-            email: user.email,
-            name: user.name,
-            jwt: token,
-            isTa: user.isTa
-          });
-        })
-        // catch error if password does not match
-        .catch((error) => {
-          response.status(400).send({
-            message: "Passwords does not match",
-            error,
-          });
-        });
+  bufferStream
+    .pipe(csv())
+    .on("data", (data) => {
+      if (!semester) {
+        semester = data.Semester;
+      }
+      results.push(data);
     })
-    // catch error if email does not exist
-    .catch((e) => {
-      response.status(404).send({
-        message: "Email not found",
-        e,
-      });
+    .on("end", async () => {
+      if (!semester) {
+        return res.status(400).send("CSV must have a 'Semester' column.");
+      }
+
+      try {
+        const database = client.db("thank-a-teacher");
+        const taCollection = database.collection("TA");
+        await taCollection.updateOne(
+          { semester },
+          { $set: { 
+              data: results.map((ta) => ({ name: ta["Name"], email: ta.Email, class: ta.Class })),
+              filename: req.file.originalname
+            }
+          },
+          { upsert: true }
+        );
+        res.status(200).send("TA data uploaded successfully!");
+      } catch (err) {
+        console.error(err);
+        res.status(500).send("Error saving TA data.");
+      }
     });
 });
 
-app.post("/upload-gif", upload.single('gif'), async (req, res) => {
-  if (!req.file) {
-      return res.status(400).send('No file uploaded.');
-  }
-
-  if (req.file.mimetype !== 'image/gif') {
-      return res.status(400).send('Only GIF files are allowed.');
-  }
-
+app.get("/tas", async (req, res) => {
   try {
-      const newGif = new GIF({
-          name: req.file.originalname,
-          img: {
-              data: req.file.buffer,
-              contentType: req.file.mimetype
-          },
-          size: req.file.size,
-          uploadedBy: "admin@example.com" // Replace with actual uploader info if needed
-      });
-
-      await newGif.save();
-      res.status(200).send('GIF uploaded and saved successfully!');
-  } catch (error) {
-      console.error('Error saving GIF:', error);
-      res.status(500).send('Error saving GIF to the database.');
-  }
-});
-
-app.post("/register", (req, res) => {
-    const { email, password, fullname ,isTa } = req.body;
-    const user = new User({ email, password, isTa, fullname, "isAdmin": false});
-    user.save().then(function() {
-      const token = jwt.sign(
-        {
-          userId: user._id,
-          userEmail: user.email,
-          isTa: user.isTa
-        },
-        "RANDOM-TOKEN",
-        { expiresIn: "24h" }
-      );
-      res.status(200).send({jwt: token, email: user.email, isTa: isTa});
-    }).catch(function(err) {
-      console.log(err)
-      res.status(500)
-      .send("Error registering new user please try again.");
-    })
-});
-app.post('/card', async (req, res) => {
-  console.log("Received request to /card", req.body);
-  try {
-    console.log(req.body)
-    var card = {
-      data: req.body.data,
-      for: req.body.for,
-      fromName: req.body.fromName,
-      fromClass: req.body.fromClass,
-    };
     const database = client.db("thank-a-teacher");
-    const cards = database.collection("CARD");
-    cards.insertOne(card, function (err, result) {
-     
-    console.log('item has been inserted');
-    }) 
-
+    const taCollection = database.collection("TA");
+    const tas = await taCollection.find({}, { projection: { semester: 1, filename: 1 } }).toArray();
+    res.json(tas);
   } catch (err) {
-      console.error('Error saving user data:', err);
-      res.status(500);
+    console.error("Error fetching TA lists:", err);
+    res.status(500).send("Error fetching TA lists");
   }
 });
 
-app.get("/", function (req, res) {
-  res.set('Access-Control-Allow-Origin', '*');
-  populate_ta()
-  res.json(list);
+app.delete("/tas/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const database = client.db("thank-a-teacher");
+    const taCollection = database.collection("TA");
+    const result = await taCollection.deleteOne({ _id: new mongoose.Types.ObjectId(id) });
+    if (result.deletedCount === 0) {
+      return res.status(404).send("No TA list found with that ID.");
+    }
+    res.status(200).send("TA list deleted successfully!");
+  } catch (err) {
+    console.error("Error deleting TA list:", err);
+    res.status(500).send("Error deleting TA list");
+  }
 });
 
-app.get('/cards/:taId', async (req, res) => {
-  const { taId } = req.params;
+// Auth: login (made null-safe & async)
+app.post("/login", async (req, res) => {
+  try {
+    const { email, password } = req.body || {};
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).send({ message: "Email not found" });
+
+    const ok = await bcrypt.compare(password, user.password);
+    if (!ok) return res.status(400).send({ message: "Password does not match" });
+
+    const token = jwt.sign(
+      {
+        userId: user._id,
+        userEmail: user.email,
+        isTa: user.isTa,
+        isAdmin: !!user.isAdmin
+      },
+      "RANDOM-TOKEN",
+      { expiresIn: "24h" }
+    );
+
+    res.status(200).send({
+      message: "Login Successful",
+      email: user.email,
+      name: user.name,
+      jwt: token,
+      isTa: user.isTa
+    });
+  } catch (e) {
+    console.error(e);
+    res.status(500).send({ message: "Server error" });
+  }
+});
+
+// Auth: register
+app.post("/register", async (req, res) => {
+  try {
+    const { email, password, name, isTa } = req.body || {};
+    const user = await User.create({ email, password, name, isTa, isAdmin: false });
+
+    const token = jwt.sign(
+      { userId: user._id, userEmail: user.email, isTa: user.isTa },
+      "RANDOM-TOKEN",
+      { expiresIn: "24h" }
+    );
+    res.status(200).send({ jwt: token, email: user.email, isTa });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error registering new user, please try again.");
+  }
+});
+
+// Cards
+app.post("/card", async (req, res) => {
   try {
     const database = client.db("thank-a-teacher");
     const cards = database.collection("CARD");
-    // Match the field name to what is saved in the database
+    const doc = {
+      data: req.body?.data,
+      for: req.body?.for,
+      fromName: req.body?.fromName,
+      fromClass: req.body?.fromClass
+    };
+    await cards.insertOne(doc);
+    res.status(200).send({ ok: true });
+  } catch (err) {
+    console.error("Error saving card:", err);
+    res.status(500).send("Error saving card");
+  }
+});
+
+app.get("/", async (_req, res) => {
+  try {
+    await populate_ta();                             // refresh cache
+    res.set("Access-Control-Allow-Origin", "*");
+    res.json(list);
+  } catch (e) {
+    console.error(e);
+    res.status(500).send("Error");
+  }
+});
+
+app.get("/cards/:taId", async (req, res) => {
+  try {
+    const { taId } = req.params;
+    const database = client.db("thank-a-teacher");
+    const cards = database.collection("CARD");
     const taCards = await cards.find({ for: taId }).toArray();
     res.json(taCards);
   } catch (err) {
-    console.error('Error fetching cards:', err);
-    res.status(500).send('Error fetching cards');
+    console.error("Error fetching cards:", err);
+    res.status(500).send("Error fetching cards");
   }
 });
 
-///////////////////
-const GifSchema = new mongoose.Schema({ url: String, name: String });
-const GifModel = mongoose.model('Gif', GifSchema);
-
-app.get('/get-gifs', async (req, res) => {
-  try {
-    // Retrieve all GIFs from the GIF collection
-    const gifs = await GIF.find();
-
-    if (!gifs || gifs.length === 0) {
-      return res.status(404).send('No GIFs found');
-    }
-
-    // Return the list of GIFs
-    res.json(gifs.map(gif => ({ name: gif.name, _id: gif._id })));
-  } catch (err) {
-    console.error('Error retrieving GIFs:', err);
-    res.status(500).send('Error retrieving GIFs');
-  }
-});
-
-app.get('/get-gif/:id', async (req, res) => {
-  const gifId = req.params.id;  // Get the 'id' from the request URL
+// GIFs
+app.post("/upload-gif", upload.single("gif"), async (req, res) => {
+  if (!req.file) return res.status(400).send("No file uploaded.");
+  if (req.file.mimetype !== "image/gif") return res.status(400).send("Only GIF files are allowed.");
 
   try {
-    // Fetch the GIF document from the database
-    const gif = await GIF.findById(gifId);
-
-    if (!gif) {
-      return res.status(404).send('GIF not found');
-    }
-
-    // Send the image as a response with the correct content type
-    res.set('Content-Type', gif.img.contentType);  // Set the correct MIME type
-    res.send(gif.img.data);  // Send the GIF buffer as the response
-  } catch (err) {
-    console.error('Error retrieving GIF:', err);
-    res.status(500).send('Error retrieving GIF');
-  }
-});
-
-
-app.delete('/delete-gif/:id', async (req, res) => {
-  const gifId = req.params.id;
-  console.log(`Delete Route Hit`);
-
-  try {
-    const deletedGif = await GIF.findByIdAndDelete(gifId);
-    if (!deletedGif) {
-      console.log(`GIF with ID ${gifId} not found`);
-      return res.status(404).send({ message: `GIF with ID ${gifId} not found` });
-    }
-
-    console.log(`GIF with ID ${gifId} deleted successfully`);
-    res.status(200).send({ message: 'GIF deleted successfully' });
+    const newGif = new GIF({
+      name: req.file.originalname,
+      img: { data: req.file.buffer, contentType: req.file.mimetype },
+      size: req.file.size,
+      uploadedBy: "admin@example.com"
+    });
+    await newGif.save();
+    res.status(200).send("GIF uploaded and saved successfully!");
   } catch (error) {
-    console.error('Error deleting GIF:', error);
-    res.status(500).send({ message: 'Server error' });
+    console.error("Error saving GIF:", error);
+    res.status(500).send("Error saving GIF to the database.");
   }
 });
 
-
-
-///////////////////////
-
-app.listen(port, function () {
-  console.log(`Example app listening on port ${port}!`);
+app.get("/get-gifs", async (_req, res) => {
+  try {
+    const gifs = await GIF.find();
+    if (!gifs || gifs.length === 0) return res.status(404).send("No GIFs found");
+    res.json(gifs.map((gif) => ({ name: gif.name, _id: gif._id })));
+  } catch (err) {
+    console.error("Error retrieving GIFs:", err);
+    res.status(500).send("Error retrieving GIFs");
+  }
 });
+
+app.get("/get-gif/:id", async (req, res) => {
+  try {
+    const gif = await GIF.findById(req.params.id);
+    if (!gif) return res.status(404).send("GIF not found");
+    res.set("Content-Type", gif.img.contentType);
+    res.send(gif.img.data);
+  } catch (err) {
+    console.error("Error retrieving GIF:", err);
+    res.status(500).send("Error retrieving GIF");
+  }
+});
+
+app.delete("/delete-gif/:id", async (req, res) => {
+  try {
+    const deletedGif = await GIF.findByIdAndDelete(req.params.id);
+    if (!deletedGif) return res.status(404).send({ message: `GIF with ID ${req.params.id} not found` });
+    res.status(200).send({ message: "GIF deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting GIF:", error);
+    res.status(500).send({ message: "Server error" });
+  }
+});
+
+// ---- STARTUP ----
+async function start() {
+  await initDbs();
+  app.listen(PORT, () => console.log(`API listening on ${PORT}`));
+}
+
+if (require.main === module) {
+  // Only start the server if this file is run directly
+  start().catch((e) => {
+    console.error("Startup error:", e);
+    process.exit(1);
+  });
+}
+
+// Export the app for Passenger/Tests
+module.exports = app;

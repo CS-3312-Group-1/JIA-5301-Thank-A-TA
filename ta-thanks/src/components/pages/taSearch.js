@@ -3,7 +3,11 @@ import '../../styles/taSearch.css';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { getToken } from '../../App';
+import Navbar from '../common/Navbar';
+
 function TaSearch() {
+  const navigate = useNavigate();
   const [classCS, setClass] = useState([]);
   const [classTA, setTA] = useState([]);
   const [email, setEmail] = useState([]);
@@ -11,6 +15,12 @@ function TaSearch() {
   const [selectedTAEmail, setSelectedTAEmail] = useState('');
   const [selectedClass, setSelectedClass] = useState('');
   const [selectedTA, setSelectedTA] = useState('0');
+
+  useEffect(() => {
+    if (!getToken()) {
+      navigate('/login');
+    }
+  }, [navigate]);
 
   /* fetch data from database */
   useEffect(() => {
@@ -72,12 +82,10 @@ function TaSearch() {
       setSelectedTAEmail('');
     }
   }
-  const navigate = useNavigate();
+
   return (
     <div className="App">
-      <div className="header-search">
-        <div className="title-search">1 of 3: Select TA</div>
-      </div>
+      <Navbar title="1 of 3: Select TA" />
       <h1 className="main-title">Thank-a-Teacher</h1>
 
       <div className='select-wrapper textPadding'>

@@ -4,7 +4,6 @@ import React, { useState, useEffect, useRef } from "react";
 import html2canvas from 'html2canvas';
 import Draggable from 'react-draggable'; 
 import "../../styles/base.css";
-import homeIcon from '../../assets/Vector.png';
 import emptyCard1 from '../../assets/card1_Empty.png';
 import emptyCard2 from '../../assets/card2_Empty.png';
 import emptyCard3 from '../../assets/Card3_Empty.png';
@@ -17,6 +16,7 @@ import GIFEncoder from '../../utils/GIFEncoder';
 import { encode64 } from '../../utils/b64';
 import { getUserName } from '../../App';
 import ConfirmationModal from '../common/ConfirmationModal';
+import Navbar from '../common/Navbar';
 
 function BasePage() {
     const navigate = useNavigate();
@@ -406,18 +406,13 @@ function BasePage() {
 
     return (
         <>
+            <Navbar title="3 of 3: Edit Card" />
             <ConfirmationModal 
                 isOpen={isModalOpen} 
                 onClose={() => setIsModalOpen(false)} 
                 onConfirm={handleConfirm} 
                 message={modalMessage} 
             />
-            <div className="blue-section">
-                <p>3 of 3: Edit Card</p>
-                <button onClick={handleHomeClick}>
-                    <img src={homeIcon} alt="Home" />
-                </button>
-            </div>
             <div className="container">
             {/* Card Preview Section */}
             <div ref={printRef} className="card-preview-container">

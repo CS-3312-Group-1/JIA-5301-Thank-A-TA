@@ -1,6 +1,7 @@
 /* Main content layout */
 .main-contenta {
     display: flex;
+    flex-direction: column; /* Stack sections vertically */
     align-items: flex-start; /* Align items to the top */
     padding: 20px;
     gap: 20px; /* Add space between sections */
@@ -69,13 +70,12 @@
 }
 
 /* GIF Management */
-.gif-management {
+.gif-management, .ta-management {
     background-color: #fff;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-    flex: 1; /* Allow to fill remaining space */
-    max-width: 100%; /* Full width */
+    width: 100%; /* Full width */
 }
 
 
@@ -149,4 +149,25 @@ button:hover {
 
 .gif-item button:hover {
     background-color: darkred;
+}
+
+.ta-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+.delete-ta-list-btn {
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+    background-color: red;
+    color: white;
+}
+
+.delete-ta-list-btn:hover {
+    background-color: darkred;
+    color: white;
 }

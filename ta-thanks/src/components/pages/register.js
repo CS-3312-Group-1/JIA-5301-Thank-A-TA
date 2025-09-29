@@ -43,7 +43,7 @@ const Register = ({ setToken }) => {
         const token = await register({
             "email": email,
             "password": password,
-            "fullname": name,
+            "name": name,
             "isTa": isTA
         });
         
