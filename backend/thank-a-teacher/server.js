@@ -165,7 +165,8 @@ app.post("/login", async (req, res) => {
       email: user.email,
       name: user.name,
       jwt: token,
-      isTa: user.isTa
+      isTa: user.isTa,
+      isAdmin: user.isAdmin
     });
   } catch (e) {
     console.error(e);

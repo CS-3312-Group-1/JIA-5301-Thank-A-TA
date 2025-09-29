@@ -30,7 +30,9 @@ const LoginPage = ({ setToken }) => {
         setToken(token);
         setUserEmail(email)
         
-        if(token.isTa) {
+        if (token.isAdmin) {
+            return navigate('/admin');
+        } else if(token.isTa) {
             return navigate('/inbox')
         }else {
             return navigate('/')

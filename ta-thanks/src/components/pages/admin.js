@@ -165,9 +165,10 @@ function Admin() {
             <div className="header">
                 <div className="title">Administration Menu</div>
                 <div className="search">
-                    <button onClick={() => navigate('/')}>
-                        <img src={homeIcon} alt="Home" />
-                    </button>
+                    <button onClick={() => {
+                        sessionStorage.clear();
+                        navigate('/login');
+                    }}>Logout</button>
                 </div>
             </div>
 
