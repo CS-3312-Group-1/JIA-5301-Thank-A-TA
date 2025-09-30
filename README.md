@@ -1,9 +1,45 @@
 # Thank-A-Teacher
 
-Team 4115
-
 This application allows for undergraduate students to send thank you cards to TAs in the College of Computing.
 
+# Release Notes Section
+
+## Release Notes - Version 1.1.0
+
+### Features
+- A login page for all three user types (student, TA, admin)
+- Ability to login to existing account or, if no account exists, create an account
+- Separate account creation screen
+- Student home page where students can select TA from dropdown menus. Students are able to filter by class and then TA name, and will see the TA's email.
+- Five separate card templates students can pick from.
+- Students can add customizable text (text is customizable via font, font size, font color) to the card with message for TA
+- Students can add GIFs to the card as decoration
+- Students can send card to TA or export card
+- Once student sends card, confirmation is provided, and a Sent! screen is visible to students. Student can then send another card or log out.
+- TAs receive email notification when a new card is sent
+- TAs are able to view all cards within the application that have been sent by students
+- Created admin interface if user logs in with admin account 
+- Admins are able to upload new GIFs via drag and drop or file upload
+- Admins are able to delete previously uploaded GIFs
+- Admins are able to upload CSV files containing TA information. If TA is duplicate, they will not be added twice. 
+- Admins are able to delete pre-existing TA CSV files.
+    
+### Bug Fixes
+- TA is able to see which student cards are from 
+- Home button on TA interface no longer takes TA to student view
+- Confirmation message added when sending card
+- Added functionality to export button on card creation screen
+### Known Issues
+- If card is sent while text is currently selected, blue text selection box appears on card received by TA
+- No confirmation popup for deletion of GIFs/CSVs on admin page, so admins may accidentally delete files with no way to recover them
+- Admin interface UI needs to have padding between upload file button and drag and drop file on GIF upload section
+- Email notifications to TAs should contain actual hyperlink to site 
+- Admin can currently only delete GIFs uploaded by admin, not the inital GIFs that are part of the application. Admin should be able to modify all GIFs.
+- Delete button for GIFs on admin interface are not consistently positioned.
+- Admin can currently upload two GIFs with the same name, which should not be allowed.
+- Delete button readability is poor. White text on red background has poor contrast and is hard to read. 
+- No drag and drop option for CSV file upload.
+- Lack of upload confirmation with CSV files. 
 # Release Notes - Version 1.0
 
 ## New Features
