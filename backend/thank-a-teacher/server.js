@@ -50,7 +50,7 @@ async function initDbs() {
 async function populate_ta() {
   const database = client.db("thank-a-teacher");
   const ta = database.collection("TA");
-  const cursor = ta.find({});
+  const cursor = ta.find({ $or: [{ isEnabled: true }, { isEnabled: { $exists: false } }] });
   const tmp = {};
   let i = 0;
   for await (const doc of cursor) {
@@ -98,7 +98,8 @@ app.post("/upload-tas", upload.single("csv"), (req, res) => {
           { semester },
           { $set: { 
               data: results.map((ta) => ({ name: ta["Name"], email: ta.Email, class: ta.Class })),
-              filename: req.file.originalname
+              filename: req.file.originalname,
+              isEnabled: true
             }
           },
           { upsert: true }
@@ -115,7 +116,7 @@ app.get("/tas", async (req, res) => {
   try {
     const database = client.db("thank-a-teacher");
     const taCollection = database.collection("TA");
-    const tas = await taCollection.find({}, { projection: { semester: 1, filename: 1 } }).toArray();
+    const tas = await taCollection.find({}, { projection: { semester: 1, filename: 1, isEnabled: 1 } }).toArray();
     res.json(tas);
   } catch (err) {
     console.error("Error fetching TA lists:", err);
@@ -136,6 +137,27 @@ app.delete("/tas/:id", async (req, res) => {
   } catch (err) {
     console.error("Error deleting TA list:", err);
     res.status(500).send("Error deleting TA list");
+  }
+});
+
+app.patch("/tas/:id/toggle", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const database = client.db("thank-a-teacher");
+    const taCollection = database.collection("TA");
+    const taList = await taCollection.findOne({ _id: new mongoose.Types.ObjectId(id) });
+    if (!taList) {
+      return res.status(404).send("No TA list found with that ID.");
+    }
+    const newIsEnabled = !taList.isEnabled;
+    await taCollection.updateOne(
+      { _id: new mongoose.Types.ObjectId(id) },
+      { $set: { isEnabled: newIsEnabled } }
+    );
+    res.status(200).send(`TA list ${newIsEnabled ? 'enabled' : 'disabled'} successfully!`);
+  } catch (err) {
+    console.error("Error toggling TA list:", err);
+    res.status(500).send("Error toggling TA list");
   }
 });
 

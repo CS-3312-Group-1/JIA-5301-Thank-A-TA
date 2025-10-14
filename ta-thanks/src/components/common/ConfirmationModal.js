@@ -1,4 +1,3 @@
-
 import React from 'react';
 import '../../styles/ConfirmationModal.css';
 
@@ -8,12 +7,24 @@ function ConfirmationModal({ isOpen, onClose, onConfirm, message }) {
     }
 
     return (
-        <div className="modal-overlay">
-            <div className="modal-content">
-                <p>{message}</p>
-                <div className="modal-actions">
-                    <button onClick={onConfirm}>Confirm</button>
-                    <button onClick={onClose}>Cancel</button>
+        <div className="confirmation-modal-overlay" role="presentation" onClick={onClose}>
+            <div
+                className="confirmation-modal"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="confirmation-modal-title"
+                aria-describedby="confirmation-modal-message"
+                onClick={(event) => event.stopPropagation()}
+            >
+                <h3 id="confirmation-modal-title">Confirm Action</h3>
+                <p id="confirmation-modal-message">{message}</p>
+                <div className="confirmation-modal-actions">
+                    <button type="button" className="confirm-btn" onClick={onConfirm}>
+                        Confirm
+                    </button>
+                    <button type="button" className="cancel-btn" onClick={onClose}>
+                        Cancel
+                    </button>
                 </div>
             </div>
         </div>

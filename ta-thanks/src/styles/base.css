@@ -1,8 +1,12 @@
-.container {
+.design-layout {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: flex-start;
-    margin: 50px 100px;
+    gap: 30px;
+    padding: 40px 5%;
+    max-width: 1400px;
+    margin: 0 auto;
+    flex-wrap: wrap;
 }
 
 /* Blue section at the top */
@@ -42,7 +46,11 @@
     height: 700px;
     border: 1px solid #ddd;
     overflow: hidden;
-    margin-right: 20px;
+    margin: 0 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    flex: 0 0 auto;
 }
 
 .card-preview {
@@ -86,9 +94,6 @@
     display: flex;
     flex-direction: column;
     gap: 15px;
-    position: absolute;
-    top: 100px;
-    left: 1050px;
 }
 
 .message-box-container label {
@@ -168,7 +173,7 @@
     height: 30px;
     border-radius: 50%;
     cursor: pointer;
-    border: 1px solid #ccc
+    border: 1px solid #ccc;
 }
 
 
@@ -176,137 +181,127 @@
 .back-button,
 .send-button,
 .add-text-button,
-.delete-text-button,
 .export-button {
     background-color: #003057;
-    color: white;
+    color: #fff;
     border: none;
     padding: 10px 20px;
     cursor: pointer;
     border-radius: 5px;
     text-align: center;
-    margin-top: 10px;
     width: 100%;
+    transition: background-color 0.2s ease-in-out;
 }
 
 .back-button:hover,
 .send-button:hover,
 .add-text-button:hover,
-.delete-text-button:hover {
+.export-button:hover {
     background-color: #00203f;
 }
 
-.delete-text-button {
-    background-color: #ccc;
-    color: #666;
-    cursor: not-allowed;
-}
-
-/* Buttons */
-.back-button,
-.send-button,
-.add-text-button,
-.delete-text-button {
-    background-color: #003057;
-    color: white;
+.delete-text-button,
+.delete-gif-button {
+    background-color: #dc3545;
+    color: #fff;
     border: none;
     padding: 10px 20px;
-    cursor: pointer;
     border-radius: 5px;
-    text-align: center;
-    margin-top: 10px;
+    cursor: pointer;
     width: 100%;
+    transition: background-color 0.2s ease-in-out;
 }
 
-.back-button:hover,
-.send-button:hover,
-.add-text-button:hover,
-.delete-text-button:hover {
-    background-color: #00203f;
+.delete-text-button:hover,
+.delete-gif-button:hover {
+    background-color: #a71d2a;
 }
 
-.delete-text-button {
+.delete-text-button:disabled,
+.delete-gif-button:disabled {
     background-color: #ccc;
     color: #666;
     cursor: not-allowed;
 }
 
-/* GIF Selection Container */
+.controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.right-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 320px;
+}
+
 .gif-selection-container {
-    position: absolute; /* Change to 'absolute' if necessary */
-    left:650px;
     text-align: center;
     padding: 20px;
-    width: 23%; /* Adjust width */
-    max-width: 600px; /* Set a maximum width */
-    height: 700px; /* Set a fixed height for scrolling */
-    overflow-y: auto; /* Enable vertical scrolling */
-    overflow-x: hidden; /* Prevent horizontal scrolling */
+    width: 100%;
+    max-height: 520px;
+    overflow-y: auto;
+    overflow-x: hidden;
     background-color: #f9f9f9;
     border: 1px solid #ddd;
     border-radius: 8px;
 }
 
-/* GIF Selection Title */
 .gif-selection-title {
     font-size: 16px;
     font-weight: 600;
-    color: #003057; 
-    margin-bottom: 10px; 
+    color: #003057;
+    margin-bottom: 10px;
     text-align: center;
 }
 
-/* GIF Placeholder */
 .gif-placeholder {
     display: flex;
-    flex-wrap: wrap; /* Allow wrapping if there are too many GIFs */
-    justify-content: center; /* Center the GIFs within the container */
-    gap: 15px; /* Space between GIFs */
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
 }
 
-/* Individual GIF Option */
 .gif-option {
-    width: 90px; 
+    width: 90px;
     height: 90px;
-    object-fit: cover; 
-    border-radius: 4px; 
-    border: 1px solid #ddd; 
-    transition: transform 0.2s, border-color 0.2s; 
-    cursor: pointer; 
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    transition: transform 0.2s, border-color 0.2s;
+    cursor: pointer;
 }
 
 .gif-option:hover {
-    border-color: #003057; 
-    transform: scale(1.05); 
+    border-color: #003057;
+    transform: scale(1.05);
+}
+
+.action-panel {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
 .draggable-gif-container {
     display: inline-block;
-    padding: 10px; /* Optional: Adds spacing around the gif */
-    border: 2px solid transparent; /* Optional: Adds a light border to help visualize the drag */
-    background-color: transparent; /* Optional: Background to make the gif stand out */
-    border-radius: 5px; /* Optional: Rounded corners */
-    cursor: move; /* Optional: Shows a "move" cursor when hovering over the GIF */
+    padding: 10px;
+    border: 2px solid transparent;
+    background-color: transparent;
+    border-radius: 5px;
+    cursor: move;
     position: absolute;
     height: 150px;
     width: 150px;
 }
 
 .draggable-gif {
-    max-width: 150px; /* Optional: Ensure the gif stays within the container */
+    max-width: 150px;
     max-height: 150px;
-}
-
-.delete-gif-button {
-    background-color: #ff6666;
-    color: white;
-    border: none;
-    padding: 10px;
-    cursor: pointer;
-    margin-top: 10px;
-}
-
-.delete-gif-button:disabled {
-    background-color: #cccccc;
-    cursor: not-allowed;
 }

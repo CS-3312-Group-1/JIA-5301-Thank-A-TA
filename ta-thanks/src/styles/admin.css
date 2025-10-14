@@ -30,6 +30,34 @@
     color: #0056b3;
 }
 
+.gif-item {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.gif-footer {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    margin-top: auto;
+    padding-top: 12px;
+}
+
+.gif-name {
+    flex: 1;
+    text-align: center;
+    margin: 0;
+}
+
 /* GIF Gallery */
 .gif-gallery {
     display: grid;
@@ -38,22 +66,11 @@
     margin-top: 20px;
 }
 
-.gif-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    background-color: #f9f9f9;
-    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
 .gif-item img {
     width: 100%;
     height: auto;
     border-radius: 5px;
+    object-fit: cover;
 }
 
 .gif-item p {
@@ -77,7 +94,6 @@
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
     width: 100%; /* Full width */
 }
-
 
 .upload-section {
     display: flex;
@@ -105,6 +121,14 @@
     background-color: #0056b3;
 }
 
+.gif-upload-section {
+    margin-top: 24px;
+}
+
+.ta-upload-section {
+    margin-top: 16px;
+}
+
 /* Status message styling */
 .status-message {
     margin-top: 10px;
@@ -128,6 +152,85 @@ button:hover {
     color: #fff;
 }
 
+.csv-drop-box {
+    margin-top: 16px;
+}
+
+.delete-button {
+    padding: 0;
+    background: transparent;
+    border: none;
+    color: #dc3545;
+    cursor: pointer;
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease-in-out, color 0.2s ease-in-out;
+}
+
+.delete-button:hover {
+    background: transparent;
+    color: #a71d2a;
+    transform: scale(1.1);
+}
+
+.confirmation-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 1000;
+}
+
+.confirmation-modal {
+    background: #fff;
+    border-radius: 8px;
+    max-width: 420px;
+    width: 100%;
+    padding: 24px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.confirmation-modal h3 {
+    margin-top: 0;
+    margin-bottom: 12px;
+}
+
+.confirmation-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.cancel-delete-btn {
+    background-color: #6c757d;
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+}
+
+.cancel-delete-btn:hover {
+    background-color: #5a6268;
+}
+
+.confirm-delete-btn {
+    background-color: #dc3545;
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+}
+
+.confirm-delete-btn:hover {
+    background-color: #a71d2a;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .main-content {
@@ -138,19 +241,6 @@ button:hover {
         max-width: 100%; /* Full width on small screens */
     }
 }
-.gif-item button {
-    margin-top: 10px;
-    padding: 5px 10px;
-    background-color: red;
-    color: white;
-    border: none;
-    cursor: pointer;
-}
-
-.gif-item button:hover {
-    background-color: darkred;
-}
-
 .ta-list-item {
     display: flex;
     justify-content: space-between;
@@ -160,16 +250,47 @@ button:hover {
 }
 
 .delete-ta-list-btn {
-    border: none;
     cursor: pointer;
-    padding: 5px;
-    background-color: red;
-    color: white;
+    color: #dc3545;
+    font-size: 30px;
+    transition: transform 0.2s ease-in-out, color 0.2s ease-in-out;
 }
 
 .delete-ta-list-btn:hover {
-    background-color: darkred;
-    color: white;
+    color: #a71d2a;
+    transform: scale(1.1);
+}
+
+.toggle-ta-list-btn {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+    margin-right: 10px;
+}
+
+.toggle-ta-list-btn.enabled {
+    background-color: #dc3545;
+}
+
+.toggle-ta-list-btn.enabled:hover {
+    background-color: #bb2d3b;
+}
+
+.toggle-ta-list-btn.disabled {
+    background-color: #28a745;
+}
+
+.toggle-ta-list-btn.disabled:hover {
+    background-color: #1e7e34;
+}
+
+.ta-list-item div {
+    display: flex;
+    align-items: center;
 }
 
 .search button {

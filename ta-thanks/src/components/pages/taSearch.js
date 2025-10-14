@@ -8,13 +8,21 @@ import Navbar from '../common/Navbar';
 
 function TaSearch() {
   const navigate = useNavigate();
-  const [classCS, setClass] = useState([]);
-  const [classTA, setTA] = useState([]);
-  const [email, setEmail] = useState([]);
+
+  // Data states
   const [data, setData] = useState(null);
-  const [selectedTAEmail, setSelectedTAEmail] = useState('');
+  const [semesters, setSemesters] = useState([]);
+  const [classes, setClasses] = useState([]);
+  const [tas, setTAs] = useState([]);
+
+  // Selection states
+  const [selectedSemester, setSelectedSemester] = useState('');
   const [selectedClass, setSelectedClass] = useState('');
-  const [selectedTA, setSelectedTA] = useState('0');
+  const [selectedTA, setSelectedTA] = useState('');
+  
+  // Derived state for the next page
+  const [selectedTAEmail, setSelectedTAEmail] = useState('');
+  const [selectedClassName, setSelectedClassName] = useState('');
 
   useEffect(() => {
     if (!getToken()) {
@@ -22,66 +30,73 @@ function TaSearch() {
     }
   }, [navigate]);
 
-  /* fetch data from database */
+  // Fetch all data on component mount
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await fetch('http://localhost:3001/', { mode: 'cors' });
         const jsonData = await response.json();
-
-        if (jsonData && jsonData["0"] && jsonData["0"].data) {
-          const classesData = jsonData["0"].data;
-          const allClasses = [...new Set(Object.values(classesData).map(r => r.class))].map((name, i) => ({ id: String(i), name }));
-          setClass(allClasses); // set class data from JSON
-          setData(jsonData); // set Data var to be parsed from later
+        if (jsonData) {
+          setData(jsonData);
+          const semesterData = Object.keys(jsonData).map(key => ({
+            id: key,
+            name: jsonData[key].semester,
+          }));
+          setSemesters(semesterData);
         }
       } catch (e) {
         console.log(e);
       }
     };
-
     fetchData();
   }, []);
 
-  /* Only populate select TA from current TAs in class */
-  const handleClass = (id) => {
-    if (data) {
-      const selectedClass = classCS.find(c => c.id === id);
-      if (selectedClass) {
-        setSelectedClass(selectedClass.name);
-        const selectedTAs = data["0"].data.filter(o => o.class === selectedClass.name).map(({ name, email }) => ({ id: name, name, email }));
+  const handleSemesterChange = (e) => {
+    const semesterId = e.target.value;
+    setSelectedSemester(semesterId);
 
-        setTA(selectedTAs); 
-        const emails = selectedTAs.map(ta => ta.email);
-        setEmail(emails);
-        setSelectedTAEmail('');
-        setSelectedTA('0');
-      } else {
-        setTA([]);
-        setEmail([]);
-        setSelectedTAEmail('');
-      }
-    } else {
-      setTA([]);
-      setEmail([]);
-      setSelectedTAEmail('');
-    }
-  }
+    // Reset subsequent selections
+    setClasses([]);
+    setTAs([]);
+    setSelectedClass('');
+    setSelectedTA('');
+    setSelectedTAEmail('');
+    setSelectedClassName('');
 
-  /* Set email var of selected TA */
-  const handleTASelction = (id) => {
-    setSelectedTA(id);
-    if (id !== "0") {
-      const selectedTA = classTA.find(ta => ta.id === id);
-      if (selectedTA) {
-        setSelectedTAEmail(selectedTA.email);
-      } else {
-        setSelectedTAEmail('');
-      }
-    } else {
-      setSelectedTAEmail('');
+    if (semesterId && data && data[semesterId]) {
+      const classesData = data[semesterId].data;
+      const uniqueClasses = [...new Set(classesData.map(item => item.class))];
+      setClasses(uniqueClasses.map((name, i) => ({ id: String(i), name })));
     }
-  }
+  };
+
+  const handleClassChange = (e) => {
+    const className = e.target.value;
+    setSelectedClass(className);
+    
+    // Reset TA selection
+    setTAs([]);
+    setSelectedTA('');
+    setSelectedTAEmail('');
+
+    if (className && selectedSemester && data[selectedSemester]) {
+        const taData = data[selectedSemester].data.filter(item => item.class === className);
+        setTAs(taData.map(ta => ({ id: ta.email, name: ta.name, email: ta.email })));
+        const selectedClassObj = classes.find(c => c.name === className);
+        if(selectedClassObj) {
+            setSelectedClassName(selectedClassObj.name);
+        }
+    }
+  };
+
+  const handleTAChange = (e) => {
+    const taEmail = e.target.value;
+    setSelectedTA(taEmail);
+    const selectedTAObject = tas.find(ta => ta.email === taEmail);
+    if(selectedTAObject) {
+        setSelectedTAEmail(selectedTAObject.email);
+    }
+  };
 
   return (
     <div className="App">
@@ -89,28 +104,40 @@ function TaSearch() {
       <h1 className="main-title">Thank-a-Teacher</h1>
 
       <div className='select-wrapper textPadding'>
-        <select id="ddlClasses" className='form-control' onChange={(e) => handleClass(e.target.value)}>
-          <option value="0" disabled selected>Select Class</option>
-          {classCS && classCS !== undefined ? classCS.map((ctr, index) => {
-            return <option key={index} value={ctr.id}>{ctr.name}</option>
-          }) : "No Class"}
+        <select className='form-control' value={selectedSemester} onChange={handleSemesterChange}>
+          <option value="" disabled>Select Semester</option>
+          {semesters.map((semester) => (
+            <option key={semester.id} value={semester.id}>{semester.name}</option>
+          ))}
         </select>
       </div>
 
       <div className='select-wrapper textPadding'>
-        <select id="ddlTAs" className='form-control' value={selectedTA} onChange={(e) => handleTASelction(e.target.value)} disabled={classTA.length === 0}>
-          <option value="0" disabled selected>Select TA</option>
-          {classTA && classTA !== undefined ? classTA.map((ctr, index) => {
-            return <option key={index} value={ctr.id}>{ctr.name}</option>
-          }) : "No TA"}
+        <select className='form-control' value={selectedClass} onChange={handleClassChange} disabled={!selectedSemester}>
+          <option value="" disabled>Select Class</option>
+          {classes.map((c) => (
+            <option key={c.id} value={c.name}>{c.name}</option>
+          ))}
         </select>
       </div>
 
-       <div className='textPadding'>
-      <button onClick={() => navigate('search', { state: { email: selectedTAEmail, selectedClass: selectedClass } })} className='nextButton'>
-  Next
-</button>
+      <div className='select-wrapper textPadding'>
+        <select className='form-control' value={selectedTA} onChange={handleTAChange} disabled={!selectedClass}>
+          <option value="" disabled>Select TA</option>
+          {tas.map((ta) => (
+            <option key={ta.id} value={ta.email}>{ta.name}</option>
+          ))}
+        </select>
+      </div>
 
+      <div className='textPadding'>
+        <button 
+          onClick={() => navigate('search', { state: { email: selectedTAEmail, selectedClass: selectedClassName } })} 
+          className='nextButton' 
+          disabled={!selectedTA}
+        >
+          Next
+        </button>
       </div>
 
       <div className='textPadding'>
