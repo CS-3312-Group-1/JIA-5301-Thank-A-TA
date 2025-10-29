@@ -110,13 +110,37 @@ app.post("/upload-tas", upload.single("csv"), (req, res) => {
   const results = [];
   let semester = null;
 
+  const sanitizeRow = (row) => {
+    return Object.entries(row).reduce((acc, [rawKey, rawValue]) => {
+      const cleanKey = rawKey.replace(/^\uFEFF/, "").trim();
+      const cleanValue = typeof rawValue === "string" ? rawValue.trim() : rawValue;
+      acc[cleanKey] = cleanValue;
+      const lowerKey = cleanKey.toLowerCase();
+      if (!(lowerKey in acc)) {
+        acc[lowerKey] = cleanValue;
+      }
+      return acc;
+      
+    }, {});
+  };
+
+  const pickField = (row, ...keys) => {
+    for (const key of keys) {
+      if (row[key] !== undefined && row[key] !== "") {
+        return row[key];
+      }
+    }
+    return undefined;
+  };
+
   bufferStream
     .pipe(csv())
     .on("data", (data) => {
+      const sanitized = sanitizeRow(data);
       if (!semester) {
-        semester = data.Semester;
+        semester = pickField(sanitized, "Semester", "semester");
       }
-      results.push(data);
+      results.push(sanitized);
     })
     .on("end", async () => {
       if (!semester) {
@@ -129,7 +153,13 @@ app.post("/upload-tas", upload.single("csv"), (req, res) => {
         await taCollection.updateOne(
           { semester },
           { $set: { 
-              data: results.map((ta) => ({ name: ta["Name"], email: ta.Email, class: ta.Class })),
+              data: results.map((ta) => {
+                return {
+                  name: `${ta.FirstName} ${ta.LastName}`.trim(),
+                  email: ta["Email"],
+                  class: ta.Class
+                };
+              }),
               filename: req.file.originalname,
               isEnabled: true
             }

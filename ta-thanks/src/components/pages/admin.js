@@ -2,6 +2,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import '../../styles/admin.css';
 import { useNavigate } from 'react-router-dom';
+import GifPreviewModal from './GifPreviewModal';
+import TaManagementModal from './TaManagementModal';
+import ConfirmationModal from '../common/ConfirmationModal';
 import { FaTrashCan } from 'react-icons/fa6';
 
 function Admin() {
@@ -16,6 +19,12 @@ function Admin() {
     const [selectedCsv, setSelectedCsv] = useState(null);
     const [taLists, setTaLists] = useState([]);
     const [deleteTarget, setDeleteTarget] = useState(null);
+    const [toggleTarget, setToggleTarget] = useState(null);
+    const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+    const [isTaModalOpen, setIsTaModalOpen] = useState(false);
+    const [selectedTaList, setSelectedTaList] = useState(null);
+    const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+    const [gifFile, setGifFile] = useState(null);
     const gifInputRef = useRef(null);
     const csvInputRef = useRef(null);
 
@@ -44,7 +53,13 @@ function Admin() {
             return;
         }
 
+        setGifFile(file);
+        setIsPreviewOpen(true);
+    };
+
+    const handleConfirmGif = (file) => {
         setSelectedGif(file);
+        setIsPreviewOpen(false);
         setUploadStatus('');
     };
 
@@ -225,19 +240,53 @@ function Admin() {
         }
     };
 
-    const handleToggleTaList = async (taListId) => {
+    const handleToggleTaList = (taList) => {
+        setToggleTarget(taList);
+        setIsConfirmOpen(true);
+    };
+
+    const confirmToggleTaList = async () => {
+        if (!toggleTarget) return;
         try {
-            await axios.patch(`http://127.0.0.1:3001/tas/${taListId}/toggle`);
+            await axios.patch(`http://127.0.0.1:3001/tas/${toggleTarget._id}/toggle`);
             fetchTaLists();
         } catch (error) {
             console.error('Error toggling TA list:', error);
+        } finally {
+            setIsConfirmOpen(false);
+            setToggleTarget(null);
         }
+    };
+
+    const openTaManagementModal = (taList) => {
+        setSelectedTaList(taList);
+        setIsTaModalOpen(true);
+    };
+
+    const closeTaManagementModal = () => {
+        setSelectedTaList(null);
+        setIsTaModalOpen(false);
+        fetchTaLists(); // Refresh TA lists when closing the modal
     };
 
     useEffect(() => {
         fetchGifs();
         fetchTaLists();
     }, []);
+
+    useEffect(() => {
+        const isModalOpen = isTaModalOpen || isPreviewOpen || isConfirmOpen || !!deleteTarget;
+        if (isModalOpen) {
+            document.body.classList.add('modal-open');
+        } else {
+            document.body.classList.remove('modal-open');
+        }
+
+        // Cleanup function to remove the class when the component unmounts
+        return () => {
+            document.body.classList.remove('modal-open');
+        };
+    }, [isTaModalOpen, isPreviewOpen, isConfirmOpen, deleteTarget]);
 
     const openDeleteConfirmation = (target) => {
         setDeleteTarget(target);
@@ -363,7 +412,10 @@ function Admin() {
                             <div key={taList._id} className="ta-list-item">
                                 <span>{taList.semester} - {taList.filename}</span>
                                 <div>
-                                    <button onClick={() => handleToggleTaList(taList._id)} className={`toggle-ta-list-btn ${taList.isEnabled ? 'enabled' : 'disabled'}`}>
+                                    <button onClick={() => openTaManagementModal(taList)} className="manage-ta-list-btn">
+                                        Manage
+                                    </button>
+                                    <button onClick={() => handleToggleTaList(taList)} className={`toggle-ta-list-btn ${taList.isEnabled ? 'enabled' : 'disabled'}`}>
                                         {taList.isEnabled ? 'Disable' : 'Enable'}
                                     </button>
                                     <FaTrashCan
@@ -382,6 +434,27 @@ function Admin() {
                     </div>
                 </div>
             </div>
+
+            <ConfirmationModal
+                isOpen={isConfirmOpen}
+                onClose={() => setIsConfirmOpen(false)}
+                onConfirm={confirmToggleTaList}
+                message={`Are you sure you want to ${toggleTarget?.isEnabled ? 'disable' : 'enable'} this TA list?`}
+            />
+
+            <TaManagementModal
+                isOpen={isTaModalOpen}
+                onClose={closeTaManagementModal}
+                taList={selectedTaList}
+                fetchTaLists={fetchTaLists}
+            />
+
+            <GifPreviewModal
+                isOpen={isPreviewOpen}
+                onClose={() => setIsPreviewOpen(false)}
+                onConfirm={handleConfirmGif}
+                file={gifFile}
+            />
 
             {deleteTarget && (
                 <div className="confirmation-backdrop" role="presentation" onClick={closeDeleteConfirmation}>
