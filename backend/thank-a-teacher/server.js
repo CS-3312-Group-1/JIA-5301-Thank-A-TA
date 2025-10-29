@@ -8,6 +8,9 @@ const { MongoClient } = require("mongodb");
 const multer = require("multer");
 const csv = require("csv-parser");
 const stream = require("stream");
+// required for SSO/CAS auth
+const session = require('express-session');
+const CASAuthentication = require('express-cas-authentication');
 
 require('dotenv').config();
 
@@ -20,12 +23,33 @@ const app = express();
 const PORT = process.env.PORT;
 const MONGO_URI = process.env.MONGO_URI;
 
+// CAS session/proxy setup
+app.set('trust proxy', 1);
+
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production'
+  }
+}));
+
+
 // CORS
 app.use(cors({
   origin: "*",
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
+
+const cas = new CASAuthentication({
+  cas_url: "https://sso.gatech.edu/cas",
+  service_url: process.env.SITE_URL,
+  cas_version: '3.0',
+  session_info: "cas_userinfo",
+});
 
 // Body parsing
 app.use(express.json({ limit: "50mb" }));
@@ -64,6 +88,14 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } });
 
 // ---- ROUTES ----
+
+// CAS Auth routes
+app.get('/login', cas.bounce, (req, res) => res.redirect('/'));
+app.get('/logout', cas.logout);
+app.get('/whoami', cas.bounce, (req, res) => {
+  res.json({ user: req.session[cas.session_name] });
+});
+
 
 // Health
 app.get("/health", (_req, res) => res.json({ ok: true }));
