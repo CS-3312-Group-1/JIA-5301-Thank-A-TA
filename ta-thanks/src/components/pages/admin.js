@@ -17,28 +17,28 @@ function Admin() {
     const [gifs, setGifs] = useState([]);
     const [fetchError, setFetchError] = useState('');
     const [selectedCsv, setSelectedCsv] = useState(null);
-    const [taLists, setTaLists] = useState([]);
+    const [semesters, setSemesters] = useState([]);
     const [deleteTarget, setDeleteTarget] = useState(null);
     const [toggleTarget, setToggleTarget] = useState(null);
     const [isConfirmOpen, setIsConfirmOpen] = useState(false);
     const [isTaModalOpen, setIsTaModalOpen] = useState(false);
-    const [selectedTaList, setSelectedTaList] = useState(null);
+    const [selectedSemester, setSelectedSemester] = useState(null);
     const [isPreviewOpen, setIsPreviewOpen] = useState(false);
     const [gifFile, setGifFile] = useState(null);
     const gifInputRef = useRef(null);
     const csvInputRef = useRef(null);
 
-    const fetchTaLists = async () => {
+    const fetchSemesters = async () => {
         try {
-            const response = await axios.get('http://127.0.0.1:3001/tas');
-            setTaLists(response.data);
+            const response = await axios.get('http://127.0.0.1:3001/semesters');
+            setSemesters(response.data);
         } catch (error) {
-            console.error('Error fetching TA lists:', error);
+            console.error('Error fetching semesters:', error);
         }
     };
 
     useEffect(() => {
-        fetchTaLists();
+        fetchSemesters();
     }, []);
 
     // Handle GIF selection
@@ -100,7 +100,7 @@ function Admin() {
                 if (csvInputRef.current) {
                     csvInputRef.current.value = '';
                 }
-                fetchTaLists();
+                fetchSemesters();
             } else {
                 setTaUploadStatus('Failed to upload TA data.');
             }
@@ -231,47 +231,47 @@ function Admin() {
     
     
 
-    const handleDeleteTaList = async (taListId) => {
+    const handleDeleteSemester = async (semesterId) => {
         try {
-            await axios.delete(`http://127.0.0.1:3001/tas/${taListId}`);
-            fetchTaLists();
+            await axios.delete(`http://127.0.0.1:3001/semesters/${semesterId}`);
+            fetchSemesters();
         } catch (error) {
-            console.error('Error deleting TA list:', error);
+            console.error('Error deleting semester:', error);
         }
     };
 
-    const handleToggleTaList = (taList) => {
-        setToggleTarget(taList);
+    const handleToggleSemester = (semester) => {
+        setToggleTarget(semester);
         setIsConfirmOpen(true);
     };
 
-    const confirmToggleTaList = async () => {
+    const confirmToggleSemester = async () => {
         if (!toggleTarget) return;
         try {
-            await axios.patch(`http://127.0.0.1:3001/tas/${toggleTarget._id}/toggle`);
-            fetchTaLists();
+            await axios.patch(`http://127.0.0.1:3001/semesters/${toggleTarget._id}/toggle`);
+            fetchSemesters();
         } catch (error) {
-            console.error('Error toggling TA list:', error);
+            console.error('Error toggling semester:', error);
         } finally {
             setIsConfirmOpen(false);
             setToggleTarget(null);
         }
     };
 
-    const openTaManagementModal = (taList) => {
-        setSelectedTaList(taList);
+    const openTaManagementModal = (semester) => {
+        setSelectedSemester(semester);
         setIsTaModalOpen(true);
     };
 
     const closeTaManagementModal = () => {
-        setSelectedTaList(null);
+        setSelectedSemester(null);
         setIsTaModalOpen(false);
-        fetchTaLists(); // Refresh TA lists when closing the modal
+        fetchSemesters(); // Refresh semesters when closing the modal
     };
 
     useEffect(() => {
         fetchGifs();
-        fetchTaLists();
+        fetchSemesters();
     }, []);
 
     useEffect(() => {
@@ -303,8 +303,8 @@ function Admin() {
 
         if (deleteTarget.type === 'gif') {
             await handleDeleteGif(deleteTarget.id);
-        } else if (deleteTarget.type === 'ta') {
-            await handleDeleteTaList(deleteTarget.id);
+        } else if (deleteTarget.type === 'semester') {
+            await handleDeleteSemester(deleteTarget.id);
         }
 
         setDeleteTarget(null);
@@ -406,27 +406,27 @@ function Admin() {
                     </div>
                     {taUploadStatus && <p className="status-message">{taUploadStatus}</p>}
 
-                    <h2>Uploaded TA Lists</h2>
+                    <h2>Uploaded Semesters</h2>
                     <div className="ta-lists">
-                        {taLists.map((taList) => (
-                            <div key={taList._id} className="ta-list-item">
-                                <span>{taList.semester} - {taList.filename}</span>
+                        {semesters.map((semester) => (
+                            <div key={semester._id} className="ta-list-item">
+                                <span>{semester.semester} - {semester.fileRef}</span>
                                 <div>
-                                    <button onClick={() => openTaManagementModal(taList)} className="manage-ta-list-btn">
+                                    <button onClick={() => openTaManagementModal(semester)} className="manage-ta-list-btn">
                                         Manage
                                     </button>
-                                    <button onClick={() => handleToggleTaList(taList)} className={`toggle-ta-list-btn ${taList.isEnabled ? 'enabled' : 'disabled'}`}>
-                                        {taList.isEnabled ? 'Disable' : 'Enable'}
+                                    <button onClick={() => handleToggleSemester(semester)} className={`toggle-ta-list-btn ${semester.isEnabled ? 'enabled' : 'disabled'}`}>
+                                        {semester.isEnabled ? 'Disable' : 'Enable'}
                                     </button>
                                     <FaTrashCan
                                         onClick={() => openDeleteConfirmation({
-                                            type: 'ta',
-                                            id: taList._id,
-                                            name: `${taList.semester} - ${taList.filename}`,
+                                            type: 'semester',
+                                            id: semester._id,
+                                            name: `${semester.semester} - ${semester.fileRef}`,
                                         })}
                                         size={20}
                                         className='delete-ta-list-btn'
-                                        aria-label={`Delete ${taList.semester} - ${taList.filename}`}
+                                        aria-label={`Delete ${semester.semester} - ${semester.fileRef}`}
                                     />
                                 </div>
                             </div>
@@ -438,15 +438,15 @@ function Admin() {
             <ConfirmationModal
                 isOpen={isConfirmOpen}
                 onClose={() => setIsConfirmOpen(false)}
-                onConfirm={confirmToggleTaList}
-                message={`Are you sure you want to ${toggleTarget?.isEnabled ? 'disable' : 'enable'} this TA list?`}
+                onConfirm={confirmToggleSemester}
+                message={`Are you sure you want to ${toggleTarget?.isEnabled ? 'disable' : 'enable'} this semester?`}
             />
 
             <TaManagementModal
                 isOpen={isTaModalOpen}
                 onClose={closeTaManagementModal}
-                taList={selectedTaList}
-                fetchTaLists={fetchTaLists}
+                semester={selectedSemester}
+                fetchSemesters={fetchSemesters}
             />
 
             <GifPreviewModal

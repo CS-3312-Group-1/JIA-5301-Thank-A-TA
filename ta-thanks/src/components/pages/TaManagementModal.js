@@ -1,22 +1,25 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import '../../styles/TaManagementModal.css';
+import ConfirmationModal from '../common/ConfirmationModal';
 
-function TaManagementModal({ isOpen, onClose, taList }) {
-    console.log('TaManagementModal rendered. isOpen:', isOpen, 'taList:', taList);
-
+function TaManagementModal({ isOpen, onClose, semester }) {
     const [tas, setTas] = useState([]);
-    const [newTa, setNewTa] = useState({ name: '', email: '' });
+    const [originalTas, setOriginalTas] = useState([]);
+    const [newTa, setNewTa] = useState({ name: '', email: '', class: '' });
+    const [searchTerm, setSearchTerm] = useState('');
+    const [sortConfig, setSortConfig] = useState({ key: null, direction: 'ascending' });
+    const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
+    const [taToRemove, setTaToRemove] = useState(null);
 
-    const fetchTasForList = async () => {
-        if (taList) {
+    const fetchTasForSemester = async () => {
+        if (semester) {
             try {
-                console.log(`Fetching TAs for list ID: ${taList._id}`);
-                const response = await axios.get(`http://127.0.0.1:3001/tas/${taList._id}`);
-                console.log('API response:', response.data);
-                setTas(response.data.tas || []);
+                const response = await axios.get(`http://127.0.0.1:3001/tas/${semester.semester}`);
+                setTas(response.data || []);
+                setOriginalTas(response.data || []);
             } catch (error) {
                 console.error('Error fetching TAs:', error);
             }
@@ -24,23 +27,29 @@ function TaManagementModal({ isOpen, onClose, taList }) {
     };
 
     useEffect(() => {
-        console.log('useEffect triggered. isOpen:', isOpen, 'taList:', taList);
         if (isOpen) {
-            fetchTasForList();
+            fetchTasForSemester();
         }
-    }, [isOpen, taList]);
+    }, [isOpen, semester]);
 
-    if (!isOpen) {
-        return null;
-    }
-
-    const handleRemoveTa = async (taId) => {
+    const handleRemoveTa = async () => {
+        if (!taToRemove) return;
         try {
-            await axios.delete(`http://127.0.0.1:3001/tas/${taList._id}/ta/${taId}`);
-            fetchTasForList(); // Refresh the TA list
+            await axios.delete(`http://127.0.0.1:3001/tas/${taToRemove._id}`);
+            fetchTasForSemester(); // Refresh the TA list
+            toast.success('TA removed successfully!');
         } catch (error) {
             console.error('Error removing TA:', error);
+            toast.error('Error removing TA.');
+        } finally {
+            setShowRemoveConfirm(false);
+            setTaToRemove(null);
         }
+    };
+
+    const openRemoveConfirm = (ta) => {
+        setTaToRemove(ta);
+        setShowRemoveConfirm(true);
     };
 
     const handleAddTa = async (e) => {
@@ -52,11 +61,13 @@ function TaManagementModal({ isOpen, onClose, taList }) {
         }
 
         try {
-            await axios.post(`http://127.0.0.1:3001/tas/${taList._id}/ta`, newTa);
-            setNewTa({ name: '', email: '' });
-            fetchTasForList(); // Refresh the TA list
+            await axios.post(`http://127.0.0.1:3001/tas/${semester.semester}`, newTa);
+            setNewTa({ name: '', email: '', class: '' });
+            fetchTasForSemester(); // Refresh the TA list
+            toast.success('TA added successfully!');
         } catch (error) {
             console.error('Error adding TA:', error);
+            toast.error('Error adding TA.');
         }
     };
 
@@ -65,11 +76,73 @@ function TaManagementModal({ isOpen, onClose, taList }) {
         setNewTa(prevState => ({ ...prevState, [name]: value }));
     };
 
+    const handleTaInputChange = (e, index) => {
+        const { name, value } = e.target;
+        const updatedTas = [...tas];
+        const originalIndex = tas.findIndex(ta => ta._id === sortedAndFilteredTas[index]._id);
+        updatedTas[originalIndex] = { ...updatedTas[originalIndex], [name]: value };
+        setTas(updatedTas);
+    };
+
+    const handleUpdateTa = async (index) => {
+        const taToUpdate = sortedAndFilteredTas[index];
+        try {
+            await axios.put(`http://127.0.0.1:3001/tas/${taToUpdate._id}`, taToUpdate);
+            fetchTasForSemester(); // Refresh the TA list
+            toast.success('TA updated successfully!');
+        } catch (error) {
+            console.error('Error updating TA:', error);
+            toast.error('Error updating TA.');
+        }
+    };
+
+    const isTaChanged = (index) => {
+        const currentTa = sortedAndFilteredTas[index];
+        const originalTa = originalTas.find(ta => ta._id === currentTa._id);
+        return JSON.stringify(currentTa) !== JSON.stringify(originalTa);
+    };
+
+    const requestSort = (key) => {
+        let direction = 'ascending';
+        if (sortConfig.key === key && sortConfig.direction === 'ascending') {
+            direction = 'descending';
+        }
+        setSortConfig({ key, direction });
+    };
+
+    const sortedAndFilteredTas = useMemo(() => {
+        let sortableTas = [...tas];
+        if (sortConfig.key !== null) {
+            sortableTas.sort((a, b) => {
+                if (a[sortConfig.key] < b[sortConfig.key]) {
+                    return sortConfig.direction === 'ascending' ? -1 : 1;
+                }
+                if (a[sortConfig.key] > b[sortConfig.key]) {
+                    return sortConfig.direction === 'ascending' ? 1 : -1;
+                }
+                return 0;
+            });
+        }
+
+        if (searchTerm) {
+            return sortableTas.filter(ta =>
+                ta.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                ta.email.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+        }
+
+        return sortableTas;
+    }, [tas, sortConfig, searchTerm]);
+
+    if (!isOpen) {
+        return null;
+    }
+
     return (
         <div className="confirmation-modal-overlay" onClick={onClose}>
-            <div className="confirmation-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="ta-management-modal" onClick={(e) => e.stopPropagation()}>
                 <ToastContainer />
-                <h2>Manage TAs for {taList.filename}</h2>
+                <h2>Manage TAs for {semester?.semester}</h2>
                 <form onSubmit={handleAddTa} className="add-ta-form">
                     <input
                         type="text"
@@ -87,24 +160,43 @@ function TaManagementModal({ isOpen, onClose, taList }) {
                         onChange={handleInputChange}
                         required
                     />
+                    <input
+                        type="text"
+                        name="class"
+                        placeholder="Class"
+                        value={newTa.class}
+                        onChange={handleInputChange}
+                    />
                     <button type="submit">Add TA</button>
                 </form>
+
+                <input
+                    type="text"
+                    placeholder="Search by name or email"
+                    className="search-bar"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
+
                 <div className="ta-table-container">
                     <table className="ta-table">
                         <thead>
                             <tr>
-                                <th>Name</th>
-                                <th>Email</th>
+                                <th onClick={() => requestSort('name')}>Name</th>
+                                <th onClick={() => requestSort('email')}>Email</th>
+                                <th onClick={() => requestSort('class')}>Class</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {tas.map((ta, index) => (
-                                <tr key={index}>
-                                    <td>{ta.name}</td>
-                                    <td>{ta.email}</td>
+                            {sortedAndFilteredTas.map((ta, index) => (
+                                <tr key={ta._id}>
+                                    <td><input type="text" name="name" value={ta.name} onChange={(e) => handleTaInputChange(e, index)} /></td>
+                                    <td><input type="email" name="email" value={ta.email} onChange={(e) => handleTaInputChange(e, index)} /></td>
+                                    <td><input type="text" name="class" value={ta.class} onChange={(e) => handleTaInputChange(e, index)} /></td>
                                     <td>
-                                        <button onClick={() => handleRemoveTa(ta._id)} className="remove-ta-btn">Remove</button>
+                                        <button onClick={() => handleUpdateTa(index)} className="update-ta-btn" disabled={!isTaChanged(index)}>Update</button>
+                                        <button onClick={() => openRemoveConfirm(ta)} className="remove-ta-btn">Remove</button>
                                     </td>
                                 </tr>
                             ))}
@@ -115,6 +207,12 @@ function TaManagementModal({ isOpen, onClose, taList }) {
                     <button onClick={onClose} className="cancel-btn">Close</button>
                 </div>
             </div>
+            <ConfirmationModal
+                isOpen={showRemoveConfirm}
+                onClose={() => setShowRemoveConfirm(false)}
+                onConfirm={handleRemoveTa}
+                message={`Are you sure you want to remove ${taToRemove?.name}?`}
+            />
         </div>
     );
 }

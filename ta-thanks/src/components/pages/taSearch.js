@@ -2,6 +2,7 @@
 import '../../styles/taSearch.css';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 import { getToken } from '../../App';
 import Navbar from '../common/Navbar';
@@ -10,7 +11,6 @@ function TaSearch() {
   const navigate = useNavigate();
 
   // Data states
-  const [data, setData] = useState(null);
   const [semesters, setSemesters] = useState([]);
   const [classes, setClasses] = useState([]);
   const [tas, setTAs] = useState([]);
@@ -32,26 +32,18 @@ function TaSearch() {
 
   // Fetch all data on component mount
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchSemesters = async () => {
       try {
-        const response = await fetch('http://localhost:3001/', { mode: 'cors' });
-        const jsonData = await response.json();
-        if (jsonData) {
-          setData(jsonData);
-          const semesterData = Object.keys(jsonData).map(key => ({
-            id: key,
-            name: jsonData[key].semester,
-          }));
-          setSemesters(semesterData);
-        }
+        const response = await axios.get('http://127.0.0.1:3001/semesters/enabled');
+        setSemesters(response.data);
       } catch (e) {
         console.log(e);
       }
     };
-    fetchData();
+    fetchSemesters();
   }, []);
 
-  const handleSemesterChange = (e) => {
+  const handleSemesterChange = async (e) => {
     const semesterId = e.target.value;
     setSelectedSemester(semesterId);
 
@@ -63,14 +55,19 @@ function TaSearch() {
     setSelectedTAEmail('');
     setSelectedClassName('');
 
-    if (semesterId && data && data[semesterId]) {
-      const classesData = data[semesterId].data;
-      const uniqueClasses = [...new Set(classesData.map(item => item.class))];
-      setClasses(uniqueClasses.map((name, i) => ({ id: String(i), name })));
+    if (semesterId) {
+      try {
+        const response = await axios.get(`http://127.0.0.1:3001/tas/${semesterId}`);
+        const taData = response.data;
+        const uniqueClasses = [...new Set(taData.map(item => item.class))];
+        setClasses(uniqueClasses.map((name, i) => ({ id: String(i), name })));
+      } catch (error) {
+        console.error('Error fetching TAs for semester:', error);
+      }
     }
   };
 
-  const handleClassChange = (e) => {
+  const handleClassChange = async (e) => {
     const className = e.target.value;
     setSelectedClass(className);
     
@@ -79,12 +76,17 @@ function TaSearch() {
     setSelectedTA('');
     setSelectedTAEmail('');
 
-    if (className && selectedSemester && data[selectedSemester]) {
-        const taData = data[selectedSemester].data.filter(item => item.class === className);
-        setTAs(taData.map(ta => ({ id: ta.email, name: ta.name, email: ta.email })));
-        const selectedClassObj = classes.find(c => c.name === className);
-        if(selectedClassObj) {
-            setSelectedClassName(selectedClassObj.name);
+    if (className && selectedSemester) {
+        try {
+          const response = await axios.get(`http://127.0.0.1:3001/tas/${selectedSemester}`);
+          const taData = response.data.filter(item => item.class === className);
+          setTAs(taData.map(ta => ({ id: ta.email, name: ta.name, email: ta.email })));
+          const selectedClassObj = classes.find(c => c.name === className);
+          if(selectedClassObj) {
+              setSelectedClassName(selectedClassObj.name);
+          }
+        } catch (error) {
+          console.error('Error fetching TAs for class:', error);
         }
     }
   };
@@ -107,7 +109,7 @@ function TaSearch() {
         <select className='form-control' value={selectedSemester} onChange={handleSemesterChange}>
           <option value="" disabled>Select Semester</option>
           {semesters.map((semester) => (
-            <option key={semester.id} value={semester.id}>{semester.name}</option>
+            <option key={semester._id} value={semester.semester}>{semester.semester}</option>
           ))}
         </select>
       </div>

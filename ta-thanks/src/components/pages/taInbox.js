@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import homeIcon from '../../assets/Vector.png';
 import { useUser } from '../../context/UserContext';
 
-function TaInbox({ taId }) {
+function TaInbox() {
     // State for modal
     const [isModalVisible, setModalVisible] = useState(false);
     const [modalImageSrc, setModalImageSrc] = useState('');
@@ -18,6 +18,12 @@ function TaInbox({ taId }) {
     const [cards, setCards] = useState([]); // Store cards from DB
     const navigate = useNavigate();
 
+    // New states for class and category filters
+    const [availableClasses, setAvailableClasses] = useState([]);
+    const [selectedClasses, setSelectedClasses] = useState([]);
+    const [availableCategories, setAvailableCategories] = useState([]);
+    const [selectedCategories, setSelectedCategories] = useState([]);
+
     // List of colors for the color filter
     const colors = ['Red', 'Gold', 'Yellow', 'Green', 'Blue', 'Purple', 'Pink', 'Gray', 'Black', 'Brown'];
 
@@ -26,20 +32,35 @@ function TaInbox({ taId }) {
 
     // Fetch cards for a specific TA from the database
     useEffect(() => {
-        axios.get(`http://127.0.0.1:3001/cards/${userEmail}`)
-            .then((response) => {
-                setCards(response.data);
-                console.log(cards);
-            })
-            .catch((error) => {
-                console.error("Error fetching cards:", error);
-            });
-    }, [cards, taId, userEmail]);
+        const fetchCards = async () => {
+            if (!userEmail) return;
 
-    // Filter the cards based on the selected category and color
+            try {
+                // Fetch cards directly using the TA's email
+                const cardsResponse = await axios.get(`http://127.0.0.1:3001/cards/${userEmail}`);
+                const fetchedCards = cardsResponse.data;
+                setCards(fetchedCards);
+
+                // Extract unique classes and categories
+                const uniqueClasses = [...new Set(fetchedCards.map(card => card.fromClass).filter(Boolean))];
+                setAvailableClasses(uniqueClasses);
+
+                const uniqueCategories = [...new Set(fetchedCards.map(card => card.category).filter(Boolean))];
+                setAvailableCategories(uniqueCategories);
+
+            } catch (error) {
+                console.error("Error fetching cards:", error);
+            }
+        };
+        fetchCards();
+    }, [userEmail]);
+
+    // Filter the cards based on the selected category, color, and new class/category filters
     const filteredCards = cards
         .filter(card => selectedCategory === 'All' || card.category === selectedCategory)
-        .filter(card => selectedColor === 'All' || card.color === selectedColor);
+        .filter(card => selectedColor === 'All' || card.color === selectedColor)
+        .filter(card => selectedClasses.length === 0 || selectedClasses.includes(card.fromClass))
+        .filter(card => selectedCategories.length === 0 || selectedCategories.includes(card.category));
 
     const handleImageClick = (imageUrl, card) => {
         setModalImageSrc(imageUrl);
@@ -57,6 +78,20 @@ function TaInbox({ taId }) {
     if (sortOrder === 'descending') {
         sortedCards.reverse();
     }    
+
+    const handleClassFilterChange = (e) => {
+        const { value, checked } = e.target;
+        setSelectedClasses(prev => 
+            checked ? [...prev, value] : prev.filter(c => c !== value)
+        );
+    };
+
+    const handleCategoryFilterChange = (e) => {
+        const { value, checked } = e.target;
+        setSelectedCategories(prev => 
+            checked ? [...prev, value] : prev.filter(c => c !== value)
+        );
+    };
 
     return (
         <div className="App">
@@ -87,11 +122,44 @@ function TaInbox({ taId }) {
                         </select>
                     </div>
 
+                    {/* Filter by Class */}
+                    <div className="filter-group">
+                        <h3>Filter by Class</h3>
+                        {availableClasses.map(cls => (
+                            <label key={cls}>
+                                <input
+                                    type="checkbox"
+                                    value={cls}
+                                    checked={selectedClasses.includes(cls)}
+                                    onChange={handleClassFilterChange}
+                                />
+                                {cls}
+                            </label>
+                        ))}
+                    </div>
+
+                    {/* Filter by Category */}
+                    <div className="filter-group">
+                        <h3>Filter by Category</h3>
+                        {availableCategories.map(cat => (
+                            <label key={cat}>
+                                <input
+                                    type="checkbox"
+                                    value={cat}
+                                    checked={selectedCategories.includes(cat)}
+                                    onChange={handleCategoryFilterChange}
+                                />
+                                {cat}
+                            </label>
+                        ))}
+                    </div>
 
                     <div className="reseti-filters">
                         <button onClick={() => {
                             setSelectedCategory('All');
                             setSelectedColor('All');
+                            setSelectedClasses([]);
+                            setSelectedCategories([]);
                         }}>
                             Reset Filters
                         </button>

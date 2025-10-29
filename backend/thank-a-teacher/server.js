@@ -4,7 +4,6 @@ const cors = require("cors");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
-const { MongoClient } = require("mongodb");
 const multer = require("multer");
 const csv = require("csv-parser");
 const stream = require("stream");
@@ -17,6 +16,9 @@ require('dotenv').config();
 // MODELS
 const User = require("./db/userModel");
 const GIF = require("./db/GIFmodel2");
+const Semester = require("./db/semesterModel");
+const TA = require("./db/taModel");
+const Card = require("./db/cardModel"); // Import the new Card model
 
 // ---- CONFIG ----
 const app = express();
@@ -46,7 +48,7 @@ app.use(cors({
 
 const cas = new CASAuthentication({
   cas_url: "https://sso.gatech.edu/cas",
-  service_url: process.env.SITE_URL,
+  service_url: process.env.SITE_URL | '',
   cas_version: '3.0',
   session_info: "cas_userinfo",
 });
@@ -55,32 +57,9 @@ const cas = new CASAuthentication({
 app.use(express.json({ limit: "50mb" }));
 
 // ---- DB INIT ----
-let client;                                         // native Mongo client (used for TA/CARD collections)
-let list = {};
-
 async function initDbs() {
-  // Mongoose (used by Mongoose models: User, GIF)
   await mongoose.connect(MONGO_URI);
   console.log("Mongoose connected");
-
-  // Native client (used by populate_ta / CARD endpoints)
-  client = new MongoClient(MONGO_URI);
-  await client.connect();                           // ★ you were missing this
-  console.log("MongoClient connected");
-
-  await populate_ta();
-}
-
-async function populate_ta() {
-  const database = client.db("thank-a-teacher");
-  const ta = database.collection("TA");
-  const cursor = ta.find({ $or: [{ isEnabled: true }, { isEnabled: { $exists: false } }] });
-  const tmp = {};
-  let i = 0;
-  for await (const doc of cursor) {
-    tmp[i++] = doc;
-  }
-  list = tmp;
 }
 
 // ---- UPLOADS (multer) ----
@@ -108,7 +87,7 @@ app.post("/upload-tas", upload.single("csv"), (req, res) => {
   bufferStream.end(req.file.buffer);
 
   const results = [];
-  let semester = null;
+  let semesterName = null;
 
   const sanitizeRow = (row) => {
     return Object.entries(row).reduce((acc, [rawKey, rawValue]) => {
@@ -120,7 +99,6 @@ app.post("/upload-tas", upload.single("csv"), (req, res) => {
         acc[lowerKey] = cleanValue;
       }
       return acc;
-      
     }, {});
   };
 
@@ -137,35 +115,35 @@ app.post("/upload-tas", upload.single("csv"), (req, res) => {
     .pipe(csv())
     .on("data", (data) => {
       const sanitized = sanitizeRow(data);
-      if (!semester) {
-        semester = pickField(sanitized, "Semester", "semester");
+      if (!semesterName) {
+        semesterName = pickField(sanitized, "Semester", "semester");
       }
       results.push(sanitized);
     })
     .on("end", async () => {
-      if (!semester) {
+      if (!semesterName) {
         return res.status(400).send("CSV must have a 'Semester' column.");
       }
 
       try {
-        const database = client.db("thank-a-teacher");
-        const taCollection = database.collection("TA");
-        await taCollection.updateOne(
-          { semester },
-          { $set: { 
-              data: results.map((ta) => {
-                return {
-                  name: `${ta.FirstName} ${ta.LastName}`.trim(),
-                  email: ta["Email"],
-                  class: ta.Class
-                };
-              }),
-              filename: req.file.originalname,
-              isEnabled: true
-            }
-          },
-          { upsert: true }
+        const semester = await Semester.findOneAndUpdate(
+          { semester: semesterName },
+          { fileRef: req.file.originalname, isEnabled: true },
+          { upsert: true, new: true }
         );
+
+        await TA.deleteMany({ semester: semesterName });
+
+        const taDocs = results.map((ta) => ({
+          name: `${ta.FirstName} ${ta.LastName}`.trim(),
+          email: ta["Email"],
+          class: ta.Class,
+          semester: semesterName,
+          ref: req.file.originalname,
+        }));
+
+        await TA.insertMany(taDocs);
+
         res.status(200).send("TA data uploaded successfully!");
       } catch (err) {
         console.error(err);
@@ -174,54 +152,156 @@ app.post("/upload-tas", upload.single("csv"), (req, res) => {
     });
 });
 
-app.get("/tas", async (req, res) => {
+// Get all semesters
+app.get("/semesters", async (req, res) => {
   try {
-    const database = client.db("thank-a-teacher");
-    const taCollection = database.collection("TA");
-    const tas = await taCollection.find({}, { projection: { semester: 1, filename: 1, isEnabled: 1 } }).toArray();
-    res.json(tas);
+    const semesters = await Semester.find({});
+    res.json(semesters);
   } catch (err) {
-    console.error("Error fetching TA lists:", err);
-    res.status(500).send("Error fetching TA lists");
+    console.error("Error fetching semesters:", err);
+    res.status(500).send("Error fetching semesters");
   }
 });
 
+// Get enabled semesters
+app.get("/semesters/enabled", async (req, res) => {
+  try {
+    const semesters = await Semester.find({ isEnabled: true });
+    res.json(semesters);
+  } catch (err) {
+    console.error("Error fetching enabled semesters:", err);
+    res.status(500).send("Error fetching enabled semesters");
+  }
+});
+
+
+// Delete a semester and all associated TAs
+app.delete("/semesters/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const semester = await Semester.findById(id);
+    if (!semester) {
+      return res.status(404).send("No semester found with that ID.");
+    }
+
+    await TA.deleteMany({ semester: semester.semester });
+    await Semester.findByIdAndDelete(id);
+
+    res.status(200).send("Semester and associated TAs deleted successfully!");
+  } catch (err) {
+    console.error("Error deleting semester:", err);
+    res.status(500).send("Error deleting semester");
+  }
+});
+
+// Toggle a semester's isEnabled status
+app.patch("/semesters/:id/toggle", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const semester = await Semester.findById(id);
+    if (!semester) {
+      return res.status(404).send("No semester found with that ID.");
+    }
+    const newIsEnabled = !semester.isEnabled;
+    await Semester.updateOne(
+      { _id: id },
+      { $set: { isEnabled: newIsEnabled } }
+    );
+    res.status(200).send(`Semester ${newIsEnabled ? 'enabled' : 'disabled'} successfully!`);
+  } catch (err) {
+    console.error("Error toggling semester:", err);
+    res.status(500).send("Error toggling semester");
+  }
+});
+
+app.get("/ta/id/:email", async (req, res) => {
+  try {
+    const { email } = req.params;
+    const ta = await TA.findOne({ email: email });
+    if (!ta) {
+      return res.status(404).send("TA not found.");
+    }
+    res.status(200).json({ _id: ta._id });
+  } catch (err) {
+    console.error("Error fetching TA ID:", err);
+    res.status(500).send("Error fetching TA ID");
+  }
+});
+
+// Get all TAs for a given semester
+app.get("/tas/:semester", async (req, res) => {
+  try {
+    const { semester } = req.params;
+    const tas = await TA.find({ semester: semester });
+    res.json(tas);
+  } catch (err) {
+    console.error("Error fetching TAs:", err);
+    res.status(500).send("Error fetching TAs");
+  }
+});
+
+// Add a TA to a semester (personal add)
+app.post("/tas/:semester", async (req, res) => {
+  try {
+    const { semester } = req.params;
+    const { name, email, class: taClass } = req.body;
+
+    const newTa = new TA({
+      name,
+      email,
+      class: taClass,
+      semester,
+      ref: "personal add",
+    });
+
+    await newTa.save();
+
+    res.status(200).send("TA added successfully!");
+  } catch (err) {
+    console.error("Error adding TA:", err);
+    res.status(500).send("Error adding TA.");
+  }
+});
+
+// Update a TA
+app.put("/tas/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, email, class: taClass } = req.body;
+
+    const updatedTa = await TA.findByIdAndUpdate(
+      id,
+      { name, email, class: taClass },
+      { new: true }
+    );
+
+    if (!updatedTa) {
+      return res.status(404).send("TA not found.");
+    }
+
+    res.status(200).json(updatedTa);
+  } catch (err) {
+    console.error("Error updating TA:", err);
+    res.status(500).send("Error updating TA.");
+  }
+});
+
+
+// Delete a TA
 app.delete("/tas/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const database = client.db("thank-a-teacher");
-    const taCollection = database.collection("TA");
-    const result = await taCollection.deleteOne({ _id: new mongoose.Types.ObjectId(id) });
+    const result = await TA.deleteOne({ _id: id });
     if (result.deletedCount === 0) {
-      return res.status(404).send("No TA list found with that ID.");
+      return res.status(404).send("No TA found with that ID.");
     }
-    res.status(200).send("TA list deleted successfully!");
+    res.status(200).send("TA deleted successfully!");
   } catch (err) {
-    console.error("Error deleting TA list:", err);
-    res.status(500).send("Error deleting TA list");
+    console.error("Error deleting TA:", err);
+    res.status(500).send("Error deleting TA");
   }
 });
 
-app.patch("/tas/:id/toggle", async (req, res) => {
-  try {
-    const { id } = req.params;
-    const database = client.db("thank-a-teacher");
-    const taCollection = database.collection("TA");
-    const taList = await taCollection.findOne({ _id: new mongoose.Types.ObjectId(id) });
-    if (!taList) {
-      return res.status(404).send("No TA list found with that ID.");
-    }
-    const newIsEnabled = !taList.isEnabled;
-    await taCollection.updateOne(
-      { _id: new mongoose.Types.ObjectId(id) },
-      { $set: { isEnabled: newIsEnabled } }
-    );
-    res.status(200).send(`TA list ${newIsEnabled ? 'enabled' : 'disabled'} successfully!`);
-  } catch (err) {
-    console.error("Error toggling TA list:", err);
-    res.status(500).send("Error toggling TA list");
-  }
-});
 
 // Auth: login (made null-safe & async)
 app.post("/login", async (req, res) => {
@@ -261,7 +341,11 @@ app.post("/login", async (req, res) => {
 // Auth: register
 app.post("/register", async (req, res) => {
   try {
-    const { email, password, name, isTa } = req.body || {};
+    const { email, password, name } = req.body || {}; 
+    
+    const taExists = await TA.findOne({ email });
+    const isTa = !!taExists; 
+
     const user = await User.create({ email, password, name, isTa, isAdmin: false });
 
     const token = jwt.sign(
@@ -279,15 +363,13 @@ app.post("/register", async (req, res) => {
 // Cards
 app.post("/card", async (req, res) => {
   try {
-    const database = client.db("thank-a-teacher");
-    const cards = database.collection("CARD");
-    const doc = {
+    const newCard = new Card({
       data: req.body?.data,
       for: req.body?.for,
       fromName: req.body?.fromName,
       fromClass: req.body?.fromClass
-    };
-    await cards.insertOne(doc);
+    });
+    await newCard.save();
     res.status(200).send({ ok: true });
   } catch (err) {
     console.error("Error saving card:", err);
@@ -297,9 +379,9 @@ app.post("/card", async (req, res) => {
 
 app.get("/", async (_req, res) => {
   try {
-    await populate_ta();                             // refresh cache
+    const tas = await TA.find({ isEnabled: true });
     res.set("Access-Control-Allow-Origin", "*");
-    res.json(list);
+    res.json(tas);
   } catch (e) {
     console.error(e);
     res.status(500).send("Error");
@@ -309,9 +391,9 @@ app.get("/", async (_req, res) => {
 app.get("/cards/:taId", async (req, res) => {
   try {
     const { taId } = req.params;
-    const database = client.db("thank-a-teacher");
-    const cards = database.collection("CARD");
-    const taCards = await cards.find({ for: taId }).toArray();
+    console.log(`Fetching cards for taId (email): ${taId}`);
+    const taCards = await Card.find({ for: taId });
+    console.log(`Found ${taCards.length} cards.`);
     res.json(taCards);
   } catch (err) {
     console.error("Error fetching cards:", err);
