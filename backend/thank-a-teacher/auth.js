@@ -1,4 +1,11 @@
 const jwt = require("jsonwebtoken");
+require('dotenv').config();
+
+const JWT_SECRET = process.env.JWT_SECRET;
+
+if (!JWT_SECRET) {
+  throw new Error("JWT_SECRET environment variable is required.");
+}
 
 module.exports = async (request, response, next) => {
   try {
@@ -6,7 +13,7 @@ module.exports = async (request, response, next) => {
     const token = await request.headers.authorization.split(" ")[1];
 
     //check if the token matches the supposed origin
-    const decodedToken = await jwt.verify(token, "RANDOM-TOKEN");
+    const decodedToken = await jwt.verify(token, JWT_SECRET);
 
     // retrieve the user details of the logged in user
     const user = await decodedToken;

@@ -5,6 +5,8 @@ import { ToastContainer, toast } from 'react-toastify';
 import '../../styles/TaManagementModal.css';
 import ConfirmationModal from '../common/ConfirmationModal';
 
+const getTaId = (ta) => ta?._id || ta?.id;
+
 function TaManagementModal({ isOpen, onClose, semester }) {
     const [tas, setTas] = useState([]);
     const [originalTas, setOriginalTas] = useState([]);
@@ -34,8 +36,13 @@ function TaManagementModal({ isOpen, onClose, semester }) {
 
     const handleRemoveTa = async () => {
         if (!taToRemove) return;
+        const taId = getTaId(taToRemove);
+        if (!taId) {
+            toast.error('Unable to identify TA to remove.');
+            return;
+        }
         try {
-            await axios.delete(`http://127.0.0.1:3001/tas/${taToRemove._id}`);
+            await axios.delete(`http://127.0.0.1:3001/tas/${taId}`);
             fetchTasForSemester(); // Refresh the TA list
             toast.success('TA removed successfully!');
         } catch (error) {
@@ -79,15 +86,21 @@ function TaManagementModal({ isOpen, onClose, semester }) {
     const handleTaInputChange = (e, index) => {
         const { name, value } = e.target;
         const updatedTas = [...tas];
-        const originalIndex = tas.findIndex(ta => ta._id === sortedAndFilteredTas[index]._id);
+        const targetId = getTaId(sortedAndFilteredTas[index]);
+        const originalIndex = tas.findIndex(ta => getTaId(ta) === targetId);
         updatedTas[originalIndex] = { ...updatedTas[originalIndex], [name]: value };
         setTas(updatedTas);
     };
 
     const handleUpdateTa = async (index) => {
         const taToUpdate = sortedAndFilteredTas[index];
+        const taId = getTaId(taToUpdate);
+        if (!taId) {
+            toast.error('Unable to identify TA to update.');
+            return;
+        }
         try {
-            await axios.put(`http://127.0.0.1:3001/tas/${taToUpdate._id}`, taToUpdate);
+            await axios.put(`http://127.0.0.1:3001/tas/${taId}`, taToUpdate);
             fetchTasForSemester(); // Refresh the TA list
             toast.success('TA updated successfully!');
         } catch (error) {
@@ -98,7 +111,8 @@ function TaManagementModal({ isOpen, onClose, semester }) {
 
     const isTaChanged = (index) => {
         const currentTa = sortedAndFilteredTas[index];
-        const originalTa = originalTas.find(ta => ta._id === currentTa._id);
+        const currentId = getTaId(currentTa);
+        const originalTa = originalTas.find(ta => getTaId(ta) === currentId);
         return JSON.stringify(currentTa) !== JSON.stringify(originalTa);
     };
 
@@ -190,7 +204,7 @@ function TaManagementModal({ isOpen, onClose, semester }) {
                         </thead>
                         <tbody>
                             {sortedAndFilteredTas.map((ta, index) => (
-                                <tr key={ta._id}>
+                                <tr key={ta._id || ta.id || ta.email || index}>
                                     <td><input type="text" name="name" value={ta.name} onChange={(e) => handleTaInputChange(e, index)} /></td>
                                     <td><input type="email" name="email" value={ta.email} onChange={(e) => handleTaInputChange(e, index)} /></td>
                                     <td><input type="text" name="class" value={ta.class} onChange={(e) => handleTaInputChange(e, index)} /></td>

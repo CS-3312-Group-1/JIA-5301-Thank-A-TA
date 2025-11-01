@@ -187,7 +187,7 @@ function BasePage() {
                     url: "http://localhost:3001/card",
                     data: {
                         data: data,
-                        for: selectedTAEmail,
+                        forEmail: selectedTAEmail,
                         fromName: getUserName(),
                         fromClass: selectedClass
                     },
@@ -326,23 +326,50 @@ function BasePage() {
             });
         }
     };
-    const handleAddGif = (gifSrc) => {
-        // Add the new GIF to the gifBoxes state
-        setGifBoxes([
-            ...gifBoxes,
+    const handleAddGif = (gif) => {
+        if (!gif?.dataUrl) {
+            return;
+        }
+        setGifBoxes((prevGifBoxes) => [
+            ...prevGifBoxes,
             {
-                id: "GIF" + (gifBoxes.length + 1), // Unique ID for each GIF
-                src: gifSrc,
+                id: "GIF" + (prevGifBoxes.length + 1),
+                src: gif.dataUrl,
             },
         ]);
     };
 
     const [gifs, setGifs] = useState([]);
+    const arrayBufferToDataUrl = (arrayBuffer, contentType) => {
+        const bytes = new Uint8Array(arrayBuffer);
+        let binary = '';
+        const chunkSize = 0x8000;
+        for (let i = 0; i < bytes.length; i += chunkSize) {
+            const chunk = bytes.subarray(i, i + chunkSize);
+            binary += String.fromCharCode.apply(null, chunk);
+        }
+        const base64 = window.btoa(binary);
+        return `data:${contentType};base64,${base64}`;
+    };
+
     const fetchGifs = async () => {
         try {
             const response = await axios.get('http://127.0.0.1:3001/get-gifs');
-            console.log(response.data); // Log the response to inspect the data
-            setGifs(response.data);
+            const gifSummaries = response.data || [];
+
+            const gifsWithDataUrls = await Promise.all(
+                gifSummaries.map(async (gif) => {
+                    const gifResponse = await axios.get(
+                        `http://127.0.0.1:3001/get-gif/${gif._id}`,
+                        { responseType: 'arraybuffer' }
+                    );
+                    const contentType = gifResponse.headers['content-type'] || 'image/gif';
+                    const dataUrl = arrayBufferToDataUrl(gifResponse.data, contentType);
+                    return { ...gif, dataUrl };
+                })
+            );
+
+            setGifs(gifsWithDataUrls);
         } catch (error) {
             console.error('Error fetching GIFs:', error);
         }
@@ -354,7 +381,7 @@ function BasePage() {
 
     const handleDeleteGif = () => {
         if (selectedGifId !== null) {
-            setGifBoxes((prevGifBoxes) => 
+            setGifBoxes((prevGifBoxes) =>
                 prevGifBoxes.filter((gif) => gif.id !== selectedGifId)
             );
             setSelectedGifId(null); // Deselect after deletion
@@ -531,11 +558,11 @@ function BasePage() {
                             {gifs.map((gif) => (
                                 <img
                                     key={gif._id} // Use _id from the database
-                                    src={`http://127.0.0.1:3001/get-gif/${gif._id}`} // Construct the URL for the GIF
+                                    src={gif.dataUrl}
                                     alt={gif.name} // Optional alt text for accessibility
                                     className="gif-option"
                                     onClick={() =>
-                                        handleAddGif(`http://127.0.0.1:3001/get-gif/${gif._id}`)
+                                        handleAddGif(gif)
                                     } // Pass URL to handler
                                 />
                             ))}

@@ -1,29 +1,33 @@
 // server.js
+require('dotenv').config();
+
 const express = require("express");
 const cors = require("cors");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const mongoose = require("mongoose");
 const multer = require("multer");
-const csv = require("csv-parser");
 const stream = require("stream");
+const csv = require("csv-parser");
+const User = require("./db/userModel");
+const GIF = require("./db/gifModel");
+const Semester = require("./db/semesterModel");
+const TA = require("./db/taModel");
+const Card = require("./db/cardModel");
 // required for SSO/CAS auth
 const session = require('express-session');
 const CASAuthentication = require('express-cas-authentication');
 
-require('dotenv').config();
 
-// MODELS
-const User = require("./db/userModel");
-const GIF = require("./db/GIFmodel2");
-const Semester = require("./db/semesterModel");
-const TA = require("./db/taModel");
-const Card = require("./db/cardModel"); // Import the new Card model
 
 // ---- CONFIG ----
 const app = express();
 const PORT = process.env.PORT;
-const MONGO_URI = process.env.MONGO_URI;
+const JWT_SECRET = process.env.JWT_SECRET;
+
+if (!JWT_SECRET) {
+  throw new Error("JWT_SECRET environment variable is required.");
+}
+
 
 // CAS session/proxy setup
 app.set('trust proxy', 1);
@@ -48,19 +52,38 @@ app.use(cors({
 
 const cas = new CASAuthentication({
   cas_url: "https://sso.gatech.edu/cas",
-  service_url: process.env.SITE_URL | '',
+  service_url: process.env.SITE_URL || '',
   cas_version: '3.0',
   session_info: "cas_userinfo",
 });
 
+const mapTaRecord = (ta) => {
+  if (!ta) return ta;
+  return { ...ta, _id: ta.id };
+};
+
+const mapCardRecord = (card, defaultContentType = 'image/gif') => {
+  if (!card) return card;
+  let dataUrl = card.data;
+
+  if (Buffer.isBuffer(card.data)) {
+    const base64 = card.data.toString('base64');
+    dataUrl = `data:${card.contentType || defaultContentType};base64,${base64}`;
+  } else if (typeof card.data === 'string' && !card.data.startsWith('data:')) {
+    dataUrl = `data:${card.contentType || defaultContentType};base64,${card.data}`;
+  }
+
+  return {
+    ...card,
+    _id: card.id,
+    data: dataUrl,
+  };
+};
+
 // Body parsing
 app.use(express.json({ limit: "50mb" }));
 
-// ---- DB INIT ----
-async function initDbs() {
-  await mongoose.connect(MONGO_URI);
-  console.log("Mongoose connected");
-}
+
 
 // ---- UPLOADS (multer) ----
 const storage = multer.memoryStorage();
@@ -134,15 +157,37 @@ app.post("/upload-tas", upload.single("csv"), (req, res) => {
 
         await TA.deleteMany({ semester: semesterName });
 
-        const taDocs = results.map((ta) => ({
-          name: `${ta.FirstName} ${ta.LastName}`.trim(),
-          email: ta["Email"],
-          class: ta.Class,
-          semester: semesterName,
-          ref: req.file.originalname,
-        }));
+        const taDocs = [];
+        const seen = new Set();
 
-        await TA.insertMany(taDocs);
+        for (const ta of results) {
+          const firstName = ta.FirstName || "";
+          const lastName = ta.LastName || "";
+          const email = ta["Email"] ? ta["Email"].trim() : "";
+          const taClass = ta.Class ? ta.Class.trim() : "";
+
+          if (!email) {
+            continue;
+          }
+
+          const key = `${email.toLowerCase()}-${semesterName}`;
+          if (seen.has(key)) {
+            continue;
+          }
+          seen.add(key);
+
+          taDocs.push({
+            name: `${firstName} ${lastName}`.trim(),
+            email,
+            class: taClass,
+            semester: semesterName,
+            ref: req.file.originalname,
+          });
+        }
+
+        if (taDocs.length > 0) {
+          await TA.insertMany(taDocs);
+        }
 
         res.status(200).send("TA data uploaded successfully!");
       } catch (err) {
@@ -155,7 +200,7 @@ app.post("/upload-tas", upload.single("csv"), (req, res) => {
 // Get all semesters
 app.get("/semesters", async (req, res) => {
   try {
-    const semesters = await Semester.find({});
+    const semesters = await Semester.find();
     res.json(semesters);
   } catch (err) {
     console.error("Error fetching semesters:", err);
@@ -221,7 +266,7 @@ app.get("/ta/id/:email", async (req, res) => {
     if (!ta) {
       return res.status(404).send("TA not found.");
     }
-    res.status(200).json({ _id: ta._id });
+    res.status(200).json({ _id: ta.id });
   } catch (err) {
     console.error("Error fetching TA ID:", err);
     res.status(500).send("Error fetching TA ID");
@@ -233,7 +278,7 @@ app.get("/tas/:semester", async (req, res) => {
   try {
     const { semester } = req.params;
     const tas = await TA.find({ semester: semester });
-    res.json(tas);
+    res.json(tas.map(mapTaRecord));
   } catch (err) {
     console.error("Error fetching TAs:", err);
     res.status(500).send("Error fetching TAs");
@@ -246,17 +291,18 @@ app.post("/tas/:semester", async (req, res) => {
     const { semester } = req.params;
     const { name, email, class: taClass } = req.body;
 
-    const newTa = new TA({
+    const newTa = {
       name,
       email,
       class: taClass,
       semester,
       ref: "personal add",
-    });
+    };
 
-    await newTa.save();
+    const result = await TA.save(newTa);
+    const insertedTa = await TA.findById(result.insertId);
 
-    res.status(200).send("TA added successfully!");
+    res.status(200).json(mapTaRecord(insertedTa));
   } catch (err) {
     console.error("Error adding TA:", err);
     res.status(500).send("Error adding TA.");
@@ -269,17 +315,17 @@ app.put("/tas/:id", async (req, res) => {
     const { id } = req.params;
     const { name, email, class: taClass } = req.body;
 
-    const updatedTa = await TA.findByIdAndUpdate(
+    const updated = await TA.findByIdAndUpdate(
       id,
       { name, email, class: taClass },
-      { new: true }
     );
 
-    if (!updatedTa) {
+    if (!updated) {
       return res.status(404).send("TA not found.");
     }
 
-    res.status(200).json(updatedTa);
+    const ta = await TA.findById(id);
+    res.status(200).json(mapTaRecord(ta));
   } catch (err) {
     console.error("Error updating TA:", err);
     res.status(500).send("Error updating TA.");
@@ -291,8 +337,8 @@ app.put("/tas/:id", async (req, res) => {
 app.delete("/tas/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await TA.deleteOne({ _id: id });
-    if (result.deletedCount === 0) {
+    const deleted = await TA.deleteOne({ _id: id });
+    if (!deleted) {
       return res.status(404).send("No TA found with that ID.");
     }
     res.status(200).send("TA deleted successfully!");
@@ -307,7 +353,7 @@ app.delete("/tas/:id", async (req, res) => {
 app.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body || {};
-    const user = await User.findOne({ email });
+    const user = await User.findUserByEmail(email);
     if (!user) return res.status(404).send({ message: "Email not found" });
 
     const ok = await bcrypt.compare(password, user.password);
@@ -315,19 +361,19 @@ app.post("/login", async (req, res) => {
 
     const token = jwt.sign(
       {
-        userId: user._id,
+        userId: user.id,
         userEmail: user.email,
         isTa: user.isTa,
         isAdmin: !!user.isAdmin
       },
-      "RANDOM-TOKEN",
+      JWT_SECRET,
       { expiresIn: "24h" }
     );
 
     res.status(200).send({
       message: "Login Successful",
       email: user.email,
-      name: user.name,
+      name: user.name ?? user.full_name ?? user.username ?? "",
       jwt: token,
       isTa: user.isTa,
       isAdmin: user.isAdmin
@@ -341,19 +387,25 @@ app.post("/login", async (req, res) => {
 // Auth: register
 app.post("/register", async (req, res) => {
   try {
-    const { email, password, name } = req.body || {}; 
-    
-    const taExists = await TA.findOne({ email });
-    const isTa = !!taExists; 
+    const { email, password, name } = req.body || {};
 
-    const user = await User.create({ email, password, name, isTa, isAdmin: false });
+    const taExists = await TA.findTaByEmail(email);
+    const isTa = !!taExists;
+
+    const userId = await User.createUser(email, password, name, isTa, false);
 
     const token = jwt.sign(
-      { userId: user._id, userEmail: user.email, isTa: user.isTa },
-      "RANDOM-TOKEN",
+      { userId: userId, userEmail: email, isTa: isTa },
+      JWT_SECRET,
       { expiresIn: "24h" }
     );
-    res.status(200).send({ jwt: token, email: user.email, isTa });
+    const createdUser = await User.findUserByEmail(email);
+    res.status(200).send({
+      jwt: token,
+      email: email,
+      name: createdUser?.name ?? name,
+      isTa
+    });
   } catch (err) {
     console.error(err);
     res.status(500).send("Error registering new user, please try again.");
@@ -363,13 +415,34 @@ app.post("/register", async (req, res) => {
 // Cards
 app.post("/card", async (req, res) => {
   try {
-    const newCard = new Card({
-      data: req.body?.data,
-      for: req.body?.for,
+    const cardData = req.body?.data;
+    let storedData = null;
+    let contentType = 'image/gif';
+
+    if (typeof cardData === "string") {
+      const match = cardData.match(/^data:(.+);base64,(.+)$/);
+      if (match) {
+        contentType = match[1];
+        storedData = Buffer.from(match[2], "base64");
+      } else {
+        storedData = Buffer.from(cardData, "base64");
+      }
+    } else if (cardData instanceof Buffer) {
+      storedData = cardData;
+    }
+
+    if (!storedData) {
+      return res.status(400).send("Card payload missing or invalid.");
+    }
+
+    const newCard = {
+      data: storedData,
+      forEmail: req.body?.forEmail,
       fromName: req.body?.fromName,
-      fromClass: req.body?.fromClass
-    });
-    await newCard.save();
+      fromClass: req.body?.fromClass,
+      contentType,
+    };
+    await Card.save(newCard);
     res.status(200).send({ ok: true });
   } catch (err) {
     console.error("Error saving card:", err);
@@ -379,9 +452,16 @@ app.post("/card", async (req, res) => {
 
 app.get("/", async (_req, res) => {
   try {
-    const tas = await TA.find({ isEnabled: true });
+    const enabledSemesters = await Semester.find({ isEnabled: true });
+    const semesterNames = enabledSemesters.map((semester) => semester.semester);
+
+    let tas = [];
+    if (semesterNames.length > 0) {
+      tas = await TA.findBySemesters(semesterNames);
+    }
+
     res.set("Access-Control-Allow-Origin", "*");
-    res.json(tas);
+    res.json(tas.map(mapTaRecord));
   } catch (e) {
     console.error(e);
     res.status(500).send("Error");
@@ -391,10 +471,10 @@ app.get("/", async (_req, res) => {
 app.get("/cards/:taId", async (req, res) => {
   try {
     const { taId } = req.params;
-    console.log(`Fetching cards for taId (email): ${taId}`);
-    const taCards = await Card.find({ for: taId });
+    console.log(`Fetching cards for TA email: ${taId}`);
+    const taCards = await Card.find({ forEmail: taId });
     console.log(`Found ${taCards.length} cards.`);
-    res.json(taCards);
+    res.json(taCards.map((card) => mapCardRecord(card)));
   } catch (err) {
     console.error("Error fetching cards:", err);
     res.status(500).send("Error fetching cards");
@@ -407,13 +487,15 @@ app.post("/upload-gif", upload.single("gif"), async (req, res) => {
   if (req.file.mimetype !== "image/gif") return res.status(400).send("Only GIF files are allowed.");
 
   try {
-    const newGif = new GIF({
+    const uploadedBy = req.user?.userEmail || "admin@example.com";
+    const newGif = {
       name: req.file.originalname,
-      img: { data: req.file.buffer, contentType: req.file.mimetype },
+      data: req.file.buffer,
+      contentType: req.file.mimetype,
       size: req.file.size,
-      uploadedBy: "admin@example.com"
-    });
-    await newGif.save();
+      uploadedBy
+    };
+    await GIF.save(newGif);
     res.status(200).send("GIF uploaded and saved successfully!");
   } catch (error) {
     console.error("Error saving GIF:", error);
@@ -425,7 +507,7 @@ app.get("/get-gifs", async (_req, res) => {
   try {
     const gifs = await GIF.find();
     if (!gifs || gifs.length === 0) return res.status(404).send("No GIFs found");
-    res.json(gifs.map((gif) => ({ name: gif.name, _id: gif._id })));
+    res.json(gifs.map((gif) => ({ name: gif.name, _id: gif.id })));
   } catch (err) {
     console.error("Error retrieving GIFs:", err);
     res.status(500).send("Error retrieving GIFs");
@@ -436,8 +518,8 @@ app.get("/get-gif/:id", async (req, res) => {
   try {
     const gif = await GIF.findById(req.params.id);
     if (!gif) return res.status(404).send("GIF not found");
-    res.set("Content-Type", gif.img.contentType);
-    res.send(gif.img.data);
+    res.set("Content-Type", gif.contentType);
+    res.send(gif.data);
   } catch (err) {
     console.error("Error retrieving GIF:", err);
     res.status(500).send("Error retrieving GIF");
@@ -457,7 +539,6 @@ app.delete("/delete-gif/:id", async (req, res) => {
 
 // ---- STARTUP ----
 async function start() {
-  await initDbs();
   app.listen(PORT, () => console.log(`API listening on ${PORT}`));
 }
 

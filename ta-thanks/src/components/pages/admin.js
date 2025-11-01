@@ -200,11 +200,36 @@ function Admin() {
         }
     };
 
+    const arrayBufferToDataUrl = (arrayBuffer, contentType) => {
+        const bytes = new Uint8Array(arrayBuffer);
+        let binary = '';
+        const chunkSize = 0x8000;
+        for (let i = 0; i < bytes.length; i += chunkSize) {
+            const chunk = bytes.subarray(i, i + chunkSize);
+            binary += String.fromCharCode.apply(null, chunk);
+        }
+        const base64 = window.btoa(binary);
+        return `data:${contentType};base64,${base64}`;
+    };
+
     const fetchGifs = async () => {
         try {
             const response = await axios.get('http://127.0.0.1:3001/get-gifs');
-            console.log(response.data); // Log the response to inspect the data
-            setGifs(response.data);
+            const gifSummaries = response.data || [];
+
+            const gifsWithDataUrls = await Promise.all(
+                gifSummaries.map(async (gif) => {
+                    const gifResponse = await axios.get(
+                        `http://127.0.0.1:3001/get-gif/${gif._id}`,
+                        { responseType: 'arraybuffer' }
+                    );
+                    const contentType = gifResponse.headers['content-type'] || 'image/gif';
+                    const dataUrl = arrayBufferToDataUrl(gifResponse.data, contentType);
+                    return { ...gif, dataUrl };
+                })
+            );
+
+            setGifs(gifsWithDataUrls);
             setFetchError('');
         } catch (error) {
             console.error('Error fetching GIFs:', error);
@@ -219,7 +244,7 @@ function Admin() {
             
             if (response.status === 200) {
                 setUploadStatus('GIF deleted successfully!');
-                fetchGifs(); // Refresh the GIF list
+                setGifs((prevGifs) => prevGifs.filter((gif) => gif._id !== gifId));
             } else {
                 setUploadStatus('Failed to delete GIF.');
             }
@@ -359,7 +384,7 @@ function Admin() {
                     {gifs.length > 0 ? (
                         gifs.map((gif) => (
                             <div key={gif._id} className="gif-item">
-                                <img src={`http://127.0.0.1:3001/get-gif/${gif._id}`} alt={gif.name} />
+                                <img src={gif.dataUrl} alt={gif.name} />
                                 <div className="gif-footer">
                                     <p className="gif-name">{gif.name}</p>
                                     <button
