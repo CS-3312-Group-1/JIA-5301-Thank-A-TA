@@ -4,9 +4,10 @@ import { ToastContainer, toast } from 'react-toastify';
 import { useUser } from '../../context/UserContext';
 import 'react-toastify/dist/ReactToastify.css';
 import "../../styles/login.css";
+import { API_BASE_URL } from '../../apiConfig';
 
 async function loginUser(credentials) {
-    const response = await fetch('http://127.0.0.1:3001/login', {
+    const response = await fetch(`${API_BASE_URL}/login`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'

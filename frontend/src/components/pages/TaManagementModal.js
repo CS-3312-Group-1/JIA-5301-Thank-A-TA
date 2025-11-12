@@ -4,6 +4,7 @@ import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import '../../styles/TaManagementModal.css';
 import ConfirmationModal from '../common/ConfirmationModal';
+import { API_BASE_URL } from '../../apiConfig';
 
 const getTaId = (ta) => ta?._id || ta?.id;
 
@@ -19,7 +20,7 @@ function TaManagementModal({ isOpen, onClose, semester }) {
     const fetchTasForSemester = async () => {
         if (semester) {
             try {
-                const response = await axios.get(`http://127.0.0.1:3001/tas/${semester.semester}`);
+                const response = await axios.get(`${API_BASE_URL}/tas/${semester.semester}`);
                 setTas(response.data || []);
                 setOriginalTas(response.data || []);
             } catch (error) {
@@ -42,7 +43,7 @@ function TaManagementModal({ isOpen, onClose, semester }) {
             return;
         }
         try {
-            await axios.delete(`http://127.0.0.1:3001/tas/${taId}`);
+            await axios.delete(`${API_BASE_URL}/tas/${taId}`);
             fetchTasForSemester(); // Refresh the TA list
             toast.success('TA removed successfully!');
         } catch (error) {
@@ -68,7 +69,7 @@ function TaManagementModal({ isOpen, onClose, semester }) {
         }
 
         try {
-            await axios.post(`http://127.0.0.1:3001/tas/${semester.semester}`, newTa);
+            await axios.post(`${API_BASE_URL}/tas/${semester.semester}`, newTa);
             setNewTa({ name: '', email: '', class: '' });
             fetchTasForSemester(); // Refresh the TA list
             toast.success('TA added successfully!');
@@ -100,7 +101,7 @@ function TaManagementModal({ isOpen, onClose, semester }) {
             return;
         }
         try {
-            await axios.put(`http://127.0.0.1:3001/tas/${taId}`, taToUpdate);
+            await axios.put(`${API_BASE_URL}/tas/${taId}`, taToUpdate);
             fetchTasForSemester(); // Refresh the TA list
             toast.success('TA updated successfully!');
         } catch (error) {

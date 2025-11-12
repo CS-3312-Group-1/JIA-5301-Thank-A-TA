@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import '../../styles/register.css';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../../context/UserContext';
+import { API_BASE_URL } from '../../apiConfig';
 
 async function register(credentials) {
-    return fetch('http://localhost:3001/register', {
+    return fetch(`${API_BASE_URL}/register`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'

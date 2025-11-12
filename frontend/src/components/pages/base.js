@@ -17,6 +17,7 @@ import { encode64 } from '../../utils/b64';
 import { getUserName } from '../../App';
 import ConfirmationModal from '../common/ConfirmationModal';
 import Navbar from '../common/Navbar';
+import { API_BASE_URL, FRONTEND_BASE_URL } from '../../apiConfig';
 
 function BasePage() {
     const navigate = useNavigate();
@@ -70,7 +71,7 @@ function BasePage() {
     useEffect(() => {
         const fetchGifs = async () => {
             try {
-                const response = await axios.get("http://localhost:3001/gifs"); 
+                const response = await axios.get(`${API_BASE_URL}/gifs`); 
                 setAvailableGifs(response.data.gifs); 
             } catch (error) {
                 console.error("Error fetching GIFs:", error);
@@ -184,7 +185,7 @@ function BasePage() {
 
                 axios({
                     method: "post",
-                    url: "http://localhost:3001/card",
+                    url: `${API_BASE_URL}/card`,
                     data: {
                         data: data,
                         forEmail: selectedTAEmail,
@@ -194,7 +195,7 @@ function BasePage() {
                     config: { headers: { "Content-Type": "multipart/form-data" } },
                 });
 
-                const message = "You have been sent a card! http://localhost:3000/login";
+                const message = `You have been sent a card! ${FRONTEND_BASE_URL}/login`;
                 const templateParams = {
                     to_email: selectedTAEmail,
                     from_name: 'thankateacher',
@@ -354,13 +355,13 @@ function BasePage() {
 
     const fetchGifs = async () => {
         try {
-            const response = await axios.get('http://127.0.0.1:3001/get-gifs');
+            const response = await axios.get(`${API_BASE_URL}/get-gifs`);
             const gifSummaries = response.data || [];
 
             const gifsWithDataUrls = await Promise.all(
                 gifSummaries.map(async (gif) => {
                     const gifResponse = await axios.get(
-                        `http://127.0.0.1:3001/get-gif/${gif._id}`,
+                        `${API_BASE_URL}/get-gif/${gif._id}`,
                         { responseType: 'arraybuffer' }
                     );
                     const contentType = gifResponse.headers['content-type'] || 'image/gif';
