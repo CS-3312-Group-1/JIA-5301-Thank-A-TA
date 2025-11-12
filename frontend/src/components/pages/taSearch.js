@@ -6,6 +6,7 @@ import axios from 'axios';
 
 import { getToken } from '../../App';
 import Navbar from '../common/Navbar';
+import { API_BASE_URL } from '../../apiConfig';
 
 function TaSearch() {
   const navigate = useNavigate();
@@ -34,7 +35,7 @@ function TaSearch() {
   useEffect(() => {
     const fetchSemesters = async () => {
       try {
-        const response = await axios.get('http://127.0.0.1:3001/semesters/enabled');
+        const response = await axios.get(`${API_BASE_URL}/semesters/enabled`);
         setSemesters(response.data);
       } catch (e) {
         console.log(e);
@@ -57,7 +58,7 @@ function TaSearch() {
 
     if (semesterId) {
       try {
-        const response = await axios.get(`http://127.0.0.1:3001/tas/${semesterId}`);
+        const response = await axios.get(`${API_BASE_URL}/tas/${semesterId}`);
         const taData = response.data;
         const uniqueClasses = [...new Set(taData.map(item => item.class))];
         setClasses(uniqueClasses.map((name, i) => ({ id: String(i), name })));
@@ -78,7 +79,7 @@ function TaSearch() {
 
     if (className && selectedSemester) {
         try {
-          const response = await axios.get(`http://127.0.0.1:3001/tas/${selectedSemester}`);
+          const response = await axios.get(`${API_BASE_URL}/tas/${selectedSemester}`);
           const taData = response.data.filter(item => item.class === className);
           setTAs(taData.map(ta => ({ id: ta.email, name: ta.name, email: ta.email })));
           const selectedClassObj = classes.find(c => c.name === className);

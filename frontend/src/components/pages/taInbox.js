@@ -5,6 +5,7 @@ import '../../styles/taInbox.css';
 import { useNavigate } from 'react-router-dom';
 import homeIcon from '../../assets/Vector.png';
 import { useUser } from '../../context/UserContext';
+import { API_BASE_URL } from '../../apiConfig';
 
 function TaInbox() {
     // State for modal
@@ -37,7 +38,7 @@ function TaInbox() {
 
             try {
                 // Fetch cards directly using the TA's email
-                const cardsResponse = await axios.get(`http://127.0.0.1:3001/cards/${userEmail}`);
+                const cardsResponse = await axios.get(`${API_BASE_URL}/cards/${userEmail}`);
                 const fetchedCards = cardsResponse.data;
                 setCards(fetchedCards);
 

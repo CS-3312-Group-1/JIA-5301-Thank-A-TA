@@ -6,6 +6,7 @@ import GifPreviewModal from './GifPreviewModal';
 import TaManagementModal from './TaManagementModal';
 import ConfirmationModal from '../common/ConfirmationModal';
 import { FaTrashCan } from 'react-icons/fa6';
+import { API_BASE_URL } from '../../apiConfig';
 
 function Admin() {
     const navigate = useNavigate();
@@ -30,7 +31,7 @@ function Admin() {
 
     const fetchSemesters = async () => {
         try {
-            const response = await axios.get('http://127.0.0.1:3001/semesters');
+            const response = await axios.get(`${API_BASE_URL}/semesters`);
             setSemesters(response.data);
         } catch (error) {
             console.error('Error fetching semesters:', error);
@@ -88,7 +89,7 @@ function Admin() {
         formData.append('csv', selectedCsv);
 
         try {
-            const response = await axios.post('http://127.0.0.1:3001/upload-tas', formData, {
+            const response = await axios.post(`${API_BASE_URL}/upload-tas`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
@@ -178,7 +179,7 @@ function Admin() {
         formData.append('gif', selectedGif);
 
         try {
-            const response = await axios.post('http://127.0.0.1:3001/upload-gif', formData, {
+            const response = await axios.post(`${API_BASE_URL}/upload-gif`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
@@ -214,13 +215,13 @@ function Admin() {
 
     const fetchGifs = async () => {
         try {
-            const response = await axios.get('http://127.0.0.1:3001/get-gifs');
+            const response = await axios.get(`${API_BASE_URL}/get-gifs`);
             const gifSummaries = response.data || [];
 
             const gifsWithDataUrls = await Promise.all(
                 gifSummaries.map(async (gif) => {
                     const gifResponse = await axios.get(
-                        `http://127.0.0.1:3001/get-gif/${gif._id}`,
+                        `${API_BASE_URL}/get-gif/${gif._id}`,
                         { responseType: 'arraybuffer' }
                     );
                     const contentType = gifResponse.headers['content-type'] || 'image/gif';
@@ -240,7 +241,7 @@ function Admin() {
     const handleDeleteGif = async (gifId) => {
         try {
             console.log(`Deleting GIF with ID: ${gifId}`);
-            const response = await axios.delete(`http://127.0.0.1:3001/delete-gif/${gifId}`);
+            const response = await axios.delete(`${API_BASE_URL}/delete-gif/${gifId}`);
             
             if (response.status === 200) {
                 setUploadStatus('GIF deleted successfully!');
@@ -258,7 +259,7 @@ function Admin() {
 
     const handleDeleteSemester = async (semesterId) => {
         try {
-            await axios.delete(`http://127.0.0.1:3001/semesters/${semesterId}`);
+            await axios.delete(`${API_BASE_URL}/semesters/${semesterId}`);
             fetchSemesters();
         } catch (error) {
             console.error('Error deleting semester:', error);
@@ -273,7 +274,7 @@ function Admin() {
     const confirmToggleSemester = async () => {
         if (!toggleTarget) return;
         try {
-            await axios.patch(`http://127.0.0.1:3001/semesters/${toggleTarget._id}/toggle`);
+            await axios.patch(`${API_BASE_URL}/semesters/${toggleTarget._id}/toggle`);
             fetchSemesters();
         } catch (error) {
             console.error('Error toggling semester:', error);
