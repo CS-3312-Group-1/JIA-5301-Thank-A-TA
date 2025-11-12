@@ -7,6 +7,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const multer = require("multer");
 const stream = require("stream");
+const path = require("path");
 const csv = require("csv-parser");
 const User = require("./db/userModel");
 const GIF = require("./db/gifModel");
@@ -83,6 +84,8 @@ const mapCardRecord = (card, defaultContentType = 'image/gif') => {
 // Body parsing
 app.use(express.json({ limit: "50mb" }));
 
+// Serve static files from the React app
+app.use(express.static(path.join(__dirname, 'frontend/build')));
 
 
 // ---- UPLOADS (multer) ----
@@ -535,6 +538,12 @@ app.delete("/delete-gif/:id", async (req, res) => {
     console.error("Error deleting GIF:", error);
     res.status(500).send({ message: "Server error" });
   }
+});
+
+// The "catchall" handler: for any request that doesn't
+// match one above, send back React's index.html file.
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend/build/index.html'));
 });
 
 // ---- STARTUP ----
