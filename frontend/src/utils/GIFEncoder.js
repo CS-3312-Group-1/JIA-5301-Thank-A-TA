@@ -68,7 +68,7 @@ export default function GIFEncoder() {
 	 * @param ms
 	 */
 
-	var setDelay = exports.setDelay = function setDelay(ms) {
+	var setDelay = function setDelay(ms) {
 		delay = Math.round(ms / 10);
 	};
 
@@ -81,7 +81,7 @@ export default function GIFEncoder() {
 	 * int disposal code.
 	 */
 
-	var setDispose = exports.setDispose = function setDispose(code) {
+	var setDispose = function setDispose(code) {
 		if (code >= 0) dispose = code;
 	};
 
@@ -95,7 +95,7 @@ export default function GIFEncoder() {
 	 * @return
 	 */
 
-	var setRepeat = exports.setRepeat = function setRepeat(iter) {
+	var setRepeat = function setRepeat(iter) {
 		if (iter >= 0) repeat = iter;
 	};
 
@@ -109,7 +109,7 @@ export default function GIFEncoder() {
 	 * Color to be treated as transparent on display.
 	 */
 
-	var setTransparent = exports.setTransparent = function setTransparent(c) {
+	var setTransparent = function setTransparent(c) {
 		transparent = c;
 	};
 
@@ -120,7 +120,7 @@ export default function GIFEncoder() {
 	 * string to be insterted as comment
 	 */
 
-	var setComment = exports.setComment = function setComment(c) {
+	var setComment = function setComment(c) {
 		comment = c;
 	};
 
@@ -132,7 +132,7 @@ export default function GIFEncoder() {
 	 * BitmapData object to be treated as a GIF's frame
 	 */
 
-	var addFrame = exports.addFrame = function addFrame(im, is_imageData) {
+	var addFrame = function addFrame(im, is_imageData) {
 
 		if ((im === null) || !started || out === null) {
 			throw new Error("Please call start method before calling addFrame");
@@ -201,7 +201,7 @@ export default function GIFEncoder() {
 	* @parameter {String} filename filename used for downloading the gif
 	*/
 	
-	var download = exports.download = function download(filename) {
+	var download = function download(filename) {
 		if(out===null || closeStream==false) {
 			console.log("Please call start method and add frames and call finish method before calling download"); 
 		} else {
@@ -218,7 +218,7 @@ export default function GIFEncoder() {
 	 * the GIF stream will not be valid.
 	 */
 
-	var finish = exports.finish = function finish() {
+	var finish = function finish() {
 
 		if (!started) return false;
 
@@ -259,7 +259,7 @@ export default function GIFEncoder() {
 	 * float frame rate (frames per second)
 	 */
 
-	var setFrameRate = exports.setFrameRate = function setFrameRate(fps) {
+	var setFrameRate = function setFrameRate(fps) {
 		if (fps != 0xf) delay = Math.round(100 / fps);
 	};
 
@@ -274,7 +274,7 @@ export default function GIFEncoder() {
 	 * @return
 	 */
 
-	var setQuality = exports.setQuality = function setQuality(quality) {
+	var setQuality = function setQuality(quality) {
 		if (quality < 1) quality = 1;
 		sample = quality;
 	};
@@ -288,7 +288,7 @@ export default function GIFEncoder() {
 	 * int frame width.
 	 */
 
-	var setSize = exports.setSize = function setSize(w, h) {
+	var setSize = function setSize(w, h) {
 
 		if (started && !firstFrame) return;
 		width = w;
@@ -305,7 +305,7 @@ export default function GIFEncoder() {
 	 * @return false if initial write failed.
 	 */
 
-	var start = exports.start = function start() {
+	var start = function start() {
 
 		reset();
 		var ok = true;
@@ -315,12 +315,12 @@ export default function GIFEncoder() {
 			out.writeUTFBytes("GIF89a"); // header
 		} catch (e) {
 			ok = false;
-		}
+}
 
 		return started = ok;
 	};
 
-	var cont = exports.cont = function cont() {
+	var cont = function cont() {
 
 		reset();
 		var ok = true;
@@ -549,15 +549,27 @@ export default function GIFEncoder() {
 	 * Retrieves the GIF stream
 	 */
 
-	var stream = exports.stream = function stream() {
+	var stream = function stream() {
 		return out;
 	};
 
-	var setProperties = exports.setProperties = function setProperties(has_start, is_first) {
+	var setProperties = function setProperties(has_start, is_first) {
 		started = has_start;
 		firstFrame = is_first;
 	};
-
+	exports.setDelay = setDelay;
+	exports.setDispose = setDispose;
+	exports.setRepeat = setRepeat;
+	exports.setTransparent = setTransparent;
+	exports.setComment = setComment;
+	exports.addFrame = addFrame;
+	exports.finish = finish;
+	exports.setFrameRate = setFrameRate;
+	exports.setQuality = setQuality;
+	exports.setSize = setSize;
+	exports.start = start;
+	exports.cont = cont;
+	exports.stream = stream;
 	return exports;
 
 };

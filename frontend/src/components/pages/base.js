@@ -1,6 +1,5 @@
-/* eslint-disable no-unused-vars */
 import { useNavigate, useLocation } from 'react-router-dom';
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import html2canvas from 'html2canvas';
 import Draggable from 'react-draggable'; 
 import "../../styles/base.css";
@@ -9,7 +8,6 @@ import emptyCard2 from '../../assets/card2_Empty.png';
 import emptyCard3 from '../../assets/Card3_Empty.png';
 import emptyCard4 from '../../assets/card4_Empty.png';
 import emptyCard5 from '../../assets/card5_Empty.png';
-import emailjs from 'emailjs-com';
 import axios from "axios";
 import GIF from '../../utils/GIF';
 import GIFEncoder from '../../utils/GIFEncoder';
@@ -39,6 +37,13 @@ function BasePage() {
     const [selectedGifId, setSelectedGifId] = useState(null);
     const gifContainerRef = useRef(null);
     const [availableGifs, setAvailableGifs] = useState([]);
+    const defaultTextColors = [
+        '#FFFFFF',  
+        '#FFFFFF', 
+        '#FFFFFF',  
+        '000000', 
+        '#FFFFFF'   
+    ];
     useEffect(() => {
 
         const defaultColor = defaultTextColors[selectedCard - 1];
@@ -65,21 +70,47 @@ function BasePage() {
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, [selectedCard]);
+    }, [selectedCard, defaultTextColors]);
 
-    // Fetch GIFs from the backend on component mount
-    useEffect(() => {
-        const fetchGifs = async () => {
-            try {
-                const response = await axios.get(`${API_BASE_URL}/gifs`); 
-                setAvailableGifs(response.data.gifs); 
-            } catch (error) {
-                console.error("Error fetching GIFs:", error);
-            }
-        };
+    const [gifs, setGifs] = useState([]);
+    const arrayBufferToDataUrl = (arrayBuffer, contentType) => {
+        const bytes = new Uint8Array(arrayBuffer);
+        let binary = '';
+        const chunkSize = 0x8000;
+        for (let i = 0; i < bytes.length; i += chunkSize) {
+            const chunk = bytes.subarray(i, i + chunkSize);
+            binary += String.fromCharCode.apply(null, chunk);
+        }
+        const base64 = window.btoa(binary);
+        return `data:${contentType};base64,${base64}`;
+    };
 
-        fetchGifs();
+    const fetchGifs = useCallback(async () => {
+        try {
+            const response = await axios.get(`${API_BASE_URL}/get-gifs`);
+            const gifSummaries = response.data || [];
+
+            const gifsWithDataUrls = await Promise.all(
+                gifSummaries.map(async (gif) => {
+                    const gifResponse = await axios.get(
+                        `${API_BASE_URL}/get-gif/${gif._id}`,
+                        { responseType: 'arraybuffer' }
+                    );
+                    const contentType = gifResponse.headers['content-type'] || 'image/gif';
+                    const dataUrl = arrayBufferToDataUrl(gifResponse.data, contentType);
+                    return { ...gif, dataUrl };
+                })
+            );
+
+            setGifs(gifsWithDataUrls);
+        } catch (error) {
+            console.error('Error fetching GIFs:', error);
+        }
     }, []);
+
+    useEffect(() => {
+        fetchGifs();
+    }, [fetchGifs]);
 
     const handleHomeClick = () => {
         setModalMessage("Are you sure you want to discard your changes and go to the home page?");
@@ -183,7 +214,7 @@ function BasePage() {
                 const binaryGif = encoder.stream().getData();
                 const data = "data:image/gif;base64," + encode64(binaryGif);
 
-                axios({
+                await axios({
                     method: "post",
                     url: `${API_BASE_URL}/card`,
                     data: {
@@ -195,15 +226,6 @@ function BasePage() {
                     config: { headers: { "Content-Type": "multipart/form-data" } },
                 });
 
-                const message = `You have been sent a card! ${FRONTEND_BASE_URL}/login`;
-                const templateParams = {
-                    to_email: selectedTAEmail,
-                    from_name: 'thankateacher',
-                    message: message,
-                };
-
-                await emailjs.send('service_2q7ey7a', 'template_2s72nqg', templateParams, 'BnWkvVIrhnA4im9HN');
-                alert('Email sent successfully!');
                 navigate('/sent');
 
             } catch (error) {
@@ -340,46 +362,6 @@ function BasePage() {
         ]);
     };
 
-    const [gifs, setGifs] = useState([]);
-    const arrayBufferToDataUrl = (arrayBuffer, contentType) => {
-        const bytes = new Uint8Array(arrayBuffer);
-        let binary = '';
-        const chunkSize = 0x8000;
-        for (let i = 0; i < bytes.length; i += chunkSize) {
-            const chunk = bytes.subarray(i, i + chunkSize);
-            binary += String.fromCharCode.apply(null, chunk);
-        }
-        const base64 = window.btoa(binary);
-        return `data:${contentType};base64,${base64}`;
-    };
-
-    const fetchGifs = async () => {
-        try {
-            const response = await axios.get(`${API_BASE_URL}/get-gifs`);
-            const gifSummaries = response.data || [];
-
-            const gifsWithDataUrls = await Promise.all(
-                gifSummaries.map(async (gif) => {
-                    const gifResponse = await axios.get(
-                        `${API_BASE_URL}/get-gif/${gif._id}`,
-                        { responseType: 'arraybuffer' }
-                    );
-                    const contentType = gifResponse.headers['content-type'] || 'image/gif';
-                    const dataUrl = arrayBufferToDataUrl(gifResponse.data, contentType);
-                    return { ...gif, dataUrl };
-                })
-            );
-
-            setGifs(gifsWithDataUrls);
-        } catch (error) {
-            console.error('Error fetching GIFs:', error);
-        }
-    };
-
-    useEffect(() => {
-        fetchGifs();
-    }, []);
-
     const handleDeleteGif = () => {
         if (selectedGifId !== null) {
             setGifBoxes((prevGifBoxes) =>
@@ -410,13 +392,6 @@ function BasePage() {
         console.log(gifPosition)
         console.log(gifBoxes)
       };
-    const defaultTextColors = [
-        '#FFFFFF',  
-        '#FFFFFF', 
-        '#FFFFFF',  
-        '000000', 
-        '#FFFFFF'   
-    ];
 
     // Static Color Palette (Rainbow + Black, White, Brown)
     const colors = [

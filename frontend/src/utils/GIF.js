@@ -160,8 +160,7 @@ export default function GIF () {
         processFrame(frame);                               // convert to canvas image
     };
     function processFrame(frame) { // creates a RGBA canvas image from the indexed pixel data.
-        var ct, cData, dat, pixCount, ind, useT, i, pixel, pDat, col, frame, ti;
-        frame.image        = document.createElement('canvas');
+        var ct, cData, dat, pixCount, ind, useT, i, pixel, pDat, col, ti;        frame.image        = document.createElement('canvas');
         frame.image.width  = gif.width;
         frame.image.height = gif.height;
         frame.image.ctx    = frame.image.getContext("2d");

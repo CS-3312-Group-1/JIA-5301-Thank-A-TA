@@ -2,10 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import '../../styles/taInbox.css';
-import { useNavigate } from 'react-router-dom';
-import homeIcon from '../../assets/Vector.png';
 import { useUser } from '../../context/UserContext';
 import { API_BASE_URL } from '../../apiConfig';
+import Navbar from '../common/Navbar';
 
 function TaInbox() {
     // State for modal
@@ -16,8 +15,7 @@ function TaInbox() {
     // State for filtering
     const [selectedCategory, setSelectedCategory] = useState('All');
     const [selectedColor, setSelectedColor] = useState('All');
-    const [cards, setCards] = useState([]); // Store cards from DB
-    const navigate = useNavigate();
+    const [cards, setCards] = useState([]);
 
     // New states for class and category filters
     const [availableClasses, setAvailableClasses] = useState([]);
@@ -29,32 +27,40 @@ function TaInbox() {
     const colors = ['Red', 'Gold', 'Yellow', 'Green', 'Blue', 'Purple', 'Pink', 'Gray', 'Black', 'Brown'];
 
     // Context to get the current user's email
-    const { userEmail } = useUser(); 
+    const { user } = useUser();
+    const userEmail = user?.email;
 
-    // Fetch cards for a specific TA from the database
     useEffect(() => {
-        const fetchCards = async () => {
+        const loadCards = async () => {
             if (!userEmail) return;
 
-            try {
-                // Fetch cards directly using the TA's email
-                const cardsResponse = await axios.get(`${API_BASE_URL}/cards/${userEmail}`);
-                const fetchedCards = cardsResponse.data;
-                setCards(fetchedCards);
-
-                // Extract unique classes and categories
-                const uniqueClasses = [...new Set(fetchedCards.map(card => card.fromClass).filter(Boolean))];
-                setAvailableClasses(uniqueClasses);
-
-                const uniqueCategories = [...new Set(fetchedCards.map(card => card.category).filter(Boolean))];
-                setAvailableCategories(uniqueCategories);
-
-            } catch (error) {
-                console.error("Error fetching cards:", error);
+            const cachedCards = sessionStorage.getItem(`ta_inbox_cards_${userEmail}`);
+            if (cachedCards) {
+                setCards(JSON.parse(cachedCards));
+            } else {
+                try {
+                    const cardsResponse = await axios.get(`${API_BASE_URL}/cards/${userEmail}`);
+                    const fetchedCards = cardsResponse.data;
+                    setCards(fetchedCards);
+                    sessionStorage.setItem(`ta_inbox_cards_${userEmail}`, JSON.stringify(fetchedCards));
+                } catch (error) {
+                    console.error("Error fetching cards:", error);
+                }
             }
         };
-        fetchCards();
+
+        loadCards();
     }, [userEmail]);
+
+    useEffect(() => {
+        if (cards.length > 0) {
+            const uniqueClasses = [...new Set(cards.map(card => card.fromClass).filter(Boolean))];
+            setAvailableClasses(uniqueClasses);
+
+            const uniqueCategories = [...new Set(cards.map(card => card.category).filter(Boolean))];
+            setAvailableCategories(uniqueCategories);
+        }
+    }, [cards]);
 
     // Filter the cards based on the selected category, color, and new class/category filters
     const filteredCards = cards
@@ -96,15 +102,7 @@ function TaInbox() {
 
     return (
         <div className="App">
-            <div className="header">
-                <div className="title">TA Thank You Cards</div>
-                <div className="search">
-                    <button onClick={() => {
-                        sessionStorage.clear();
-                        navigate('/login');
-                    }}>Logout</button>
-                </div>
-            </div>
+            <Navbar title="TA Inbox" />
 
             <div className="main-contenti">
                 {/* Filters Section */}

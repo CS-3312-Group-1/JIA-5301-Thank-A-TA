@@ -1,15 +1,14 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import axios from 'axios';
 import '../../styles/admin.css';
-import { useNavigate } from 'react-router-dom';
 import GifPreviewModal from './GifPreviewModal';
 import TaManagementModal from './TaManagementModal';
 import ConfirmationModal from '../common/ConfirmationModal';
 import { FaTrashCan } from 'react-icons/fa6';
 import { API_BASE_URL } from '../../apiConfig';
+import Navbar from '../common/Navbar';
 
 function Admin() {
-    const navigate = useNavigate();
     const [selectedGif, setSelectedGif] = useState(null);
     const [uploadStatus, setUploadStatus] = useState('');
     const [taUploadStatus, setTaUploadStatus] = useState('');
@@ -29,18 +28,56 @@ function Admin() {
     const gifInputRef = useRef(null);
     const csvInputRef = useRef(null);
 
-    const fetchSemesters = async () => {
+    const fetchSemesters = useCallback(async () => {
         try {
             const response = await axios.get(`${API_BASE_URL}/semesters`);
             setSemesters(response.data);
         } catch (error) {
             console.error('Error fetching semesters:', error);
         }
+    }, []);
+
+    const arrayBufferToDataUrl = (arrayBuffer, contentType) => {
+        const bytes = new Uint8Array(arrayBuffer);
+        let binary = '';
+        const chunkSize = 0x8000;
+        for (let i = 0; i < bytes.length; i += chunkSize) {
+            const chunk = bytes.subarray(i, i + chunkSize);
+            binary += String.fromCharCode.apply(null, chunk);
+        }
+        const base64 = window.btoa(binary);
+        return `data:${contentType};base64,${base64}`;
     };
 
-    useEffect(() => {
-        fetchSemesters();
+    const fetchGifs = useCallback(async () => {
+        try {
+            const response = await axios.get(`${API_BASE_URL}/get-gifs`);
+            const gifSummaries = response.data || [];
+
+            const gifsWithDataUrls = await Promise.all(
+                gifSummaries.map(async (gif) => {
+                    const gifResponse = await axios.get(
+                        `${API_BASE_URL}/get-gif/${gif._id}`,
+                        { responseType: 'arraybuffer' }
+                    );
+                    const contentType = gifResponse.headers['content-type'] || 'image/gif';
+                    const dataUrl = arrayBufferToDataUrl(gifResponse.data, contentType);
+                    return { ...gif, dataUrl };
+                })
+            );
+
+            setGifs(gifsWithDataUrls);
+            setFetchError('');
+        } catch (error) {
+            console.error('Error fetching GIFs:', error);
+            setFetchError('Failed to load available GIFs.');
+        }
     }, []);
+
+    useEffect(() => {
+        fetchGifs();
+        fetchSemesters();
+    }, [fetchGifs, fetchSemesters]);
 
     // Handle GIF selection
     const handleGifSelection = (event) => {
@@ -201,43 +238,6 @@ function Admin() {
         }
     };
 
-    const arrayBufferToDataUrl = (arrayBuffer, contentType) => {
-        const bytes = new Uint8Array(arrayBuffer);
-        let binary = '';
-        const chunkSize = 0x8000;
-        for (let i = 0; i < bytes.length; i += chunkSize) {
-            const chunk = bytes.subarray(i, i + chunkSize);
-            binary += String.fromCharCode.apply(null, chunk);
-        }
-        const base64 = window.btoa(binary);
-        return `data:${contentType};base64,${base64}`;
-    };
-
-    const fetchGifs = async () => {
-        try {
-            const response = await axios.get(`${API_BASE_URL}/get-gifs`);
-            const gifSummaries = response.data || [];
-
-            const gifsWithDataUrls = await Promise.all(
-                gifSummaries.map(async (gif) => {
-                    const gifResponse = await axios.get(
-                        `${API_BASE_URL}/get-gif/${gif._id}`,
-                        { responseType: 'arraybuffer' }
-                    );
-                    const contentType = gifResponse.headers['content-type'] || 'image/gif';
-                    const dataUrl = arrayBufferToDataUrl(gifResponse.data, contentType);
-                    return { ...gif, dataUrl };
-                })
-            );
-
-            setGifs(gifsWithDataUrls);
-            setFetchError('');
-        } catch (error) {
-            console.error('Error fetching GIFs:', error);
-            setFetchError('Failed to load available GIFs.');
-        }
-    };
-
     const handleDeleteGif = async (gifId) => {
         try {
             console.log(`Deleting GIF with ID: ${gifId}`);
@@ -296,11 +296,6 @@ function Admin() {
     };
 
     useEffect(() => {
-        fetchGifs();
-        fetchSemesters();
-    }, []);
-
-    useEffect(() => {
         const isModalOpen = isTaModalOpen || isPreviewOpen || isConfirmOpen || !!deleteTarget;
         if (isModalOpen) {
             document.body.classList.add('modal-open');
@@ -338,15 +333,7 @@ function Admin() {
 
     return (
         <div className="App">
-            <div className="header">
-                <div className="title">Administration Menu</div>
-                <div className="search">
-                    <button onClick={() => {
-                        sessionStorage.clear();
-                        navigate('/login');
-                    }}>Logout</button>
-                </div>
-            </div>
+            <Navbar title="Administration Menu" />
 
             <div className="main-contenta">
                 <div className="gif-management">

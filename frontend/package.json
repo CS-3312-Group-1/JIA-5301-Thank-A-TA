@@ -2,6 +2,7 @@
   "name": "ta-thanks",
   "version": "0.1.0",
   "private": true,
+  "proxy": "http://localhost:3001",
   "dependencies": {
     "@mui/base": "^5.0.0-beta.40",
     "@testing-library/jest-dom": "^5.17.0",

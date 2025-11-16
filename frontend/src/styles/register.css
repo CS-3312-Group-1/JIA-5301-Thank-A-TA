@@ -2,8 +2,10 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
+    min-height: calc(100vh - 75px);
+    padding: 40px 16px;
     background-color: #ffffff; 
+    box-sizing: border-box;
 }
 
 .register-container {

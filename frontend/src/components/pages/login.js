@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import { useUser } from '../../context/UserContext';
 import 'react-toastify/dist/ReactToastify.css';
@@ -23,12 +23,24 @@ async function loginUser(credentials) {
     return data;
 }
 
-const LoginPage = ({ setToken }) => {
+const LoginPage = () => {
     const [passwordVisible, setPasswordVisible] = useState(false);
     const [password, setPassword] = useState('');
     const [email, setEmail] = useState('');
     const navigate = useNavigate();
-    const { setUserEmail } = useUser();
+    const { user, login } = useUser();
+
+    useEffect(() => {
+        if (user) {
+            if (user.isAdmin) {
+                navigate('/admin');
+            } else if (user.isTa) {
+                navigate('/inbox');
+            } else {
+                navigate('/');
+            }
+        }
+    }, [user, navigate]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -37,12 +49,11 @@ const LoginPage = ({ setToken }) => {
                 email,
                 password,
             });
-            setToken(authPayload);
-            setUserEmail(authPayload.email);
+            login(authPayload);
 
-            if (authPayload.isAdmin) {
+            if (authPayload.isAdmin === 1 || authPayload.isAdmin === true) {
                 navigate('/admin');
-            } else if (authPayload.isTa) {
+            } else if (authPayload.isTa === 1 || authPayload.isTa === true) {
                 navigate('/inbox');
             } else {
                 navigate('/');

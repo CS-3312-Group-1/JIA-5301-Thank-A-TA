@@ -3,7 +3,6 @@ import GIF from '../../utils/GIF';
 import '../../styles/GifPreviewModal.css';
 
 function GifPreviewModal({ isOpen, onClose, onConfirm, file }) {
-    const [gifUrl, setGifUrl] = useState(null);
     const [resizedFile, setResizedFile] = useState(null);
     const canvasRef = useRef(null);
 
@@ -43,7 +42,6 @@ function GifPreviewModal({ isOpen, onClose, onConfirm, file }) {
                 // A full animated preview would require more complex logic to play the gif on the canvas.
                 ctx.drawImage(gif.image, 0, 0, newWidth, newHeight);
 
-                setGifUrl(canvas.toDataURL());
                 setResizedFile(file);
             };
             gif.load(e.target.result);

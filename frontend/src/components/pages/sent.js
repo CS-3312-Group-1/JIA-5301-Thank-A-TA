@@ -16,32 +16,34 @@ const Sent = () => {
     }, [navigate]);
 
     return (
-        <div className="sent-page">
-            <div className="overlay"></div>
-            <div className="sent-message">
-                <h1>SENT!</h1>
-            </div>
-            <div className="star-particles">
-                {[...Array(60)].map((_, index) => {
-                    // Generate random values for each star
-                    const randomX = Math.random() * 2 - 1;  // Random value between -1 and 1
-                    const randomY = Math.random() * 2 - 1;  // Random value between -1 and 1
-                    const randomSpeed = Math.random() * 1.5 + 1;
+        <>
+            <div className="sent-page">
+                <div className="overlay"></div>
+                <div className="sent-message">
+                    <h1>SENT!</h1>
+                </div>
+                <div className="star-particles">
+                    {[...Array(60)].map((_, index) => {
+                        // Generate random values for each star
+                        const randomX = Math.random() * 2 - 1;  // Random value between -1 and 1
+                        const randomY = Math.random() * 2 - 1;  // Random value between -1 and 1
+                        const randomSpeed = Math.random() * 1.5 + 1;
 
-                    return (
-                        <div 
-                            key={index} 
-                            className="star" 
-                            style={{ 
-                                '--x': randomX, 
-                                '--y': randomY, 
-                                animationDuration: `${randomSpeed}s`  // Set random speeds
-                            }}
-                        ></div>
-                    );
-                })}
+                        return (
+                            <div 
+                                key={index} 
+                                className="star" 
+                                style={{ 
+                                    '--x': randomX, 
+                                    '--y': randomY, 
+                                    animationDuration: `${randomSpeed}s`  // Set random speeds
+                                }}
+                            ></div>
+                        );
+                    })}
+                </div>
             </div>
-        </div>
+        </>
     );
 };
 

@@ -29,10 +29,17 @@
   
 .main-content {
     display: flex;
-    align-items: flex-start;  
-    justify-content: flex-start;
+    flex-direction: column;
+    align-items: center;
     width: 100%;
     padding: 20px;
+}
+
+@media (min-width: 768px) {
+    .main-content {
+        flex-direction: row;
+        align-items: flex-start;
+    }
 }
 
 /* \\\\\\\\\\\\\\\\\ */
@@ -68,15 +75,21 @@
 .cards-container {
     flex-grow: 1; 
     display: grid; /* Sets up a grid layout for the card container */
-    grid-template-columns: repeat(3, 1fr); /* Creates 3 equal-width columns */
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 20px;
     grid-row-gap: 30px;
     justify-content: center;
-    padding-left: 100px;
+    padding-left: 20px;
     padding-top: 40px !important;
     max-width: 1200px;
     border: none !important;
     background: transparent;
+}
+
+@media (min-width: 768px) {
+    .cards-container {
+        padding-left: 100px;
+    }
 }
 
 
@@ -206,22 +219,31 @@
 .filters {
     display: flex;
     flex-direction: column;
-    padding-left: 30px;
-    padding-top: 33px;
+    padding: 20px;
     grid-row-gap: 20px;
-    height: 100vh; 
     background-color: #f9f9f9; 
-    position: relative;
+    border-radius: 8px;
+    margin-bottom: 20px;
 }
 
-.filters::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: -50px;
-    width: 1.5px; 
-    height: 700px; 
-    background-color: #d2d2d2; 
+@media (min-width: 768px) {
+    .filters {
+        padding-left: 30px;
+        padding-top: 33px;
+        margin-bottom: 0;
+        border-radius: 0;
+        background-color: transparent;
+    }
+
+    .filters::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: -50px;
+        width: 1.5px; 
+        height: 700px; 
+        background-color: #d2d2d2; 
+    }
 }
 
 

@@ -14,10 +14,12 @@ const GIF = require("./db/gifModel");
 const Semester = require("./db/semesterModel");
 const TA = require("./db/taModel");
 const Card = require("./db/cardModel");
+const { sendEmail } = require('./email'); // Import the email sending function
 // required for SSO/CAS auth
 const session = require('express-session');
 const CASAuthentication = require('express-cas-authentication');
 
+const FRONTEND_BASE_URL = process.env.FRONTEND_BASE_URL || 'http://localhost:3000'; // Define frontend URL
 
 
 // ---- CONFIG ----
@@ -446,6 +448,38 @@ app.post("/card", async (req, res) => {
       contentType,
     };
     await Card.save(newCard);
+
+    // Send email notification to the TA
+    const taEmail = req.body?.forEmail;
+    const fromName = req.body?.fromName;
+    const fromClass = req.body?.fromClass;
+
+    if (taEmail) {
+      const subject = "You've received a Thank-A-TA card!";
+      const text = `Dear TA,
+
+      You have received a new Thank-A-TA card from ${fromName} (${fromClass}).
+
+      View your card here: ${FRONTEND_BASE_URL}/login
+
+      Thank you for your hard work!
+
+      Sincerely,
+      The Thank-A-TA Team`;
+            const html = `<p>Dear TA,</p>
+      <p>You have received a new Thank-A-TA card from <strong>${fromName}</strong> (<strong>${fromClass}</strong>).</p>
+      <p>View your card here: <a href="${FRONTEND_BASE_URL}/login">${FRONTEND_BASE_URL}/login</a></p>
+      <p>Thank you for your hard work!</p>
+      <p>Sincerely,<br>The Thank-A-TA Team</p>`;
+
+      try {
+        await sendEmail(taEmail, subject, text, html);
+        console.log(`Email sent to ${taEmail}`);
+      } catch (emailError) {
+        console.error(`Failed to send email to ${taEmail}:`, emailError);
+      }
+    }
+
     res.status(200).send({ ok: true });
   } catch (err) {
     console.error("Error saving card:", err);
