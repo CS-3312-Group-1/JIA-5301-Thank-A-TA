@@ -214,6 +214,8 @@ function BasePage() {
                 const binaryGif = encoder.stream().getData();
                 const data = "data:image/gif;base64," + encode64(binaryGif);
 
+                const textContent = [...textBoxes.map(box => box.content), text];
+
                 await axios({
                     method: "post",
                     url: `${API_BASE_URL}/card`,
@@ -221,7 +223,8 @@ function BasePage() {
                         data: data,
                         forEmail: selectedTAEmail,
                         fromName: getUserName(),
-                        fromClass: selectedClass
+                        fromClass: selectedClass,
+                        text_content: textContent,
                     },
                     config: { headers: { "Content-Type": "multipart/form-data" } },
                 });
@@ -230,7 +233,11 @@ function BasePage() {
 
             } catch (error) {
                 console.error("Error in sending card process:", error);
-                alert('Failed to send card.');
+                if (error.response && error.response.status === 400) {
+                    alert(error.response.data.message);
+                } else {
+                    alert('Failed to send card.');
+                }
             }
         });
         setIsModalOpen(true);

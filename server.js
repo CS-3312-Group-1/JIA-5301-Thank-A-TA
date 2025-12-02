@@ -253,11 +253,19 @@ app.patch("/semesters/:id/toggle", async (req, res) => {
       return res.status(404).send("No semester found with that ID.");
     }
     const newIsEnabled = !semester.isEnabled;
-    await Semester.updateOne(
+    const updatedSemester = await Semester.updateOne(
       { _id: id },
       { $set: { isEnabled: newIsEnabled } }
     );
-    res.status(200).send(`Semester ${newIsEnabled ? 'enabled' : 'disabled'} successfully!`);
+
+    if (!updatedSemester) {
+      return res.status(500).send("Failed to update semester.");
+    }
+
+    res.status(200).json({
+      message: `Semester ${newIsEnabled ? 'enabled' : 'disabled'} successfully!`,
+      semester: updatedSemester
+    });
   } catch (err) {
     console.error("Error toggling semester:", err);
     res.status(500).send("Error toggling semester");
@@ -417,9 +425,18 @@ app.post("/register", async (req, res) => {
   }
 });
 
+const Filter = require('bad-words');
+const filter = new Filter();
+
 // Cards
 app.post("/card", async (req, res) => {
   try {
+    const { text_content } = req.body;
+
+    if (text_content && text_content.some(text => filter.isProfane(text))) {
+      return res.status(400).send({ message: "Your message contains inappropriate language and could not be sent." });
+    }
+
     const cardData = req.body?.data;
     let storedData = null;
     let contentType = 'image/gif';
