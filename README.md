@@ -4,86 +4,6 @@ This application allows for undergraduate students to send thank you cards to TA
 
 ## Features
 
-### Version 1.0 Features
-
-#### Student Features
-
-**Account Management**
-- **User Registration:** Create a student account with email and password
-- **Login System:** Log in with email and password credentials
-- **TA Detection:** System identifies if an account belongs to a registered TA
-
-**TA Selection**
-- **TA Browsing:** Browse available TAs
-- **Basic Search:** Search for TAs by name or class
-
-**Card Creation & Customization**
-- **Template Selection:** Choose from five unique, professionally-designed card templates
-- **Text Customization:**
-  - Add multiple draggable text boxes to position text anywhere on the card
-  - Select from 9 different font styles (Roboto, Open Sans, Lato, Poppins, Montserrat, Merriweather, Playfair Display, Raleway, Oswald)
-  - Adjust text size dynamically (10-100 pt) with real-time preview
-  - Choose from 10 preset colors (Rainbow colors, Black, White, Brown)
-  - Edit text box properties after placement
-  - Delete individual text boxes
-- **GIF Integration:**
-  - Select from a library of administrator-approved animated GIFs
-  - Drag and drop GIFs anywhere on the card
-  - Resize and reposition GIFs with ease
-  - Add multiple GIFs to a single card
-  - Delete individual GIFs from the card
-  - Animated GIF support in final card output
-- **Real-Time Preview:** See exactly how your card will look before sending
-- **Content Moderation:** Built-in profanity filter ensures all messages are appropriate
-
-**Card Delivery & Export**
-- **Send to TA:** Deliver the card directly to the selected TA
-- **Confirmation Page:** View confirmation after successfully sending a card
-- **Export as PNG:** Download your card as a PNG image for personal use or sharing
-- **Animated GIF Export:** Cards with GIFs are exported as animated GIF files
-
-#### TA Features
-
-**Account Access**
-- **Login System:** TAs log in with their registered email and password
-- **Automatic Detection:** Accounts flagged as TA if email is in TA database
-
-**Card Management**
-- **Personal Inbox:** View all received thank you cards in a dedicated inbox
-- **Card Details:** See sender name and class for each card
-
-**Card Viewing**
-- **Modal View:** Click any card to view it in full-screen modal
-- **High-Quality Display:** View cards in their original quality
-- **Animated GIF Playback:** See all animations and GIFs in received cards
-
-**Basic Filtering**
-- **Filter by Class:** View cards from specific classes
-- **Filter by Category:** Organize cards by categories
-
-#### Admin Features
-
-**Account Access**
-- **Admin Login:** Admin accounts access via email/password
-- **Role Protection:** Admin functionality restricted to authorized accounts
-
-**GIF Management**
-- **GIF Upload:**
-  - Drag-and-drop interface for easy file uploads
-  - Click-to-browse file selection
-  - GIF format validation
-  - 5MB file size limit per GIF
-- **GIF Library:**
-  - View all uploaded GIFs in a gallery format
-  - See GIF names and previews
-- **GIF Deletion:**
-  - Remove unwanted GIFs from the library
-  - Automatic refresh of GIF gallery after deletion
-
-[Old Detailed Design Doc](Design-Document-Final.pdf)
-
----
-
 ### Version 2.0 Features
 
 #### Enhanced Student Features
@@ -184,8 +104,106 @@ This application allows for undergraduate students to send thank you cards to TA
 
 #### Frontend Technology
 - **React Framework:** Modern component-based UI architecture
-    
+
+## Bug Fixes 
+
+### Bug Fixes From Previous Release 
+- Several UI inconsistencies were removed. Buttons and layouts were streamlined.
+- Fixed rasterization issues where selection boxes were incorrectly being displayed on cards sent to TAs.
+- Previously, card templates flickered if switched between.
+- Updated issues with email template to TAs (lack of hyperlink to site, formatting, etc.) 
+
+### Bug Fixes From Current Release
+- Fixed issue with dynamic sizing where on displays bigger than a standard laptop the application would not display properly.
+- Previously, admins could upload any duplicate GIF of any size. Duplicate GIFs are no longer permitted and there are minimum and maximum sizes for the GIFs. If a GIF does not fall into these min/max parameters, it is resized.
+- Fixed issue where drag and drop was not working for uploading CSV files of TA information.
+- Fixed issue where TAs were not being deleted from the database if they were deleted by the admin.
+- Made several improvements to unintuitive UI: changed button layouts, added consistency to sizing, etc.
+- Added confirmations for uploads and deletions that did not exist previously 
 ## Known Issues and Bugs
+- On thank you cards, font color sometimes does not update properly.
+- On thank you cards, moving text can sometimes be bugged or delayed.
+- The Sent animation that plays after a student sends a card is delayed (nothing happens for several seconds, making users think that it was not sent). 
+---
+### Version 1.0 Features
+
+#### Student Features
+
+**Account Management**
+- **User Registration:** Create a student account with email and password
+- **Login System:** Log in with email and password credentials
+- **TA Detection:** System identifies if an account belongs to a registered TA
+
+**TA Selection**
+- **TA Browsing:** Browse available TAs
+- **Basic Search:** Search for TAs by name or class
+
+**Card Creation & Customization**
+- **Template Selection:** Choose from five unique, professionally-designed card templates
+- **Text Customization:**
+  - Add multiple draggable text boxes to position text anywhere on the card
+  - Select from 9 different font styles (Roboto, Open Sans, Lato, Poppins, Montserrat, Merriweather, Playfair Display, Raleway, Oswald)
+  - Adjust text size dynamically (10-100 pt) with real-time preview
+  - Choose from 10 preset colors (Rainbow colors, Black, White, Brown)
+  - Edit text box properties after placement
+  - Delete individual text boxes
+- **GIF Integration:**
+  - Select from a library of administrator-approved animated GIFs
+  - Drag and drop GIFs anywhere on the card
+  - Resize and reposition GIFs with ease
+  - Add multiple GIFs to a single card
+  - Delete individual GIFs from the card
+  - Animated GIF support in final card output
+- **Real-Time Preview:** See exactly how your card will look before sending
+- **Content Moderation:** Built-in profanity filter ensures all messages are appropriate
+
+**Card Delivery & Export**
+- **Send to TA:** Deliver the card directly to the selected TA
+- **Confirmation Page:** View confirmation after successfully sending a card
+- **Export as PNG:** Download your card as a PNG image for personal use or sharing
+- **Animated GIF Export:** Cards with GIFs are exported as animated GIF files
+
+#### TA Features
+
+**Account Access**
+- **Login System:** TAs log in with their registered email and password
+- **Automatic Detection:** Accounts flagged as TA if email is in TA database
+
+**Card Management**
+- **Personal Inbox:** View all received thank you cards in a dedicated inbox
+- **Card Details:** See sender name and class for each card
+
+**Card Viewing**
+- **Modal View:** Click any card to view it in full-screen modal
+- **High-Quality Display:** View cards in their original quality
+- **Animated GIF Playback:** See all animations and GIFs in received cards
+
+**Basic Filtering**
+- **Filter by Class:** View cards from specific classes
+- **Filter by Category:** Organize cards by categories
+
+#### Admin Features
+
+**Account Access**
+- **Admin Login:** Admin accounts access via email/password
+- **Role Protection:** Admin functionality restricted to authorized accounts
+
+**GIF Management**
+- **GIF Upload:**
+  - Drag-and-drop interface for easy file uploads
+  - Click-to-browse file selection
+  - GIF format validation
+  - 5MB file size limit per GIF
+- **GIF Library:**
+  - View all uploaded GIFs in a gallery format
+  - See GIF names and previews
+- **GIF Deletion:**
+  - Remove unwanted GIFs from the library
+  - Automatic refresh of GIF gallery after deletion
+
+[Old Detailed Design Doc](Design-Document-Final.pdf)
+
+----
 
 ## Installation Guide
 For information on installing the Thank-A-Teacher Application and troubleshooting: <br/>
