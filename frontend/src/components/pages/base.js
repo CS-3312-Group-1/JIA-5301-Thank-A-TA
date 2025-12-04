@@ -20,10 +20,12 @@ import { API_BASE_URL, FRONTEND_BASE_URL } from '../../apiConfig';
 function BasePage() {
     const navigate = useNavigate();
     const location = useLocation();
-    const { selectedCard, selectedTAEmail, selectedClass } = location.state || {};  // Retrieve card data from the router state
+    const { selectedCard, selectedTAEmail, selectedClass, selectedSemester } = location.state || {};  // Retrieve card data from the router state
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalMessage, setModalMessage] = useState('');
     const [onConfirmAction, setOnConfirmAction] = useState(null);
+    const [isSending, setIsSending] = useState(false);
+    const [isCapturing, setIsCapturing] = useState(false);
     const [text, setText] = useState(''); // State to store the user's message
     const [textBoxes, setTextBoxes] = useState([]); // Store multiple draggable text boxes
     const [selectedBoxId, setSelectedBoxId] = useState(null); // Track the currently selected text box
@@ -165,8 +167,14 @@ function BasePage() {
     const handleSendClick = () => {
         setModalMessage("Are you sure you would like to send this card?");
         setOnConfirmAction(() => async () => {
+            setIsSending(true);
+            setIsCapturing(true);
             try {
                 const element = printRef.current;
+
+                // Small delay to allow state update to render
+                await new Promise(resolve => setTimeout(resolve, 100));
+
                 const canvas = await html2canvas(element, {
                     useCORS: true,
                     logging: true,
@@ -214,6 +222,9 @@ function BasePage() {
                 const binaryGif = encoder.stream().getData();
                 const data = "data:image/gif;base64," + encode64(binaryGif);
 
+                // Reset capturing state after canvas capture is complete
+                setIsCapturing(false);
+
                 const textContent = [...textBoxes.map(box => box.content), text];
 
                 await axios({
@@ -224,6 +235,7 @@ function BasePage() {
                         forEmail: selectedTAEmail,
                         fromName: getUserName(),
                         fromClass: selectedClass,
+                        fromSemester: selectedSemester,
                         text_content: textContent,
                     },
                     config: { headers: { "Content-Type": "multipart/form-data" } },
@@ -233,6 +245,8 @@ function BasePage() {
 
             } catch (error) {
                 console.error("Error in sending card process:", error);
+                setIsSending(false);
+                setIsCapturing(false);
                 if (error.response && error.response.status === 400) {
                     alert(error.response.data.message);
                 } else {
@@ -417,12 +431,20 @@ function BasePage() {
     return (
         <>
             <Navbar title="3 of 3: Edit Card" />
-            <ConfirmationModal 
-                isOpen={isModalOpen} 
-                onClose={() => setIsModalOpen(false)} 
-                onConfirm={handleConfirm} 
-                message={modalMessage} 
+            <ConfirmationModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onConfirm={handleConfirm}
+                message={modalMessage}
             />
+            {isSending && (
+                <div className="loading-overlay">
+                    <div className="loading-spinner">
+                        <div className="spinner"></div>
+                        <p>Sending your card...</p>
+                    </div>
+                </div>
+            )}
             <div className="design-layout">
                 <div className="message-box-container">
                     <label htmlFor="message">Add a Message</label>
@@ -472,6 +494,11 @@ function BasePage() {
                             ></div>
                         ))}
                     </div>
+
+                    {/* Add Text Button */}
+                    <button className="add-text-button" onClick={handleAddTextBox}>
+                        Add Text to Card
+                    </button>
                 </div>
 
                 {/* Card Preview Section */}
@@ -491,7 +518,7 @@ function BasePage() {
                                         fontSize: `${box.textSize}px`,
                                         color: box.color,
                                         fontFamily: box.fontStyle,
-                                        border: selectedBoxId === box.id ? '2px solid blue' : 'none'
+                                        border: isCapturing ? 'none' : (selectedBoxId === box.id ? '2px solid blue' : '1px dashed #aaa')
                                     }}
                                 >
                                     {box.content}
@@ -514,21 +541,6 @@ function BasePage() {
                                 />
                             </Draggable>
                         ))}
-
-                        {text && (
-                            <Draggable bounds="parent">
-                                <div
-                                    className="draggable-text"
-                                    style={{
-                                        fontSize: `${previewTextSize}px`,
-                                        color: textColor,
-                                        fontFamily: textStyle
-                                    }}
-                                >
-                                    {text}
-                                </div>
-                            </Draggable>
-                        )}
                     </div>
                 </div>
 
@@ -555,20 +567,16 @@ function BasePage() {
                     {/* Buttons Section */}
                     <div className="action-panel">
                         <div className="controls">
-                            <button onClick={() => navigate('/search')} className="back-button">
+                            <button onClick={() => navigate('/search')} className="back-button" disabled={isSending}>
                                 &larr;
                             </button>
-                            <button onClick={handleSendClick} className="send-button">
-                                Send Card
+                            <button onClick={handleSendClick} className="send-button" disabled={isSending}>
+                                {isSending ? 'Sending...' : 'Send Card'}
                             </button>
-                            <button onClick={handleExportCard} className="export-button">
+                            <button onClick={handleExportCard} className="export-button" disabled={isSending}>
                                 Export Card
                             </button>
                         </div>
-
-                        <button className="add-text-button" onClick={handleAddTextBox}>
-                            Add Text to Card
-                        </button>
 
                         <button
                             className="delete-text-button"

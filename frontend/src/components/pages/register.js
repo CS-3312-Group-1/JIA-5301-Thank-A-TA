@@ -14,17 +14,6 @@ async function register(credentials) {
     }).then(data => data.json());
 }
 
-// Sample TA data for verification
-const TAData = {
-    "CS-1332": { "Sam Neill": "sneill@gatech.edu", "Laura Dern": "ldern@gatech.edu" },
-    "CS-1331": { "Sydney Tod": "stod@gatech.edu", "Jeff Goldblum": "jgoldblum@gatech.edu" },
-    "CS-1100": { "Joseph Mazzello": "jmazzello@gatech.edu", "Jessie": "jessierigsbee@gmail.com" }
-};
-
-const flattenTAEmails = () => {
-    return Object.values(TAData).flatMap(course => Object.values(course));
-};
-
 const Register = () => {
     const [passwordVisible, setPasswordVisible] = useState(false);
     const [password, setPassword] = useState("");
@@ -48,18 +37,13 @@ const Register = () => {
     const handleSubmit = async e => {
         e.preventDefault();
 
-        // Check if email is in the list of TA emails
-        const taEmails = flattenTAEmails();
-        const isTA = taEmails.includes(email);
-
-        // Proceed with registration and set isTA based on email verification
+        // Backend will check if email exists in tas table and set isTa accordingly
         const token = await register({
             "email": email,
             "password": password,
-            "name": name,
-            "isTa": isTA
+            "name": name
         });
-        
+
         login(token);
 
         if (token.isTa) {

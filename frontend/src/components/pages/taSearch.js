@@ -134,9 +134,9 @@ function TaSearch() {
       </div>
 
       <div className='textPadding'>
-        <button 
-          onClick={() => navigate('search', { state: { email: selectedTAEmail, selectedClass: selectedClassName } })} 
-          className='nextButton' 
+        <button
+          onClick={() => navigate('search', { state: { email: selectedTAEmail, selectedClass: selectedClassName, selectedSemester } })}
+          className='nextButton'
           disabled={!selectedTA}
         >
           Next

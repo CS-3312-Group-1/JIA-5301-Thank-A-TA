@@ -13,15 +13,14 @@ function TaInbox() {
     const [selectedCard, setSelectedCard] = useState(null);
 
     // State for filtering
-    const [selectedCategory, setSelectedCategory] = useState('All');
     const [selectedColor, setSelectedColor] = useState('All');
     const [cards, setCards] = useState([]);
 
-    // New states for class and category filters
+    // New states for class and semester filters
     const [availableClasses, setAvailableClasses] = useState([]);
     const [selectedClasses, setSelectedClasses] = useState([]);
-    const [availableCategories, setAvailableCategories] = useState([]);
-    const [selectedCategories, setSelectedCategories] = useState([]);
+    const [availableSemesters, setAvailableSemesters] = useState([]);
+    const [selectedSemesters, setSelectedSemesters] = useState([]);
 
     // List of colors for the color filter
     const colors = ['Red', 'Gold', 'Yellow', 'Green', 'Blue', 'Purple', 'Pink', 'Gray', 'Black', 'Brown'];
@@ -57,17 +56,16 @@ function TaInbox() {
             const uniqueClasses = [...new Set(cards.map(card => card.fromClass).filter(Boolean))];
             setAvailableClasses(uniqueClasses);
 
-            const uniqueCategories = [...new Set(cards.map(card => card.category).filter(Boolean))];
-            setAvailableCategories(uniqueCategories);
+            const uniqueSemesters = [...new Set(cards.map(card => card.fromSemester).filter(Boolean))];
+            setAvailableSemesters(uniqueSemesters);
         }
     }, [cards]);
 
-    // Filter the cards based on the selected category, color, and new class/category filters
+    // Filter the cards based on the selected color and new class/semester filters
     const filteredCards = cards
-        .filter(card => selectedCategory === 'All' || card.category === selectedCategory)
         .filter(card => selectedColor === 'All' || card.color === selectedColor)
         .filter(card => selectedClasses.length === 0 || selectedClasses.includes(card.fromClass))
-        .filter(card => selectedCategories.length === 0 || selectedCategories.includes(card.category));
+        .filter(card => selectedSemesters.length === 0 || selectedSemesters.includes(card.fromSemester));
 
     const handleImageClick = (imageUrl, card) => {
         setModalImageSrc(imageUrl);
@@ -79,7 +77,7 @@ function TaInbox() {
         setModalVisible(false);
     };
 
-    const [sortOrder, setSortOrder] = useState('ascending'); // Default: ascending
+    const [sortOrder, setSortOrder] = useState('descending'); // Default: descending (newest first)
 
     const sortedCards = [...filteredCards];
     if (sortOrder === 'descending') {
@@ -88,15 +86,15 @@ function TaInbox() {
 
     const handleClassFilterChange = (e) => {
         const { value, checked } = e.target;
-        setSelectedClasses(prev => 
+        setSelectedClasses(prev =>
             checked ? [...prev, value] : prev.filter(c => c !== value)
         );
     };
 
-    const handleCategoryFilterChange = (e) => {
+    const handleSemesterFilterChange = (e) => {
         const { value, checked } = e.target;
-        setSelectedCategories(prev => 
-            checked ? [...prev, value] : prev.filter(c => c !== value)
+        setSelectedSemesters(prev =>
+            checked ? [...prev, value] : prev.filter(s => s !== value)
         );
     };
 
@@ -137,28 +135,27 @@ function TaInbox() {
                         ))}
                     </div>
 
-                    {/* Filter by Category */}
+                    {/* Filter by Semester */}
                     <div className="filter-group">
-                        <h3>Filter by Category</h3>
-                        {availableCategories.map(cat => (
-                            <label key={cat}>
+                        <h3>Filter by Semester</h3>
+                        {availableSemesters.map(sem => (
+                            <label key={sem}>
                                 <input
                                     type="checkbox"
-                                    value={cat}
-                                    checked={selectedCategories.includes(cat)}
-                                    onChange={handleCategoryFilterChange}
+                                    value={sem}
+                                    checked={selectedSemesters.includes(sem)}
+                                    onChange={handleSemesterFilterChange}
                                 />
-                                {cat}
+                                {sem}
                             </label>
                         ))}
                     </div>
 
                     <div className="reseti-filters">
                         <button onClick={() => {
-                            setSelectedCategory('All');
                             setSelectedColor('All');
                             setSelectedClasses([]);
-                            setSelectedCategories([]);
+                            setSelectedSemesters([]);
                         }}>
                             Reset Filters
                         </button>
@@ -169,14 +166,15 @@ function TaInbox() {
                 <div className="cardi-display">
                     {sortedCards.map((card, index) => (
                         <div key={card._id || index} className="cardi">
-                            <img 
-                                src={card.data} 
-                                alt={`Card ${index + 1}`} 
-                                onClick={() => handleImageClick(card.data, card)} 
+                            <img
+                                src={card.data}
+                                alt={`Card ${index + 1}`}
+                                onClick={() => handleImageClick(card.data, card)}
                                 style={{ cursor: 'pointer' }}
                             />
                             <p>From: {card.fromName}</p>
                             <p>Class: {card.fromClass}</p>
+                            <p>Semester: {card.fromSemester}</p>
                         </div>
                     ))}
                 </div>

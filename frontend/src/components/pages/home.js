@@ -10,7 +10,7 @@ import Navbar from '../common/Navbar';
 
 function Home() {
   const location = useLocation();
-  const { email: selectedTAEmail, selectedClass } = location.state || {};
+  const { email: selectedTAEmail, selectedClass, selectedSemester } = location.state || {};
 
   // State to manage modal visibility
   const [isModalVisible, setModalVisible] = useState(false);
@@ -117,7 +117,7 @@ function Home() {
             <img id="modal-image" className="modal-content" src={modalImageSrc} alt="" />
             <button
               className="start-designing-button"
-              onClick={() => navigate('/design', { state: { selectedCard, selectedTAEmail, selectedClass } })}
+              onClick={() => navigate('/design', { state: { selectedCard, selectedTAEmail, selectedClass, selectedSemester } })}
             >
               Select Card
             </button>

@@ -95,10 +95,40 @@ function Admin() {
         setIsPreviewOpen(true);
     };
 
-    const handleConfirmGif = (file) => {
-        setSelectedGif(file);
+    const handleConfirmGif = async (file) => {
         setIsPreviewOpen(false);
-        setUploadStatus('');
+        setSelectedGif(file);
+
+        // Automatically upload the GIF after confirmation
+        if (!file) {
+            setUploadStatus('No GIF selected.');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('gif', file);
+
+        try {
+            const response = await axios.post(`${API_BASE_URL}/upload-gif`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+
+            if (response.status === 200) {
+                setUploadStatus('GIF uploaded successfully!');
+                setSelectedGif(null);
+                if (gifInputRef.current) {
+                    gifInputRef.current.value = '';
+                }
+                fetchGifs(); // Refresh the GIF list
+            } else {
+                setUploadStatus('Failed to upload GIF.');
+            }
+        } catch (error) {
+            console.error('Error uploading GIF:', error);
+            setUploadStatus('Error uploading GIF.');
+        }
     };
 
     const handleCsvSelection = (event) => {
@@ -168,7 +198,8 @@ function Admin() {
                 return;
             }
 
-            setSelectedGif(file);
+            setGifFile(file);
+            setIsPreviewOpen(true);
             setUploadStatus('');
 
             if (gifInputRef.current) {
@@ -274,7 +305,7 @@ function Admin() {
     const confirmToggleSemester = async () => {
         if (!toggleTarget) return;
         try {
-            await axios.patch(`${API_BASE_URL}/semesters/${toggleTarget._id}/toggle`);
+            await axios.patch(`${API_BASE_URL}/semesters/${toggleTarget.id}/toggle`);
             fetchSemesters();
         } catch (error) {
             console.error('Error toggling semester:', error);
@@ -359,8 +390,8 @@ function Admin() {
                             type="file"
                             accept="image/gif"
                             onChange={handleGifSelection}
+                            style={{ display: 'none' }}
                         />
-                        <button onClick={handleGifUpload}>Upload GIF</button>
                     </div>
 
                     {uploadStatus && <p className="status-message">{uploadStatus}</p>}
@@ -414,15 +445,16 @@ function Admin() {
                             type="file"
                             accept=".csv"
                             onChange={handleCsvSelection}
+                            style={{ display: 'none' }}
                         />
-                        <button onClick={handleCsvUpload}>Upload TA Data</button>
                     </div>
+                    <button onClick={handleCsvUpload} className="upload-ta-button">Upload TA Data</button>
                     {taUploadStatus && <p className="status-message">{taUploadStatus}</p>}
 
                     <h2>Uploaded Semesters</h2>
                     <div className="ta-lists">
                         {semesters.map((semester) => (
-                            <div key={semester._id} className="ta-list-item">
+                            <div key={semester.id} className="ta-list-item">
                                 <span>{semester.semester} - {semester.fileRef}</span>
                                 <div>
                                     <button onClick={() => openTaManagementModal(semester)} className="manage-ta-list-btn">
@@ -434,7 +466,7 @@ function Admin() {
                                     <FaTrashCan
                                         onClick={() => openDeleteConfirmation({
                                             type: 'semester',
-                                            id: semester._id,
+                                            id: semester.id,
                                             name: `${semester.semester} - ${semester.fileRef}`,
                                         })}
                                         size={20}

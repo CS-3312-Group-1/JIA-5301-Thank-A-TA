@@ -264,7 +264,8 @@ app.patch("/semesters/:id/toggle", async (req, res) => {
 
     res.status(200).json({
       message: `Semester ${newIsEnabled ? 'enabled' : 'disabled'} successfully!`,
-      semester: updatedSemester
+      semester: updatedSemester,
+      isEnabled: newIsEnabled
     });
   } catch (err) {
     console.error("Error toggling semester:", err);
@@ -425,17 +426,17 @@ app.post("/register", async (req, res) => {
   }
 });
 
-const Filter = require('bad-words');
-const filter = new Filter();
+// const Filter = require('bad-words');
+// const filter = new Filter();
 
 // Cards
 app.post("/card", async (req, res) => {
   try {
     const { text_content } = req.body;
 
-    if (text_content && text_content.some(text => filter.isProfane(text))) {
-      return res.status(400).send({ message: "Your message contains inappropriate language and could not be sent." });
-    }
+    // if (text_content && text_content.some(text => filter.isProfane(text))) {
+    //   return res.status(400).send({ message: "Your message contains inappropriate language and could not be sent." });
+    // }
 
     const cardData = req.body?.data;
     let storedData = null;
@@ -462,6 +463,7 @@ app.post("/card", async (req, res) => {
       forEmail: req.body?.forEmail,
       fromName: req.body?.fromName,
       fromClass: req.body?.fromClass,
+      fromSemester: req.body?.fromSemester,
       contentType,
     };
     await Card.save(newCard);

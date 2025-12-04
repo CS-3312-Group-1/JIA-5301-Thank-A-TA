@@ -17,7 +17,7 @@ const Navbar = ({ title }) => {
             <div className="navbar-left">
                 {user && (
                     <>
-                        Hey, {user.name} ({user.isTa ? 'TA' : 'Student'})
+                        Hey, {user.name} ({user.isAdmin ? 'Admin' : user.isTa ? 'TA' : 'Student'})
                     </>
                 )}
             </div>
