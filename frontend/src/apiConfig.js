@@ -2,14 +2,11 @@
 
 /**
  * The base URL for the API.
- * In production, this will be an empty string, and requests will be made to the same domain.
- * In development, this will be http://localhost:3001.
+ * All API routes are prefixed with /api and served from the same domain.
+ * In development with proxy, requests go to the backend via the proxy.
+ * In production, requests go directly to /api on the same server.
  */
-export const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || (
-  process.env.NODE_ENV === 'production'
-    ? '/api'
-    : 'http://localhost:3001'
-);
+export const API_BASE_URL = '/api';
 
 /**
  * The base URL for the frontend application.

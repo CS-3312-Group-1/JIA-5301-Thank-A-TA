@@ -1,23 +1,25 @@
-// server.js
+// app.js - Main application entry point
 require('dotenv').config();
 
 const express = require("express");
 const cors = require("cors");
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
 const multer = require("multer");
 const stream = require("stream");
 const path = require("path");
 const csv = require("csv-parser");
-const User = require("./db/userModel");
 const GIF = require("./db/gifModel");
 const Semester = require("./db/semesterModel");
 const TA = require("./db/taModel");
 const Card = require("./db/cardModel");
-const { sendEmail } = require('./email'); // Import the email sending function
-// required for SSO/CAS auth
+const { sendEmail } = require('./email');
+
+// Session and authentication
 const session = require('express-session');
-const CASAuthentication = require('express-cas-authentication');
+const MySQLStore = require('express-mysql-session')(session);
+
+// Import routes and middleware
+const authRoutes = require('./routes/auth');
+const { requireAuth, requireTA, requireAdmin } = require('./middleware/requireAuth');
 
 const FRONTEND_BASE_URL = process.env.FRONTEND_BASE_URL || 'http://localhost:3000'; // Define frontend URL
 
@@ -25,40 +27,89 @@ const FRONTEND_BASE_URL = process.env.FRONTEND_BASE_URL || 'http://localhost:300
 // ---- CONFIG ----
 const app = express();
 const PORT = process.env.PORT;
-const JWT_SECRET = process.env.JWT_SECRET;
 
-if (!JWT_SECRET) {
-  throw new Error("JWT_SECRET environment variable is required.");
+if (!process.env.SESSION_SECRET) {
+  throw new Error("SESSION_SECRET environment variable is required.");
 }
-
 
 // CAS session/proxy setup
 app.set('trust proxy', 1);
 
+// MySQL session store configuration
+const sessionStore = new MySQLStore({
+  host: process.env.DB_HOST || 'localhost',
+  port: Number(process.env.DB_PORT) || 3306,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  clearExpired: true,
+  checkExpirationInterval: 900000, // 15 minutes
+  expiration: 86400000, // 24 hours
+  createDatabaseTable: true,
+  schema: {
+    tableName: 'sessions',
+    columnNames: {
+      session_id: 'session_id',
+      expires: 'expires',
+      data: 'data'
+    }
+  }
+});
+
 app.use(session({
+  key: 'ta_session',
   secret: process.env.SESSION_SECRET,
+  store: sessionStore,
   resave: false,
   saveUninitialized: false,
   cookie: {
+    maxAge: 86400000, // 24 hours
+    httpOnly: true,
     sameSite: 'lax',
     secure: process.env.NODE_ENV === 'production'
   }
 }));
 
-
-// CORS
+// CORS - Allow credentials for session cookies
 app.use(cors({
-  origin: "*",
+  origin: process.env.NODE_ENV === 'production'
+    ? [process.env.FRONTEND_BASE_URL, process.env.SITE_URL].filter(Boolean)
+    : 'http://localhost:3000',
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-  allowedHeaders: ["Content-Type", "Authorization"]
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true
 }));
 
-const cas = new CASAuthentication({
-  cas_url: "https://sso.gatech.edu/cas",
-  service_url: process.env.SITE_URL || '',
-  cas_version: '3.0',
-  session_info: "cas_userinfo",
-});
+// Middleware to handle CAS authentication from Apache mod_auth_cas
+async function casAuthMiddleware(req, res, next) {
+  // Apache mod_auth_cas sets REMOTE_USER header after successful authentication
+  const casUser = req.headers['remote-user'] || req.headers['x-remote-user'];
+
+  if (casUser && !req.session.user) {
+    try {
+      // Check if user is a TA
+      const taRecord = await TA.findOne({ email: casUser });
+      const isTa = !!taRecord;
+
+      // Create session (no database storage needed)
+      req.session.user = {
+        userEmail: casUser,
+        userName: casUser.split('@')[0], // Use email prefix as name
+        isTa: isTa,
+        isAdmin: false // Set manually for admin users
+      };
+
+      await req.session.save();
+    } catch (error) {
+      console.error('Error creating CAS session:', error);
+    }
+  }
+
+  next();
+}
+
+// Apply CAS auth middleware to all routes
+app.use(casAuthMiddleware);
 
 const mapTaRecord = (ta) => {
   if (!ta) return ta;
@@ -86,9 +137,12 @@ const mapCardRecord = (card, defaultContentType = 'image/gif') => {
 // Body parsing
 app.use(express.json({ limit: "50mb" }));
 
-// Serve static files from the React app
+// Serve static files
+app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'frontend/build')));
 
+// Mount authentication routes (session-based)
+app.use('/api', authRoutes);
 
 // ---- UPLOADS (multer) ----
 const storage = multer.memoryStorage();
@@ -96,19 +150,25 @@ const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } });
 
 // ---- ROUTES ----
 
-// CAS Auth routes
-app.get('/login', cas.bounce, (req, res) => res.redirect('/'));
-app.get('/logout', cas.logout);
-app.get('/whoami', cas.bounce, (req, res) => {
-  res.json({ user: req.session[cas.session_name] });
+// Logout route
+app.get('/logout', (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      console.error('Error destroying session:', err);
+    }
+    // Redirect to CAS logout
+    res.redirect('https://login.gatech.edu/cas/logout');
+  });
 });
 
+// ---- API ROUTES ----
+// All API routes are prefixed with /api
 
 // Health
-app.get("/health", (_req, res) => res.json({ ok: true }));
+app.get("/api/health", (_req, res) => res.json({ ok: true }));
 
-// Upload TAs via CSV
-app.post("/upload-tas", upload.single("csv"), (req, res) => {
+// Upload TAs via CSV (Admin only)
+app.post("/api/upload-tas", requireAuth, requireAdmin, upload.single("csv"), (req, res) => {
   if (!req.file) return res.status(400).send("No file uploaded.");
 
   const bufferStream = new stream.PassThrough();
@@ -202,8 +262,8 @@ app.post("/upload-tas", upload.single("csv"), (req, res) => {
     });
 });
 
-// Get all semesters
-app.get("/semesters", async (req, res) => {
+// Get all semesters (Admin only)
+app.get("/api/semesters", requireAuth, requireAdmin, async (req, res) => {
   try {
     const semesters = await Semester.find();
     res.json(semesters);
@@ -214,7 +274,7 @@ app.get("/semesters", async (req, res) => {
 });
 
 // Get enabled semesters
-app.get("/semesters/enabled", async (req, res) => {
+app.get("/api/semesters/enabled", async (req, res) => {
   try {
     const semesters = await Semester.find({ isEnabled: true });
     res.json(semesters);
@@ -225,8 +285,8 @@ app.get("/semesters/enabled", async (req, res) => {
 });
 
 
-// Delete a semester and all associated TAs
-app.delete("/semesters/:id", async (req, res) => {
+// Delete a semester and all associated TAs (Admin only)
+app.delete("/api/semesters/:id", requireAuth, requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     const semester = await Semester.findById(id);
@@ -244,8 +304,8 @@ app.delete("/semesters/:id", async (req, res) => {
   }
 });
 
-// Toggle a semester's isEnabled status
-app.patch("/semesters/:id/toggle", async (req, res) => {
+// Toggle a semester's isEnabled status (Admin only)
+app.patch("/api/semesters/:id/toggle", requireAuth, requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     const semester = await Semester.findById(id);
@@ -273,7 +333,7 @@ app.patch("/semesters/:id/toggle", async (req, res) => {
   }
 });
 
-app.get("/ta/id/:email", async (req, res) => {
+app.get("/api/ta/id/:email", async (req, res) => {
   try {
     const { email } = req.params;
     const ta = await TA.findOne({ email: email });
@@ -288,7 +348,7 @@ app.get("/ta/id/:email", async (req, res) => {
 });
 
 // Get all TAs for a given semester
-app.get("/tas/:semester", async (req, res) => {
+app.get("/api/tas/:semester", async (req, res) => {
   try {
     const { semester } = req.params;
     const tas = await TA.find({ semester: semester });
@@ -299,8 +359,8 @@ app.get("/tas/:semester", async (req, res) => {
   }
 });
 
-// Add a TA to a semester (personal add)
-app.post("/tas/:semester", async (req, res) => {
+// Add a TA to a semester (personal add) (Admin only)
+app.post("/api/tas/:semester", requireAuth, requireAdmin, async (req, res) => {
   try {
     const { semester } = req.params;
     const { name, email, class: taClass } = req.body;
@@ -323,8 +383,8 @@ app.post("/tas/:semester", async (req, res) => {
   }
 });
 
-// Update a TA
-app.put("/tas/:id", async (req, res) => {
+// Update a TA (Admin only)
+app.put("/api/tas/:id", requireAuth, requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     const { name, email, class: taClass } = req.body;
@@ -347,8 +407,8 @@ app.put("/tas/:id", async (req, res) => {
 });
 
 
-// Delete a TA
-app.delete("/tas/:id", async (req, res) => {
+// Delete a TA (Admin only)
+app.delete("/api/tas/:id", requireAuth, requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     const deleted = await TA.deleteOne({ _id: id });
@@ -363,74 +423,13 @@ app.delete("/tas/:id", async (req, res) => {
 });
 
 
-// Auth: login (made null-safe & async)
-app.post("/login", async (req, res) => {
-  try {
-    const { email, password } = req.body || {};
-    const user = await User.findUserByEmail(email);
-    if (!user) return res.status(404).send({ message: "Email not found" });
-
-    const ok = await bcrypt.compare(password, user.password);
-    if (!ok) return res.status(400).send({ message: "Password does not match" });
-
-    const token = jwt.sign(
-      {
-        userId: user.id,
-        userEmail: user.email,
-        isTa: user.isTa,
-        isAdmin: !!user.isAdmin
-      },
-      JWT_SECRET,
-      { expiresIn: "24h" }
-    );
-
-    res.status(200).send({
-      message: "Login Successful",
-      email: user.email,
-      name: user.name ?? user.full_name ?? user.username ?? "",
-      jwt: token,
-      isTa: user.isTa,
-      isAdmin: user.isAdmin
-    });
-  } catch (e) {
-    console.error(e);
-    res.status(500).send({ message: "Server error" });
-  }
-});
-
-// Auth: register
-app.post("/register", async (req, res) => {
-  try {
-    const { email, password, name } = req.body || {};
-
-    const taExists = await TA.findTaByEmail(email);
-    const isTa = !!taExists;
-
-    const userId = await User.createUser(email, password, name, isTa, false);
-
-    const token = jwt.sign(
-      { userId: userId, userEmail: email, isTa: isTa },
-      JWT_SECRET,
-      { expiresIn: "24h" }
-    );
-    const createdUser = await User.findUserByEmail(email);
-    res.status(200).send({
-      jwt: token,
-      email: email,
-      name: createdUser?.name ?? name,
-      isTa
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).send("Error registering new user, please try again.");
-  }
-});
+// Authentication routes are now handled by routes/auth.js (session-based)
 
 // const Filter = require('bad-words');
 // const filter = new Filter();
 
 // Cards
-app.post("/card", async (req, res) => {
+app.post("/api/card", async (req, res) => {
   try {
     const { text_content } = req.body;
 
@@ -506,7 +505,8 @@ app.post("/card", async (req, res) => {
   }
 });
 
-app.get("/", async (_req, res) => {
+// Get all TAs from enabled semesters
+app.get("/api/tas-enabled", async (_req, res) => {
   try {
     const enabledSemesters = await Semester.find({ isEnabled: true });
     const semesterNames = enabledSemesters.map((semester) => semester.semester);
@@ -524,7 +524,8 @@ app.get("/", async (_req, res) => {
   }
 });
 
-app.get("/cards/:taId", async (req, res) => {
+// Get cards for a TA (requires authentication - TAs can only see their own)
+app.get("/api/cards/:taId", requireAuth, requireTA, async (req, res) => {
   try {
     const { taId } = req.params;
     console.log(`Fetching cards for TA email: ${taId}`);
@@ -537,8 +538,8 @@ app.get("/cards/:taId", async (req, res) => {
   }
 });
 
-// GIFs
-app.post("/upload-gif", upload.single("gif"), async (req, res) => {
+// GIFs (Admin only for upload)
+app.post("/api/upload-gif", requireAuth, requireAdmin, upload.single("gif"), async (req, res) => {
   if (!req.file) return res.status(400).send("No file uploaded.");
   if (req.file.mimetype !== "image/gif") return res.status(400).send("Only GIF files are allowed.");
 
@@ -559,7 +560,7 @@ app.post("/upload-gif", upload.single("gif"), async (req, res) => {
   }
 });
 
-app.get("/get-gifs", async (_req, res) => {
+app.get("/api/get-gifs", async (_req, res) => {
   try {
     const gifs = await GIF.find();
     if (!gifs || gifs.length === 0) return res.status(404).send("No GIFs found");
@@ -570,7 +571,7 @@ app.get("/get-gifs", async (_req, res) => {
   }
 });
 
-app.get("/get-gif/:id", async (req, res) => {
+app.get("/api/get-gif/:id", async (req, res) => {
   try {
     const gif = await GIF.findById(req.params.id);
     if (!gif) return res.status(404).send("GIF not found");
@@ -582,7 +583,7 @@ app.get("/get-gif/:id", async (req, res) => {
   }
 });
 
-app.delete("/delete-gif/:id", async (req, res) => {
+app.delete("/api/delete-gif/:id", requireAuth, requireAdmin, async (req, res) => {
   try {
     const deletedGif = await GIF.findByIdAndDelete(req.params.id);
     if (!deletedGif) return res.status(404).send({ message: `GIF with ID ${req.params.id} not found` });
@@ -600,17 +601,11 @@ app.get('*', (req, res) => {
 });
 
 // ---- STARTUP ----
-async function start() {
-  app.listen(PORT, () => console.log(`API listening on ${PORT}`));
-}
-
-if (require.main === module) {
-  // Only start the server if this file is run directly
-  start().catch((e) => {
-    console.error("Startup error:", e);
-    process.exit(1);
-  });
-}
+// Start the server - Passenger and direct execution both need this
+const port = PORT || 3001;
+app.listen(port, () => {
+  console.log(`API listening on ${port}`);
+});
 
 // Export the app for Passenger/Tests
 module.exports = app;

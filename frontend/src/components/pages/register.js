@@ -10,6 +10,7 @@ async function register(credentials) {
         headers: {
             'Content-Type': 'application/json'
         },
+        credentials: 'include', // Include cookies for session-based auth
         body: JSON.stringify(credentials)
     }).then(data => data.json());
 }

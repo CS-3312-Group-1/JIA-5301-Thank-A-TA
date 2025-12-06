@@ -12,6 +12,7 @@ async function loginUser(credentials) {
         headers: {
             'Content-Type': 'application/json'
         },
+        credentials: 'include', // Include cookies for session-based auth
         body: JSON.stringify(credentials)
     });
 
