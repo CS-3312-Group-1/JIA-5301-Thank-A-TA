@@ -11,6 +11,7 @@ const GIF = require("./db/gifModel");
 const Semester = require("./db/semesterModel");
 const TA = require("./db/taModel");
 const Card = require("./db/cardModel");
+const { findUserByEmail, createUserFromCAS } = require('./db/userModel');
 const { sendEmail } = require('./email');
 
 // Session and authentication
@@ -19,6 +20,7 @@ const MySQLStore = require('express-mysql-session')(session);
 
 // Import routes and middleware
 const authRoutes = require('./routes/auth');
+const { requireAuth, requireTA, requireAdmin } = require('./middleware/requireAuth');
 const { requireAuth, requireTA, requireAdmin } = require('./middleware/requireAuth');
 
 const FRONTEND_BASE_URL = process.env.FRONTEND_BASE_URL || 'http://localhost:3000'; // Define frontend URL
@@ -85,23 +87,34 @@ async function casAuthMiddleware(req, res, next) {
   // Apache mod_auth_cas sets REMOTE_USER header after successful authentication
   const casUser = req.headers['remote-user'] || req.headers['x-remote-user'];
 
+  console.log("CAS Auth Middleware Triggered");
+  console.log("SSO User Header:", casUser);
+  console.log("Session User (Before):", req.session.user);
+
   if (casUser && !req.session.user) {
+    console.log("Attempting to create session for SSO user:", casUser);
     try {
-      // Check if user is a TA
-      const taRecord = await TA.findOne({ email: casUser });
-      const isTa = !!taRecord;
+      const email = `${casUser}@gatech.edu`;
+      let user = await findUserByEmail(email);
 
-      // Create session (no database storage needed)
-      req.session.user = {
-        userEmail: casUser,
-        userName: casUser.split('@')[0], // Use email prefix as name
-        isTa: isTa,
-        isAdmin: false // Set manually for admin users
-      };
-
+      if (!user) {
+        console.log("User not found in DB, creating new user for email:", email);
+        // Check if user is a TA
+        const taRecord = await TA.findOne({ email: email });
+        const isTa = !!taRecord;
+        console.log("Is user a TA?", isTa);
+        const userId = await createUserFromCAS(email, casUser, isTa, false);
+        user = { id: userId, email, name: casUser, isTa, isAdmin: false };
+        console.log("New user created:", user);
+      } else {
+        console.log("Found existing user:", user);
+      }
+      
+      req.session.user = user;
       await req.session.save();
+      console.log("Session saved successfully. Session user:", req.session.user);
     } catch (error) {
-      console.error('Error creating CAS session:', error);
+      console.error('Error creating session from SSO:', error);
     }
   }
 

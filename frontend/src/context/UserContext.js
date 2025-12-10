@@ -1,48 +1,50 @@
-import React, { createContext, useState, useContext } from 'react';
+import React, { createContext, useState, useContext, useEffect } from 'react';
+import { API_BASE_URL } from '../apiConfig';
 
 const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
-    const [user, setUser] = useState(() => {
-        const token = sessionStorage.getItem('token');
-        const name = sessionStorage.getItem('name');
-        const email = sessionStorage.getItem('email');
-        const isTa = sessionStorage.getItem('isTa');
-        const isAdmin = sessionStorage.getItem('isAdmin');
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
 
-        if (token && name && email) {
-            return {
-                token,
-                name,
-                email,
-                isTa: isTa === 'true',
-                isAdmin: isAdmin === 'true'
-            };
+    useEffect(() => {
+        const fetchSession = async () => {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/session`, { credentials: 'include' });
+                const data = await response.json();
+                if (data.authenticated) {
+                    setUser({
+                        ...data.user,
+                        isTa: !!data.user.isTa,
+                        isAdmin: !!data.user.isAdmin
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to fetch session:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchSession();
+    }, []);
+
+    const logout = async () => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/logout`, { method: 'POST', credentials: 'include' });
+            const data = await response.json();
+            if (data.redirectUrl) {
+                window.location.href = data.redirectUrl;
+            } else {
+                setUser(null);
+            }
+        } catch (error) {
+            console.error('Logout failed:', error);
+            setUser(null);
         }
-        return null;
-    });
-
-    const login = (userData) => {
-        const isTaBool = userData.isTa === 1 || userData.isTa === true;
-        const isAdminBool = userData.isAdmin === 1 || userData.isAdmin === true;
-
-        const userToSet = { ...userData, isTa: isTaBool, isAdmin: isAdminBool };
-        setUser(userToSet);
-
-        sessionStorage.setItem('token', userData.jwt);
-        sessionStorage.setItem('name', userData.name);
-        sessionStorage.setItem('email', userData.email);
-        sessionStorage.setItem('isTa', isTaBool);
-        sessionStorage.setItem('isAdmin', isAdminBool);
-    };
-
-    const logout = () => {
-        setUser(null);
-        sessionStorage.clear();
     };
 
     return (
-        <UserContext.Provider value={{ user, login, logout }}>
+        <UserContext.Provider value={{ user, logout, loading }}>
             {children}
         </UserContext.Provider>
     );

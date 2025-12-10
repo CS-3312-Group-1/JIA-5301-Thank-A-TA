@@ -12,14 +12,19 @@ import axios from "axios";
 import GIF from '../../utils/GIF';
 import GIFEncoder from '../../utils/GIFEncoder';
 import { encode64 } from '../../utils/b64';
-import { getUserName } from '../../App';
+import { useUser } from '../../context/UserContext';
 import ConfirmationModal from '../common/ConfirmationModal';
 import Navbar from '../common/Navbar';
-import { API_BASE_URL, FRONTEND_BASE_URL } from '../../apiConfig';
+import { API_BASE_URL } from '../../apiConfig';
+import { Filter } from 'bad-words';
+
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function BasePage() {
     const navigate = useNavigate();
     const location = useLocation();
+    const { user } = useUser();
     const { selectedCard, selectedTAEmail, selectedClass, selectedSemester } = location.state || {};  // Retrieve card data from the router state
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalMessage, setModalMessage] = useState('');
@@ -233,7 +238,8 @@ function BasePage() {
                     data: {
                         data: data,
                         forEmail: selectedTAEmail,
-                        fromName: getUserName(),
+                        fromName: user.name,
+                        fromEmail: user.email,
                         fromClass: selectedClass,
                         fromSemester: selectedSemester,
                         text_content: textContent,
@@ -268,6 +274,13 @@ function BasePage() {
     // Reset when adding a new text box
     const handleAddTextBox = () => {
         if (text) {
+            const filter = new Filter();
+            const newBadWords = ['kill', 'suck', 'destroy', 'lick'];
+            filter.addWords(...newBadWords);
+            if (filter.isProfane(text)) {
+                toast.error("Your message contains inappropriate language.");
+                return;
+            }
     
             // Add the new text box with the current textColor (not resetting it)
             setTextBoxes([...textBoxes, {
@@ -596,6 +609,7 @@ function BasePage() {
                     </div>
                 </div>
             </div>
+            <ToastContainer position="top-center" autoClose={3000} hideProgressBar />
         </>
     );
 }

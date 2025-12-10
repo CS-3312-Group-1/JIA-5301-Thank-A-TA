@@ -4,12 +4,13 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-import { getToken } from '../../App';
+import { useUser } from '../../context/UserContext';
 import Navbar from '../common/Navbar';
 import { API_BASE_URL } from '../../apiConfig';
 
 function TaSearch() {
   const navigate = useNavigate();
+  const { user, loading } = useUser();
 
   // Data states
   const [semesters, setSemesters] = useState([]);
@@ -24,12 +25,6 @@ function TaSearch() {
   // Derived state for the next page
   const [selectedTAEmail, setSelectedTAEmail] = useState('');
   const [selectedClassName, setSelectedClassName] = useState('');
-
-  useEffect(() => {
-    if (!getToken()) {
-      navigate('/login');
-    }
-  }, [navigate]);
 
   // Fetch all data on component mount
   useEffect(() => {

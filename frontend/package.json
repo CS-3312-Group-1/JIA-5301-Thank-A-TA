@@ -10,6 +10,7 @@
     "@testing-library/user-event": "^13.5.0",
     "@types/html2canvas": "^0.5.35",
     "axios": "^1.7.7",
+    "bad-words": "^4.0.0",
     "bootstrap": "^5.3.3",
     "dotenv": "^17.2.3",
     "emailjs-com": "^3.2.0",

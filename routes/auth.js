@@ -1,32 +1,9 @@
 /**
  * Authentication Routes - CAS SSO ONLY
- * Email/password authentication is disabled in favor of CAS SSO
  */
 
 const express = require('express');
 const router = express.Router();
-
-/**
- * POST /login - DISABLED (CAS-only)
- * Redirect to CAS login instead
- */
-router.post('/login', async (req, res) => {
-  res.status(403).json({
-    error: 'Email/password login is disabled. Please use CAS SSO.',
-    redirectUrl: '/cas-login'
-  });
-});
-
-/**
- * POST /register - DISABLED (CAS-only)
- * Redirect to CAS login instead
- */
-router.post('/register', async (req, res) => {
-  res.status(403).json({
-    error: 'Email/password registration is disabled. Please use CAS SSO.',
-    redirectUrl: '/cas-login'
-  });
-});
 
 /**
  * POST /logout

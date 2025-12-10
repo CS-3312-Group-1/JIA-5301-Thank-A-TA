@@ -1,5 +1,4 @@
 const pool = require('./connection');
-const bcrypt = require('bcrypt');
 
 // CAS-only: Create user from CAS authentication
 async function createUserFromCAS(email, name, isTa = false, isAdmin = false) {
@@ -24,20 +23,8 @@ async function updateUserTaStatus(email, isTa) {
   return result.affectedRows > 0;
 }
 
-// DEPRECATED: Old password-based functions (kept for migration)
-async function createUser(email, password, name, isTa, isAdmin) {
-  const hashedPassword = await bcrypt.hash(password, 10);
-  const [result] = await pool.execute(
-    'INSERT INTO users (email, password, name, isTa, isAdmin) VALUES (?, ?, ?, ?, ?)',
-    [email, hashedPassword, name, isTa, isAdmin]
-  );
-  return result.insertId;
-}
-
 module.exports = {
   createUserFromCAS,
   findUserByEmail,
   updateUserTaStatus,
-  // Deprecated - for migration only
-  createUser,
 };

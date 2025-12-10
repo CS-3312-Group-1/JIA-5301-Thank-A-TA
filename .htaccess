@@ -1,2 +1,4 @@
-AuthType Cas 
+AuthType CAS
 Require valid-user
+
+CASAuthNHeader X-Remote-User

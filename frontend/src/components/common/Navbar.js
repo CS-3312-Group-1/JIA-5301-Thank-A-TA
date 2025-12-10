@@ -1,15 +1,12 @@
-import React from 'react';
-import { useNavigate, NavLink } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import './../../styles/Navbar.css';
 import { useUser } from '../../context/UserContext';
 
 const Navbar = ({ title }) => {
-    const navigate = useNavigate();
     const { user, logout } = useUser();
 
     const handleLogout = () => {
         logout();
-        navigate('/login');
     };
 
     return (
